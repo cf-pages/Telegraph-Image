@@ -18,15 +18,20 @@ Free Image Hosting solution, Flickr/imgur alternative. Using Cloudflare Pages an
 
 ## Features
 1.无限图片储存数量，你可以上传不限数量的图片
+
 2.无需购买服务器，托管于Cloudflare的网络上，当使用量不超过Cloudflare的免费额度时，完全免费
+
 3.无需购买域名，可以使用Cloudflare Pages提供的`*.pages.dev`的免费二级域名，同时也支持绑定自定义域名
+
 ### 绑定自定义域名
 在pages的自定义域里面，绑定cloudflare中存在的域名，在cloudflare托管的域名，自动会修改dns记录
 ![2](https://telegraph-image.pages.dev/file/29546e3a7465a01281ee2.png)
 
 ### Limitations
 1.由于图片文件实际存储于Telegraph，Telegraph限制上传的图片大小最大为5MB
+
 2.由于使用Cloudflare的网络，图片的加载速度在某些地区可能得不到保证
+
 3.Cloudflare Function免费版每日限制100,000个请求（即上传或是加载图片的总次数不能超过100,000次）如超过可能需要选择购买Cloudflare Function的付费套餐
 
 ### 感谢
