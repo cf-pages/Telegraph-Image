@@ -29,7 +29,7 @@ Free Image Hosting solution, Flickr/imgur alternative. Using Cloudflare Pages an
 2.由于使用Cloudflare的网络，图片的加载速度在某些地区可能得不到保证
 3.Cloudflare Function免费版每日限制100,000个请求（即上传或是加载图片的总次数不能超过100,000次）如超过可能需要选择购买Cloudflare Function的付费套餐
 
-###感谢
+### 感谢
 Hostloc @feixiang和@乌拉擦提供的思路和代码
 
 
