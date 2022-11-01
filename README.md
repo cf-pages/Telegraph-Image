@@ -9,7 +9,7 @@ Free Image Hosting solution, Flickr/imgur alternative. Using Cloudflare Pages an
 ### Step by Step Instruction
 简单3步，即可部署本项目，拥有自己的图床
 
-1.下载或是Fork本仓库
+1.下载或是Fork本仓库 ~~(Fork的时候如果能顺手点下旁边的Star就更好了❤)~~
 
 2.打开Cloudflare Dashboard，进入Pages管理页面，选择创建项目，如果在第一步中选择的是fork本仓库，则选择`连接到 Git 提供程序`，如果第一步中选择的是下载本仓库则选择`直接上传`
 ![1](https://telegraph-image.pages.dev/file/8d4ef9b7761a25821d9c2.png)
