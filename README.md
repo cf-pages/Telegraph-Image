@@ -23,9 +23,19 @@ Free Image Hosting solution, Flickr/imgur alternative. Using Cloudflare Pages an
 
 3.无需购买域名，可以使用Cloudflare Pages提供的`*.pages.dev`的免费二级域名，同时也支持绑定自定义域名
 
+4.支持图片审查API，可根据需要开启，开启后不良图片将自动屏蔽，不再加载
+
 ### 绑定自定义域名
 在pages的自定义域里面，绑定cloudflare中存在的域名，在cloudflare托管的域名，自动会修改dns记录
 ![2](https://telegraph-image.pages.dev/file/29546e3a7465a01281ee2.png)
+
+### 开启图片审查
+1.请前往https://moderatecontent.com/注册并获得一个免费的用于审查图像内容的API key
+2.打开Cloudflare Pages的管理页面，依次点击`设置`，`环境变量`，`添加环境变量`
+3.添加一个`变量名称`为`ModerateContentApiKey`，`值`为你刚刚第一步获得的`API key`，点击`保存`即可
+注意：由于所做的更改将在下次部署时生效，你或许还需要进入`部署`页面，重新部署一下该本项目
+开启图片审查后，因为审查需要时间，首次的图片加载将会变得缓慢，之后的图片加载由于存在缓存，并不会受到影响
+![3](https://tpic.pages.dev/file/bae511fb116b034ef9c14.png)
 
 ### Limitations
 1.由于图片文件实际存储于Telegraph，Telegraph限制上传的图片大小最大为5MB
@@ -35,7 +45,7 @@ Free Image Hosting solution, Flickr/imgur alternative. Using Cloudflare Pages an
 3.Cloudflare Function免费版每日限制100,000个请求（即上传或是加载图片的总次数不能超过100,000次）如超过可能需要选择购买Cloudflare Function的付费套餐
 
 ### 感谢
-Hostloc @feixiang和@乌拉擦提供的思路和代码
+Hostloc @feixiang和@乌拉擦 提供的思路和代码
 
 
 
