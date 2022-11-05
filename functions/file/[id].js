@@ -17,7 +17,7 @@ export async function onRequest(context) {  // Contents of context object
         const res = await fetch(`https://api.moderatecontent.com/moderate/?key=`+apikey+`&url=https://telegra.ph/` + url.pathname + url.search);
         const moderate_data = await res.json();
         if (moderate_data.rating_label=="adult"){
-            return Response.redirect("/block-img.html", 302)
+            return Response.redirect(url.origin+"/block-img.html", 302)
         }
     }
      
