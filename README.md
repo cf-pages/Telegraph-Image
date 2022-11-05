@@ -31,9 +31,13 @@ Free Image Hosting solution, Flickr/imgur alternative. Using Cloudflare Pages an
 
 ### 开启图片审查
 1.请前往https://moderatecontent.com/注册并获得一个免费的用于审查图像内容的API key
+
 2.打开Cloudflare Pages的管理页面，依次点击`设置`，`环境变量`，`添加环境变量`
+
 3.添加一个`变量名称`为`ModerateContentApiKey`，`值`为你刚刚第一步获得的`API key`，点击`保存`即可
+
 注意：由于所做的更改将在下次部署时生效，你或许还需要进入`部署`页面，重新部署一下该本项目
+
 开启图片审查后，因为审查需要时间，首次的图片加载将会变得缓慢，之后的图片加载由于存在缓存，并不会受到影响
 ![3](https://tpic.pages.dev/file/bae511fb116b034ef9c14.png)
 
