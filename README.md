@@ -30,7 +30,7 @@ Free Image Hosting solution, Flickr/imgur alternative. Using Cloudflare Pages an
 ![2](https://telegraph-image.pages.dev/file/29546e3a7465a01281ee2.png)
 
 ### 开启图片审查
-1.请前往https://moderatecontent.com/注册并获得一个免费的用于审查图像内容的API key
+1.请前往https://moderatecontent.com/ 注册并获得一个免费的用于审查图像内容的API key
 
 2.打开Cloudflare Pages的管理页面，依次点击`设置`，`环境变量`，`添加环境变量`
 
