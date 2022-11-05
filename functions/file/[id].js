@@ -12,7 +12,7 @@ export async function onRequest(context) {  // Contents of context object
 
      let apikey=env.ModerateContentApiKey
      if(typeof apikey == "undefined" || apikey == null || apikey == ""){
-        pass
+   
     }else{
         const res = await fetch(`https://api.moderatecontent.com/moderate/?key=`+apikey+`&url=https://telegra.ph/` + url.pathname + url.search);
         const moderate_data = await res.json();
