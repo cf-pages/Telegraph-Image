@@ -9,17 +9,21 @@ export async function onRequest(context) {  // Contents of context object
      } = context;
      context.request
      const url = new URL(request.url);
-
-     let apikey=env.ModerateContentApiKey
-     if(typeof apikey == "undefined" || apikey == null || apikey == ""){
+     try {
+        let apikey=env.ModerateContentApiKey
+        if(typeof apikey == "undefined" || apikey == null || apikey == ""){
    
-    }else{
-        const res = await fetch(`https://api.moderatecontent.com/moderate/?key=`+apikey+`&url=https://telegra.ph/` + url.pathname + url.search);
-        const moderate_data = await res.json();
-        if (moderate_data.rating_label=="adult"){
-            return Response.redirect(url.origin+"/block-img.html", 302)
+        }else{
+                const res = await fetch(`https://api.moderatecontent.com/moderate/?key=`+apikey+`&url=https://telegra.ph/` + url.pathname + url.search);
+                const moderate_data = await res.json();
+                if (moderate_data.rating_label=="adult"){
+                    return Response.redirect(url.origin+"/block-img.html", 302)
+                }
         }
-    }
+      } catch (error) {
+        console.error(error);
+      }
+     
      
      const response = fetch('https://telegra.ph/' + url.pathname + url.search, {
          method: request.method,
