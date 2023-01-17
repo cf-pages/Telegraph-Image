@@ -9,23 +9,78 @@ export async function onRequest(context) {  // Contents of context object
      } = context;
      context.request
      const url = new URL(request.url);
-
-     let apikey=env.ModerateContentApiKey
-     if(typeof apikey == "undefined" || apikey == null || apikey == ""){
-   
-    }else{
-        const res = await fetch(`https://api.moderatecontent.com/moderate/?key=`+apikey+`&url=https://telegra.ph/` + url.pathname + url.search);
-        const moderate_data = await res.json();
-        if (moderate_data.rating_label=="adult"){
-            return Response.redirect(url.origin+"/block-img.html", 302)
-        }
-    }
-     
-     const response = fetch('https://telegra.ph/' + url.pathname + url.search, {
+    
+    const response = fetch('https://telegra.ph/' + url.pathname + url.search, {
          method: request.method,
          headers: request.headers,
          body: request.body,
+     }).then(async (response) => {
+        console.log(response.ok); // true if the response status is 2xx
+        console.log(response.status); // 200
+        if(response.ok){
+            // Referer header equal to the admin page
+            if (request.headers.get('Referer') == url.origin+"/admin") {
+                //show the image
+                return response;
+            }
+        console.log("env.Disable_Dashboard:")
+        console.log(env.Disable_Dashboard)
+        if (env.Disable_Dashboard){}else{
+            //check the record from kv
+            const record = await env.img_url.getWithMetadata(params.id); 
+            console.log(record)
+            if (record.metadata === null) {
+            }else{
+                //if the record is not null, redirect to the image
+                if (record.metadata.ListType=="White"){
+                    return response;
+                }else if (record.metadata.ListType=="Block"){
+                    return Response.redirect(url.origin+"/block-img.html", 302)
+                }
+                //check if the env variables WhiteList_Mode are set
+                if (env.WhiteList_Mode=="true"){
+                    //if the env variables WhiteList_Mode are set, redirect to the image
+                    return Response.redirect(url.origin+"/whitelist-on.html", 302);
+                }
+            }
+            
+        }
+
+        //get time
+        let time = new Date().getTime();
+        
+        let apikey=env.ModerateContentApiKey
+        
+            if(typeof apikey == "undefined" || apikey == null || apikey == ""){
+                //check if the env variables Disable_Dashboard are set
+                
+                if (env.Disable_Dashboard){console.log(1)}else{
+                    //add image to kv
+                    await env.img_url.put(params.id, "",{
+                        metadata: { ListType: "None", rating_label: "None",TimeStamp: time },
+                    });
+                }
+            }else{
+                await fetch(`https://api.moderatecontent.com/moderate/?key=`+apikey+`&url=https://telegra.ph/` + url.pathname + url.search).
+                then(async (response) => {
+                    let moderate_data = await response.json();
+                    console.log(moderate_data)
+                    if (env.Disable_Dashboard=="true"){}else{
+                        //add image to kv
+                        await env.img_url.put(params.id, "",{
+                            metadata: { ListType: "None", Label: moderate_data.rating_label,TimeStamp: time },
+                        });
+                    }  
+                    if (moderate_data.rating_label=="adult"){
+                        return Response.redirect(url.origin+"/block-img.html", 302)
+                    }});
+             
+            }
+        }
+        return response;
      });
+
     return response;
+    
   }
   
