@@ -23,9 +23,8 @@ export async function onRequest(context) {  // Contents of context object
                 //show the image
                 return response;
             }
-        console.log("env.Disable_Dashboard:")
-        console.log(env.Disable_Dashboard)
-        if (env.Disable_Dashboard){}else{
+
+        if (env.img_url){}else{
             //check the record from kv
             const record = await env.img_url.getWithMetadata(params.id); 
             console.log(record)
@@ -35,6 +34,8 @@ export async function onRequest(context) {  // Contents of context object
                 if (record.metadata.ListType=="White"){
                     return response;
                 }else if (record.metadata.ListType=="Block"){
+                    return Response.redirect(url.origin+"/block-img.html", 302)
+                }else if (record.metadata.Label=="adult"){
                     return Response.redirect(url.origin+"/block-img.html", 302)
                 }
                 //check if the env variables WhiteList_Mode are set
@@ -52,9 +53,8 @@ export async function onRequest(context) {  // Contents of context object
         let apikey=env.ModerateContentApiKey
         
             if(typeof apikey == "undefined" || apikey == null || apikey == ""){
-                //check if the env variables Disable_Dashboard are set
                 
-                if (env.Disable_Dashboard){console.log(1)}else{
+                if (env.img_url){console.log(1)}else{
                     //add image to kv
                     await env.img_url.put(params.id, "",{
                         metadata: { ListType: "None", rating_label: "None",TimeStamp: time },
@@ -65,7 +65,7 @@ export async function onRequest(context) {  // Contents of context object
                 then(async (response) => {
                     let moderate_data = await response.json();
                     console.log(moderate_data)
-                    if (env.Disable_Dashboard=="true"){}else{
+                    if (env.img_url=="true"){}else{
                         //add image to kv
                         await env.img_url.put(params.id, "",{
                             metadata: { ListType: "None", Label: moderate_data.rating_label,TimeStamp: time },
