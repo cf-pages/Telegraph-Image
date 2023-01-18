@@ -25,7 +25,7 @@ export async function onRequest(context) {  // Contents of context object
                 return response;
             }
 
-        if (typeof env.img_url == "undefined" || env.img_url == null || env.img_url == ""){
+        if (typeof env.img_url == "undefined" || env.img_url == null || env.img_url == ""){}else{
             //check the record from kv
             const record = await env.img_url.getWithMetadata(params.id); 
             console.log("record")
@@ -70,12 +70,13 @@ export async function onRequest(context) {  // Contents of context object
             if(typeof apikey == "undefined" || apikey == null || apikey == ""){
                 
                 if (typeof env.img_url == "undefined" || env.img_url == null || env.img_url == ""){
+                    console.log("Not enbaled KV")
+                    
+                }else{
                     //add image to kv
                     await env.img_url.put(params.id, "",{
                         metadata: { ListType: "None", Label: "None",TimeStamp: time },
                     });
-                }else{
-                    console.log("Not enbaled KV")
                     
                 }
             }else{
@@ -85,7 +86,7 @@ export async function onRequest(context) {  // Contents of context object
                     console.log(moderate_data)
                     console.log("---env.img_url---")
                     console.log(env.img_url=="true")
-                    if (typeof env.img_url == "undefined" || env.img_url == null || env.img_url == ""){
+                    if (typeof env.img_url == "undefined" || env.img_url == null || env.img_url == ""){}else{
                         //add image to kv
                         await env.img_url.put(params.id, "",{
                             metadata: { ListType: "None", Label: moderate_data.rating_label,TimeStamp: time },
