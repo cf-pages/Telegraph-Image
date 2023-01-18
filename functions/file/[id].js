@@ -19,24 +19,39 @@ export async function onRequest(context) {  // Contents of context object
         console.log(response.status); // 200
         if(response.ok){
             // Referer header equal to the admin page
+            console.log(url.origin+"/admin")
             if (request.headers.get('Referer') == url.origin+"/admin") {
                 //show the image
                 return response;
             }
 
-        if (env.img_url){}else{
+        if (env.img_url){
             //check the record from kv
             const record = await env.img_url.getWithMetadata(params.id); 
+            console.log("record")
             console.log(record)
             if (record.metadata === null) {
+
             }else{
+                
                 //if the record is not null, redirect to the image
                 if (record.metadata.ListType=="White"){
                     return response;
                 }else if (record.metadata.ListType=="Block"){
-                    return Response.redirect(url.origin+"/block-img.html", 302)
+                    console.log("Referer")
+                    console.log(request.headers.get('Referer'))
+                    if(typeof request.headers.get('Referer') == "undefined" ||request.headers.get('Referer') == null || request.headers.get('Referer') == ""){
+                        return Response.redirect(url.origin+"/block-img.html", 302)
+                    }else{
+                        return Response.redirect("https://static-res.pages.dev/teleimage/img-block-compressed.png", 302)
+                    }
+
                 }else if (record.metadata.Label=="adult"){
-                    return Response.redirect(url.origin+"/block-img.html", 302)
+                    if(typeof request.headers.get('Referer') == "undefined" ||request.headers.get('Referer') == null || request.headers.get('Referer') == ""){
+                        return Response.redirect(url.origin+"/block-img.html", 302)
+                    }else{
+                        return Response.redirect("https://static-res.pages.dev/teleimage/img-block-compressed.png", 302)
+                    }
                 }
                 //check if the env variables WhiteList_Mode are set
                 if (env.WhiteList_Mode=="true"){
@@ -54,18 +69,23 @@ export async function onRequest(context) {  // Contents of context object
         
             if(typeof apikey == "undefined" || apikey == null || apikey == ""){
                 
-                if (env.img_url){console.log(1)}else{
+                if (env.img_url){
                     //add image to kv
                     await env.img_url.put(params.id, "",{
                         metadata: { ListType: "None", rating_label: "None",TimeStamp: time },
                     });
+                }else{
+                    console.log("Not enbaled KV")
+                    
                 }
             }else{
                 await fetch(`https://api.moderatecontent.com/moderate/?key=`+apikey+`&url=https://telegra.ph/` + url.pathname + url.search).
                 then(async (response) => {
                     let moderate_data = await response.json();
                     console.log(moderate_data)
-                    if (env.img_url=="true"){}else{
+                    console.log("---env.img_url---")
+                    console.log(env.img_url=="true")
+                    if (env.img_url){}else{
                         //add image to kv
                         await env.img_url.put(params.id, "",{
                             metadata: { ListType: "None", Label: moderate_data.rating_label,TimeStamp: time },
