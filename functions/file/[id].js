@@ -54,9 +54,13 @@ export async function onRequest(context) {  // Contents of context object
                     }
                 }
                 //check if the env variables WhiteList_Mode are set
+                console.log("env.WhiteList_Mode:",env.WhiteList_Mode)
                 if (env.WhiteList_Mode=="true"){
                     //if the env variables WhiteList_Mode are set, redirect to the image
                     return Response.redirect(url.origin+"/whitelist-on.html", 302);
+                }else{
+                    //if the env variables WhiteList_Mode are not set, redirect to the image
+                    return response;
                 }
             }
             
