@@ -72,7 +72,7 @@ export async function onRequest(context) {  // Contents of context object
                 if (env.img_url){
                     //add image to kv
                     await env.img_url.put(params.id, "",{
-                        metadata: { ListType: "None", rating_label: "None",TimeStamp: time },
+                        metadata: { ListType: "None", Label: "None",TimeStamp: time },
                     });
                 }else{
                     console.log("Not enbaled KV")
@@ -85,7 +85,7 @@ export async function onRequest(context) {  // Contents of context object
                     console.log(moderate_data)
                     console.log("---env.img_url---")
                     console.log(env.img_url=="true")
-                    if (env.img_url){}else{
+                    if (env.img_url){
                         //add image to kv
                         await env.img_url.put(params.id, "",{
                             metadata: { ListType: "None", Label: moderate_data.rating_label,TimeStamp: time },
