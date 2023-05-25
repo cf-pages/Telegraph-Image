@@ -43,7 +43,7 @@
 注意：由于所做的更改将在下次部署时生效，你或许还需要进入`部署`页面，重新部署一下该本项目
 
 开启图片审查后，因为审查需要时间，首次的图片加载将会变得缓慢，之后的图片加载由于存在缓存，并不会受到影响
-![3](https://tpic.pages.dev/file/bae511fb116b034ef9c14.png)
+![3](https://telegraph-image.pages.dev/file/bae511fb116b034ef9c14.png)
 
 ### 限制
 1.由于图片文件实际存储于Telegraph，Telegraph限制上传的图片大小最大为5MB
