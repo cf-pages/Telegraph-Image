@@ -41,7 +41,7 @@ Inside the custom domain of pages, bind the domain name that exists in your Clou
 Note: Since the changes will take effect on the next deployment, you may need to go to the `Deploy` page and redeploy the project
 
 When image review is enabled, the first time image load will be slow because it takes time to review, but the subsequent image load will not be affected due to the existence of cache
-![3](https://tpic.pages.dev/file/bae511fb116b034ef9c14.png)
+![3](https://telegraph-image.pages.dev/file/bae511fb116b034ef9c14.png)
 
 ### Limitations
 1. Since the image files are actually stored in Telegraph, Telegraph limits the size of uploaded images to a maximum of 5MB
