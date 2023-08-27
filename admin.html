@@ -61,7 +61,11 @@
                 label="preview"
                 prop="preview">
                 <template slot-scope="scope">
+                  <video v-if="scope.row.name.indexOf('.mp4')>0" style="width: 100%; height: 100%;" controls>
+                    <source :src="'/file/'+scope.row.name" type="video/mp4">
+                  </video>
                   <el-image
+                    v-else
                     style="width: 100%; height: 100%;"
                     :src="'/file/'+scope.row.name"
                     :zoom-rate="1.2"
