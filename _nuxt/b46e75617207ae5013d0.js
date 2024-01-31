@@ -273,7 +273,7 @@
                             var e = this,
                                 o = new FormData;
                             o.append("file", t), r.a.post("/upload", o).then((function(t) {
-                                200 === t.status ? (e.status = "done", e.imgUrl = https://file.320520.xyz + t.data[0].src) : e.showError()
+                                200 === t.status ? (e.status = "done", e.imgUrl = 'https://file.320520.xyz' + t.data[0].src) : e.showError()
                             })).catch((function() {
                                 e.showError()
                             }))
