@@ -83,7 +83,7 @@
             o.n(n).a
         },
         335: function(t, e, o) {
-            (e = o(40)(!1)).push([t.i, '@font-face{font-family:阿里妈妈数黑体 Bold;font-weight:700;src:url(//at.alicdn.com/wf/webfont/vyMYqE6AQ53l/QuXl5poIEmsBTN1RFuJ49.woff2) format("woff2"),url(//at.alicdn.com/wf/webfont/vyMYqE6AQ53l/TgFpb2VvlZLFg0EQ_RgjM.woff) format("woff");font-display:swap}.container[data-v-5e6831cc]{margin:0 auto;min-height:100vh;flex-direction:column;padding:30px;background:linear-gradient(240deg,rgba(150,50,50,.3),rgba(0,0,200,0))}.container[data-v-5e6831cc],.main[data-v-5e6831cc]{display:-webkit-box;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal}.main[data-v-5e6831cc]{-webkit-box-flex:1;flex:1;flex-direction:column;padding:30px 0;-webkit-box-align:center;align-items:center}.main .title[data-v-5e6831cc]{font-family:阿里妈妈数黑体 Bold;color:#fff;font-size:24px;font-weight:bolder;padding:30px 0 10px}', ""]), t.exports = e
+            (e = o(40)(!1)).push([t.i, '@font-face{font-family:阿里妈妈数黑体 Bold;font-weight:700;src:url(//at.alicdn.com/wf/webfont/vyMYqE6AQ53l/QuXl5poIEmsBTN1RFuJ49.woff2) format("woff2"),url(//at.alicdn.com/wf/webfont/vyMYqE6AQ53l/TgFpb2VvlZLFg0EQ_RgjM.woff) format("woff");font-display:swap}.container[data-v-5e6831cc]{margin:0 auto;min-height:100vh;flex-direction:column;padding:30px;background:#4fb1df}.container[data-v-5e6831cc],.main[data-v-5e6831cc]{display:-webkit-box;display:flex;-webkit-box-orient:vertical;-webkit-box-direction:normal}.main[data-v-5e6831cc]{-webkit-box-flex:1;flex:1;flex-direction:column;padding:30px 0;-webkit-box-align:center;align-items:center}.main .title[data-v-5e6831cc]{font-family:阿里妈妈数黑体 Bold;color:#fff;font-size:24px;font-weight:bolder;padding:30px 0 10px}', ""]), t.exports = e
         },
         336: function(t, e, o) {
             "use strict";
@@ -531,7 +531,7 @@
                         staticClass: "main"
                     }, [e("div", {
                         staticClass: "title"
-                    }, [this._v("Telegraph-Image")]), this._v(" "), e("Upload")], 1), this._v(" "), e("Footer")], 1)
+                    }, [this._v("免费图床")]), this._v(" "), e("Upload")], 1), this._v(" "), e("Footer")], 1)
                 }), [], !1, null, "5e6831cc", null));
             e.default = x.exports
         }
