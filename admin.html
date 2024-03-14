@@ -4,6 +4,18 @@
   <meta charset="UTF-8">
   <!-- import CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css" integrity="sha256-ghr1zmXTODLKl1HULQd6fq1MIe7m3FJiNTOCT8sddLM=" crossorigin="anonymous">
+  <style>
+    .el-image__inner.el-image__inner {
+      width: 160px;
+      height: 90px;
+    }
+    .el-image {
+      text-align: center;
+    }
+    .el-button+.el-button {
+      margin: 0;
+    }
+  </style>
 </head>
 <body>
   <div id="app">
@@ -59,9 +71,10 @@
               </el-table-column>
               <el-table-column
                 label="preview"
-                prop="preview">
+                prop="preview"
+                align="center">
                 <template slot-scope="scope">
-                  <video v-if="scope.row.name.indexOf('.mp4')>0" style="width: 100%; height: 100%;" controls>
+                  <video v-if="scope.row.name.indexOf('.mp4')>0" style="width: 320px; height: 180px;" controls>
                     <source :src="'/file/'+scope.row.name" type="video/mp4">
                   </video>
                   <el-image
@@ -89,7 +102,7 @@
               </template>
               </el-table-column>
               <el-table-column
-                align="right">
+              align="right">
                 <template slot="header" slot-scope="scope">
                   <el-input
                     v-model="search"
