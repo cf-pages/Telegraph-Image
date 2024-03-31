@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css" integrity="sha256-ghr1zmXTODLKl1HULQd6fq1MIe7m3FJiNTOCT8sddLM=" crossorigin="anonymous">
   <style>
     .el-image__inner.el-image__inner {
-      width: 160px;
+      width: 100%;
       height: 90px;
     }
     .el-image {
@@ -74,7 +74,7 @@
                 prop="preview"
                 align="center">
                 <template slot-scope="scope">
-                  <video v-if="scope.row.name.indexOf('.mp4')>0" style="width: 320px; height: 180px;" controls>
+                  <video v-if="scope.row.name.indexOf('.mp4')>0" style="width: 100%; height: 180px;" controls>
                     <source :src="'/file/'+scope.row.name" type="video/mp4">
                   </video>
                   <el-image
@@ -113,7 +113,7 @@
                   <el-button
                     size="mini"
                     type="primary"
-                    @click="handleCopy(scope.$index,scope.row.name)">复制文件地址</el-button>
+                    @click="handleCopy(scope.$index,scope.row.name)">复制地址</el-button>
                   <el-button
                     size="mini"
                     type="primary"
