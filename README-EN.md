@@ -20,7 +20,7 @@ The only thing you need to prepare in advance is a Cloudflare account
 
 ![1](https://telegraph-image.pages.dev/file/8d4ef9b7761a25821d9c2.png)
 
-1. Follow the prompts on the page to enter the project name, select the git repository you need to connect to, then click `Deploy`
+3. Follow the prompts on the page to enter the project name, select the git repository you need to connect to, then click `Deploy`
 
 ## Features
 
