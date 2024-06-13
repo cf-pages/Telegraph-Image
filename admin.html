@@ -2,9 +2,15 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <title>ImgTC | Admin</title>
   <!-- Import CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
   <style>
+    body {
+      background: linear-gradient(to right, #ff7e5f, #feb47b); /* 渐变色背景 */
+      font-family: 'Arial', sans-serif;
+      color: #333;
+    }
     .el-image__inner.el-image__inner {
       width: 100%;
       height: 90px;
@@ -21,6 +27,7 @@
       align-items: center;
       line-height: 60px;
       font-size: xx-large;
+      color: #fff;
     }
     .logout-button {
       position: absolute;
@@ -28,6 +35,7 @@
     }
     .main-container {
       display: flex;
+      padding: 20px;
     }
     .side-menu {
       width: 20%;
@@ -36,6 +44,15 @@
     .content {
       width: 80%;
       padding: 10px;
+    }
+    .el-card {
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    }
+    .el-button {
+      margin-right: 10px;
     }
   </style>
 </head>
@@ -46,15 +63,15 @@
         <div class="header-content">
           <span>Dashboard</span>
           <span class="logout-button" v-if="showLogoutButton">
-            <el-button size="mini" type="info" @click="handleLogout">退出登录</el-button>
+            <el-tooltip content="退出登录" placement="bottom">
+              <el-button type="text" icon="el-icon-logout" @click="handleLogout"></el-button>
+            </el-tooltip>
           </span>
         </div>
       </el-header>
       <el-main class="main-container">
         <div class="side-menu">
           <el-card shadow="always">记录总数量: {{ Number }}</el-card>
-          <el-card shadow="always">白名单数量: {{ WhiteList }}</el-card>
-          <el-card shadow="always">黑名单数量: {{ BlackList }}</el-card>
         </div>
         <div class="content">
           <el-row :gutter="12">
@@ -107,8 +124,6 @@
                     </template>
                     <template slot-scope="scope">
                       <el-button size="mini" type="primary" @click="handleCopy(scope.$index, scope.row.name)">复制地址</el-button>
-                      <el-button size="mini" type="primary" @click="handleWhite(scope.$index, scope.row.name)">白名单</el-button>
-                      <el-button size="mini" type="info" @click="handleBlock(scope.$index, scope.row.name)">黑名单</el-button>
                       <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row.name)">删除</el-button>
                     </template>
                   </el-table-column>
@@ -130,8 +145,6 @@
     el: '#app',
     data: {
       Number: 0,
-      WhiteList: 0,
-      BlackList: 0,
       showLogoutButton: false,
       tableData: [],
       search: ''
@@ -142,25 +155,6 @@
       }
     },
     methods: {
-      handleBlock(index, key) {
-        console.log(key);
-        if (confirm("确认加入黑名单吗?")) {
-          console.log("Yes")
-          var requestOptions = {
-            method: 'GET',
-            redirect: 'follow',
-            credentials: 'include'
-          };
-
-          fetch("./api/manage/block/" + key, requestOptions)
-            .then(response => response.text())
-            .then(result => { console.log(result); this.$set(this.tableData, index, {...this.tableData[index], metadata: result}); })
-            .catch(error => { alert("An error occurred while synchronizing data with the server, please check the network connection"); console.log('error', error); });
-
-        } else {
-          console.log("No")
-        }
-      },
       handleDelete(index, key) {
         console.log(key);
         if (confirm("确认删除该条记录吗?")) {
@@ -176,23 +170,6 @@
             .then(result => { console.log(result); this.tableData.splice(index, 1); })
             .catch(error => { alert("An error occurred while synchronizing data with the server, please check the network connection"); console.log('error', error); });
 
-        } else {
-          console.log("No")
-        }
-      },
-      handleWhite(index, key) {
-        console.log(key);
-        if (confirm("确认加入白名单吗?")) {
-          console.log("Yes")
-          var requestOptions = {
-            method: 'GET',
-            redirect: 'follow',
-            credentials: 'include'
-          };
-          fetch("./api/manage/white/" + key, requestOptions)
-            .then(response => response.text())
-            .then(result => { console.log(result); this.$set(this.tableData, index, {...this.tableData[index], metadata: result}); })
-            .catch(error => { alert("An error occurred while synchronizing data with the server, please check the network connection"); console.log('error', error); });
         } else {
           console.log("No")
         }
