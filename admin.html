@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
   <style>
     body {
-      background: linear-gradient(to right, #ff7e5f, #feb47b); /* 渐变色背景 */
+      background: linear-gradient(to right, #a18cd1, #fbc2eb); /* 更梦幻的渐变色 */
       font-family: 'Arial', sans-serif;
       color: #333;
     }
@@ -30,8 +30,8 @@
       color: #fff;
     }
     .logout-button {
-      position: absolute;
-      right: 0px;
+      display: flex;
+      align-items: center;
     }
     .main-container {
       display: flex;
@@ -62,9 +62,10 @@
       <el-header>
         <div class="header-content">
           <span>Dashboard</span>
-          <span class="logout-button" v-if="showLogoutButton">
+          <el-input v-model="search" size="mini" placeholder="输入关键字搜索" style="width: 300px;"></el-input>
+          <span class="logout-button">
             <el-tooltip content="退出登录" placement="bottom">
-              <el-button type="text" icon="el-icon-logout" @click="handleLogout"></el-button>
+              <el-button type="text" icon="el-icon-logout" @click="handleLogout" style="color: white; font-size: 20px;"></el-button>
             </el-tooltip>
           </span>
         </div>
@@ -72,57 +73,35 @@
       <el-main class="main-container">
         <div class="side-menu">
           <el-card shadow="always">记录总数量: {{ Number }}</el-card>
+          <el-card shadow="always">总文件大小: {{ totalFileSize }} MB</el-card>
+          <el-card shadow="always">最近上传: {{ recentFileName }}</el-card>
         </div>
         <div class="content">
           <el-row :gutter="12">
             <el-col :span="24">
               <template>
-                <el-table
-                  :data="filteredTableData"
-                  style="width: 100%">
-                  <el-table-column
-                    label="name"
-                    prop="name">
-                  </el-table-column>
-                  <el-table-column
-                    label="preview"
-                    prop="preview"
-                    align="center">
+                <el-table :data="filteredTableData" style="width: 100%">
+                  <el-table-column label="File Info" prop="fileInfo">
                     <template slot-scope="scope">
-                      <video v-if="scope.row.name.indexOf('.mp4') > 0" style="width: 100%; height: 180px;" controls>
-                        <source :src="'/file/' + scope.row.name" type="video/mp4">
-                      </video>
-                      <el-image
-                        v-else
-                        style="width: 100%; height: 100%;"
-                        :src="'/file/' + scope.row.name"
-                        :zoom-rate="1.2"
-                        :preview-src-list="['/file/' + scope.row.name]"
-                        fit="cover"
-                        lazy
-                      />
-                    </template>
-                  </el-table-column>
-                  <el-table-column
-                    label="data"
-                    prop="data">
-                    <template slot-scope="scope">
+                      <div>{{ scope.row.name }}</div>
                       <el-popover trigger="hover" placement="top">
                         <p>{{ scope.row.metadata }}</p>
                         <div slot="reference" class="name-wrapper">
-                          <el-tag size="medium">{{ scope.row.metadata }}</el-tag>
+                          <el-tag size="medium">详情</el-tag>
                         </div>
                       </el-popover>
                     </template>
                   </el-table-column>
-                  <el-table-column align="right">
-                    <template slot="header" slot-scope="scope">
-                      <el-input
-                        v-model="search"
-                        size="mini"
-                        placeholder="输入关键字搜索"/>
-                    </template>
+                  <el-table-column label="preview" prop="preview" align="center">
                     <template slot-scope="scope">
+                      <video v-if="scope.row.name.indexOf('.mp4') > 0" style="width: 100%; height: 180px;" controls>
+                        <source :src="'/file/' + scope.row.name" type="video/mp4">
+                      </video>
+                      <el-image v-else style="width: 100%; height: 100%;" :src="'/file/' + scope.row.name" :zoom-rate="1.2" :preview-src-list="['/file/' + scope.row.name]" fit="cover" lazy />
+                    </template>
+                  </el-table-column>
+                  <el-table-column align="right">
+                    <template slot="scope">
                       <el-button size="mini" type="primary" @click="handleCopy(scope.$index, scope.row.name)">复制地址</el-button>
                       <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row.name)">删除</el-button>
                     </template>
@@ -145,6 +124,8 @@
     el: '#app',
     data: {
       Number: 0,
+      totalFileSize: 0, // 新增的总文件大小
+      recentFileName: '', // 新增的最近上传文件名
       showLogoutButton: false,
       tableData: [],
       search: ''
@@ -167,7 +148,7 @@
 
           fetch("./api/manage/delete/" + key, requestOptions)
             .then(response => response.text())
-            .then(result => { console.log(result); this.tableData.splice(index, 1); })
+            .then(result => { console.log(result); this.tableData.splice(index, 1); this.updateStats(); })
             .catch(error => { alert("An error occurred while synchronizing data with the server, please check the network connection"); console.log('error', error); });
 
         } else {
@@ -197,6 +178,11 @@
           message: '复制文件链接成功~',
           type: 'success'
         });
+      },
+      updateStats() {
+        this.Number = this.tableData.length;
+        this.totalFileSize = this.tableData.reduce((total, file) => total + file.size, 0) / (1024 * 1024); // 假设 size 是字节，转换为 MB
+        this.recentFileName = this.tableData.length > 0 ? this.tableData[0].name : '';
       }
     },
     mounted() {
@@ -234,7 +220,7 @@
         .then(result => {
           this.tableData = JSON.parse(result);
           console.log(result);
-          this.Number = this.tableData.length;
+          this.updateStats();
         })
         .catch(error => {
           alert("An error occurred while synchronizing data with the server, please check the network connection");
