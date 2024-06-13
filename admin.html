@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
   <style>
     body {
-      background: linear-gradient(to right, #a18cd1, #fbc2eb); /* 更梦幻的渐变色 */
+      background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%); /* 更梦幻的渐变色 */
       font-family: 'Arial', sans-serif;
       color: #333;
     }
@@ -54,6 +54,12 @@
     .el-button {
       margin-right: 10px;
     }
+    .search-card {
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    }
   </style>
 </head>
 <body>
@@ -62,10 +68,12 @@
       <el-header>
         <div class="header-content">
           <span>Dashboard</span>
-          <el-input v-model="search" size="mini" placeholder="输入关键字搜索" style="width: 300px;"></el-input>
+          <div class="search-card">
+            <el-input v-model="search" size="mini" placeholder="输入关键字搜索" style="width: 300px;"></el-input>
+          </div>
           <span class="logout-button">
             <el-tooltip content="退出登录" placement="bottom">
-              <el-button type="text" icon="el-icon-logout" @click="handleLogout" style="color: white; font-size: 20px;"></el-button>
+              <el-button type="text" icon="el-icon-logout" @click="handleLogout" style="color: white; font-size: 20px; background: rgba(0, 0, 0, 0.2); padding: 10px;"></el-button>
             </el-tooltip>
           </span>
         </div>
@@ -181,8 +189,17 @@
       },
       updateStats() {
         this.Number = this.tableData.length;
-        this.totalFileSize = this.tableData.reduce((total, file) => total + file.size, 0) / (1024 * 1024); // 假设 size 是字节，转换为 MB
+        this.totalFileSize = this.tableData.reduce((total, file) => {
+          if (file.size && !isNaN(file.size)) {
+            return total + file.size;
+          } else {
+            console.error("Invalid file size:", file);
+            return total;
+          }
+        }, 0) / (1024 * 1024); // 假设 size 是字节，转换为 MB
         this.recentFileName = this.tableData.length > 0 ? this.tableData[0].name : '';
+        console.log("Total file size:", this.totalFileSize);
+        console.log("Recent file name:", this.recentFileName);
       }
     },
     mounted() {
@@ -191,6 +208,8 @@
         redirect: 'follow',
         credentials: 'include'
       };
+
+      // 检查用户登录状态
       fetch("./api/manage/check", requestOptions)
         .then(response => response.text())
         .then(result => {
@@ -207,6 +226,7 @@
           console.log('error', error);
         });
 
+      // 获取表格数据
       fetch("./api/manage/list", requestOptions)
         .then(response => {
           if (response.status == 401) {
@@ -219,7 +239,7 @@
         .then(response => response.text())
         .then(result => {
           this.tableData = JSON.parse(result);
-          console.log(result);
+          console.log("Table Data:", this.tableData); // 打印表格数据
           this.updateStats();
         })
         .catch(error => {
