@@ -20,9 +20,17 @@
       align-items: center;
       padding: 10px 20px;
       background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(10px); /* 顶栏的模糊效果 */
+      backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s, transform 0.3s;
+      border-bottom-left-radius: 10px; /* 左下角圆角 */
+      border-bottom-right-radius: 10px; /* 右下角圆角 */
+    }
+
+    .header-content:hover {
+      background-color: rgba(255, 255, 255, 0.9);
+      transform: translateY(-2px);
     }
     .header-content .title {
       font-size: 2em;
@@ -36,6 +44,18 @@
     .header-content .stats {
       font-size: medium;
       margin-right: 20px;
+    }
+    .search-card .el-input__inner {
+      border-radius: 20px;
+      width: 400px; /* 增加搜索栏宽度 */
+      height: 40px; /* 增加搜索栏高度 */
+      font-size: 1.2em; /* 增加搜索栏字体大小 */
+      border: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      transition: width 0.3s;
+    }
+    .search-card .el-input__inner:focus {
+      width: 500px; /* 聚焦时增加搜索栏宽度 */
     }
     .main-container {
       display: flex;
@@ -76,6 +96,9 @@
       bottom: 0;
       width: 100%;
       box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     .el-card .overlay {
       position: absolute;
@@ -95,12 +118,6 @@
     }
     .overlay .el-button {
       margin: 5px;
-    }
-    .search-card .el-input__inner {
-      border-radius: 20px;
-      width: 300px;
-      border: none;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
     .pagination-container {
       display: flex;
