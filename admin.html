@@ -140,6 +140,11 @@
       margin-top: 20px;
       padding-bottom: 20px; /* 确保分页栏固定在底部 */
     }
+    .action-bar {
+      display: flex;
+      justify-content: flex-start;
+      padding: 10px;
+    }
   </style>
 </head>
 <body>
@@ -160,9 +165,15 @@
         </div>
       </el-header>
       <el-main class="main-container">
+        <div class="action-bar">
+          <el-button type="danger" @click="handleBatchDelete" :disabled="selectedFiles.length === 0">
+            批量删除
+          </el-button>
+        </div>
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
+              <el-checkbox v-model="item.selected"></el-checkbox>
               <el-image
                 :src="'/file/' + item.name"
                 :preview-src-list="['/file/' + item.name]"
@@ -191,144 +202,193 @@
       </el-main>
     </el-container>
   </div>
-</body>
-</html>
 
-<!-- Import Vue before Element -->
-<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
-<!-- Import JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
-<script>
-  var app = new Vue({
-    el: '#app',
-    data: {
-      Number: 0,
-      showLogoutButton: false,
-      tableData: [],
-      search: '',
-      currentPage: 1,
-      pageSize: 15 // 修改为每页显示15张图片
-    },
-    computed: {
-      filteredTableData() {
-        return this.tableData.filter(data => !this.search || data.name.toLowerCase().includes(this.search.toLowerCase()));
+  <!-- Import Vue before Element -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+  <!-- Import JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
+  <script>
+    var app = new Vue({
+      el: '#app',
+      data: {
+        Number: 0,
+        showLogoutButton: false,
+        tableData: [],
+        search: '',
+        currentPage: 1,
+        pageSize: 15, // 修改为每页显示15张图片
+        selectedFiles: []
       },
-      paginatedTableData() {
-        const start = (this.currentPage - 1) * this.pageSize;
-        const end = start + this.pageSize;
-        return this.filteredTableData.slice(start, end);
-      }
-    },
-    methods: {
-      handleDelete(index, key) {
-        this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          var requestOptions = {
-            method: 'GET',
-            redirect: 'follow',
-            credentials: 'include'
-          };
+      computed: {
+        filteredTableData() {
+          return this.tableData.filter(data => !this.search || data.name.toLowerCase().includes(this.search.toLowerCase()));
+        },
+        paginatedTableData() {
+          const start = (this.currentPage - 1) * this.pageSize;
+          const end = start + this.pageSize;
+          return this.filteredTableData.slice(start, end);
+        }
+      },
+      watch: {
+        tableData: {
+          handler(newData) {
+            this.selectedFiles = newData.filter(file => file.selected);
+          },
+          deep: true
+        }
+      },
+      methods: {
+        handleDelete(index, key) {
+          this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            var requestOptions = {
+              method: 'GET',
+              redirect: 'follow',
+              credentials: 'include'
+            };
 
-          fetch("./api/manage/delete/" + key, requestOptions)
-            .then(response => response.text())
-            .then(result => {
-              this.tableData.splice(index, 1);
-              this.updateStats();
-              this.$message({
-                type: 'success',
-                message: '删除成功!'
+            fetch("./api/manage/delete/" + key, requestOptions)
+              .then(response => response.text())
+              .then(result => {
+                this.tableData.splice(index, 1);
+                this.updateStats();
+                this.$message({
+                  type: 'success',
+                  message: '删除成功!'
+                });
+              })
+              .catch(error => {
+                this.$message({
+                  type: 'error',
+                  message: '删除失败，请检查网络连接'
+                });
+                console.log('error', error);
               });
-            })
-            .catch(error => {
-              this.$message({
-                type: 'error',
-                message: '删除失败，请检查网络连接'
-              });
-              console.log('error', error);
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消删除'
             });
-        }).catch(() => {
-          this.$message({
-            type: 'info',
-            message: '已取消删除'
           });
-        });
-      },
-      handleLogout() {
-        window.location.href = 'https://imgtc-3i1.pages.dev/';
-      },
-      handleCopy(index, key) {
-        const text = `${document.location.origin}/file/${key}`;
-        if (navigator.clipboard) {
-          navigator.clipboard.writeText(text).then(() => {
+        },
+        handleBatchDelete() {
+          this.$confirm('此操作将永久删除选中的文件, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            const promises = this.selectedFiles.map(file => {
+              return fetch(`./api/manage/delete/${file.name}`, { method: 'GET', credentials: 'include' });
+            });
+
+            Promise.all(promises)
+              .then(results => {
+                results.forEach((response, index) => {
+                  if (response.ok) {
+                    const fileIndex = this.tableData.findIndex(file => file.name === this.selectedFiles[index].name);
+                    if (fileIndex !== -1) {
+                      this.tableData.splice(fileIndex, 1);
+                    }
+                  }
+                });
+                this.selectedFiles = [];
+                this.updateStats();
+                this.$message({
+                  type: 'success',
+                  message: '批量删除成功!'
+                });
+              })
+              .catch(error => {
+                this.$message({
+                  type: 'error',
+                  message: '批量删除失败，请检查网络连接'
+                });
+                console.log('error', error);
+              });
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消批量删除'
+            });
+          });
+        },
+        handleLogout() {
+          window.location.href = 'https://imgtc-3i1.pages.dev/';
+        },
+        handleCopy(index, key) {
+          const text = `${document.location.origin}/file/${key}`;
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+              this.$message({
+                message: '复制文件链接成功~',
+                type: 'success'
+              });
+            });
+          } else {
+            const textarea = document.createElement('textarea');
+            document.body.appendChild(textarea);
+            textarea.style.position = 'fixed';
+            textarea.style.clip = 'rect(0 0 0 0)';
+            textarea.style.top = '10px';
+            textarea.value = text;
+            textarea.select();
+            document.execCommand('copy', true);
+            document.body.removeChild(textarea);
             this.$message({
               message: '复制文件链接成功~',
               type: 'success'
             });
-          });
-        } else {
-          const textarea = document.createElement('textarea');
-          document.body.appendChild(textarea);
-          textarea.style.position = 'fixed';
-          textarea.style.clip = 'rect(0 0 0 0)';
-          textarea.style.top = '10px';
-          textarea.value = text;
-          textarea.select();
-          document.execCommand('copy', true);
-          document.body.removeChild(textarea);
-          this.$message({
-            message: '复制文件链接成功~',
-            type: 'success'
-          });
+          }
+        },
+        handlePageChange(page) {
+          this.currentPage = page;
+        },
+        updateStats() {
+          this.Number = this.tableData.length;
         }
       },
-      handlePageChange(page) {
-        this.currentPage = page;
-      },
-      updateStats() {
-        this.Number = this.tableData.length;
+      mounted() {
+        var requestOptions = {
+          method: 'GET',
+          redirect: 'follow',
+          credentials: 'include'
+        };
+
+        fetch("./api/manage/check", requestOptions)
+          .then(response => response.text())
+          .then(result => {
+            if (result === "true") {
+              this.showLogoutButton = true;
+            } else {
+              window.location.href = "./api/manage/login";
+            }
+          })
+          .catch(error => {
+            this.$message({
+              type: 'error',
+              message: '同步数据时出错，请检查网络连接'
+            });
+            console.log('error', error);
+          });
+
+        fetch("./api/manage/list", requestOptions)
+          .then(response => response.json())
+          .then(result => {
+            this.tableData = result.map(file => ({ ...file, selected: false }));
+            this.updateStats();
+          })
+          .catch(error => {
+            this.$message({
+              type: 'error',
+              message: '同步数据时出错，请检查网络连接'
+            });
+            console.log('error', error);
+          });
       }
-    },
-    mounted() {
-      var requestOptions = {
-        method: 'GET',
-        redirect: 'follow',
-        credentials: 'include'
-      };
-
-      fetch("./api/manage/check", requestOptions)
-        .then(response => response.text())
-        .then(result => {
-          if (result === "true") {
-            this.showLogoutButton = true;
-          } else {
-            window.location.href = "./api/manage/login";
-          }
-        })
-        .catch(error => {
-          this.$message({
-            type: 'error',
-            message: '同步数据时出错，请检查网络连接'
-          });
-          console.log('error', error);
-        });
-
-      fetch("./api/manage/list", requestOptions)
-        .then(response => response.json())
-        .then(result => {
-          this.tableData = result;
-          this.updateStats();
-        })
-        .catch(error => {
-          this.$message({
-            type: 'error',
-            message: '同步数据时出错，请检查网络连接'
-          });
-          console.log('error', error);
-        });
-    }
-  });
-</script>
+    });
+  </script>
+</body>
 </html>
