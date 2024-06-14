@@ -321,19 +321,22 @@
               if (response.ok) {
                 const result = await response.json();
 
-                // 检查响应结果中是否有src属性
-                if (result.src) {
+                // 如果服务器返回的是数组，取第一个元素
+                const fileInfo = Array.isArray(result) ? result[0] : result;
+
+                if (fileInfo.src) {
+                  const normalizedSrc = fileInfo.src.replace(/\\/g, '/');
                   this.$message({
                     type: 'success',
                     message: `文件 ${files[i].name} 上传成功！`
                   });
 
                   // 将上传的文件添加到已上传文件列表
-                  uploadedFiles.push(result);
+                  uploadedFiles.push({ src: normalizedSrc });
 
                   // 更新表格数据
                   this.tableData.push({
-                    name: result.src.split('/').pop(),
+                    name: normalizedSrc.split('/').pop(),
                     metadata: { TimeStamp: Date.now() },
                     selected: false
                   });
