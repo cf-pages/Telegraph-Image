@@ -310,7 +310,7 @@
 
           for (let i = 0; i < files.length; i++) {
             const formData = new FormData();
-            formData.append('file', files[i]);
+            formData.append('file', files[i]); // 确保使用键 'file'
 
             try {
               const response = await fetch('https://imgtc-3i1.pages.dev/upload', {
@@ -319,21 +319,27 @@
               });
 
               if (response.ok) {
-                this.$message({
-                  type: 'success',
-                  message: `文件 ${files[i].name} 上传成功！`
-                });
-
-                // 获取上传的文件并更新
                 const result = await response.json();
-                uploadedFiles.push(result);
 
-                this.tableData.push({
-                  name: result.src.split('/').pop(),
-                  metadata: { TimeStamp: Date.now() },
-                  selected: false
-                });
+                // 检查响应结果中是否有src属性
+                if (result.src) {
+                  this.$message({
+                    type: 'success',
+                    message: `文件 ${files[i].name} 上传成功！`
+                  });
 
+                  // 将上传的文件添加到已上传文件列表
+                  uploadedFiles.push(result);
+
+                  // 更新表格数据
+                  this.tableData.push({
+                    name: result.src.split('/').pop(),
+                    metadata: { TimeStamp: Date.now() },
+                    selected: false
+                  });
+                } else {
+                  throw new Error('上传响应中缺少 src 属性');
+                }
               } else {
                 this.$message({
                   type: 'error',
@@ -350,7 +356,9 @@
           }
 
           this.updateStats();
-          this.copyLinksToClipboard(uploadedFiles.map(file => `${document.location.origin}${file.src}`));
+          // 确保 uploadedFiles 中的每个元素都有 src 属性
+          const links = uploadedFiles.map(file => `${document.location.origin}${file.src}`);
+          this.copyLinksToClipboard(links);
           this.isUploading = false; // 上传结束后设置为false
         },
         copyLinksToClipboard(links) {
