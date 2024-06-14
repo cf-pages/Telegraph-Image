@@ -20,16 +20,17 @@
       justify-content: space-between;
       align-items: center;
       padding: 10px 20px;
-      background: rgba(255, 255, 255, 0.8);
+      background-color: rgba(255, 255, 255, 0.75);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.3s;
+      transition: background-color 0.3s transform 0.3s;
       border-bottom-left-radius: 10px; /* 左下角圆角 */
       border-bottom-right-radius: 10px; /* 右下角圆角 */
     }
     .header-content:hover {
-      background-color: rgba(255, 255, 255, 0.9);
+      background-color: rgba(255, 255, 255, 1);
+      transform: translateY(-2%);
     }
     .header-content .title {
       font-size: 1.8em;
@@ -108,7 +109,7 @@
     }
     .el-card {
       width: 100%;
-      background: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.6);
       border-radius: 8px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       overflow: hidden;
@@ -189,12 +190,12 @@
           </div>
           <span class="stats">
             记录总数量: {{ Number }}
-            <el-tooltip content="上传图片" placement="bottom">
-              <i class="fas fa-upload upload-icon" @click="triggerFileUpload"></i>
-            </el-tooltip>
-            <input type="file" id="fileUpload" @change="handleFileUpload" multiple style="display: none;">
           </span>
           <div class="actions action-icons">
+            <el-tooltip content="上传图片" placement="bottom">
+              <i class="fas fa-upload" :class="uploadIconClass" @click="triggerFileUpload"></i>
+            </el-tooltip>
+            <input type="file" id="fileUpload" @change="handleFileUpload" multiple style="display: none;">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
                 <span class="el-dropdown-link">
@@ -267,7 +268,8 @@
         currentPage: 1,
         pageSize: 15, // 修改为每页显示15张图片
         selectedFiles: [],
-        sortOption: 'dateDesc' // 默认按时间倒序排序
+        sortOption: 'dateDesc', // 默认按时间倒序排序
+        isUploading: false // 用于显示上传状态
       },
       computed: {
         filteredTableData() {
@@ -281,6 +283,9 @@
         },
         sortIcon() {
           return this.sortOption === 'dateDesc' ? 'fas fa-sort-amount-down' : 'fas fa-sort-alpha-up';
+        },
+        uploadIconClass() {
+          return this.isUploading ? 'upload-icon fa-spinner fa-spin' : 'upload-icon';
         }
       },
       watch: {
@@ -299,6 +304,7 @@
           document.getElementById('fileUpload').click();
         },
         async handleFileUpload(event) {
+          this.isUploading = true; // 开始上传时设置为true
           const files = event.target.files;
           const formData = new FormData();
 
@@ -344,6 +350,8 @@
               type: 'error',
               message: '上传失败！'
             });
+          } finally {
+            this.isUploading = false; // 上传结束后设置为false
           }
         },
         copyLinksToClipboard(links) {
@@ -499,8 +507,8 @@
             document.execCommand('copy', true);
             document.body.removeChild(textarea);
             this.$message({
-              message: '复制文件链接成功~',
-              type: 'success'
+                message: '复制文件链接成功~',
+                type: 'success'
             });
           }
         },
