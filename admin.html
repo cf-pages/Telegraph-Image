@@ -10,48 +10,47 @@
       background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
       font-family: 'Arial', sans-serif;
       color: #333;
+      margin: 0;
+      padding: 0;
     }
     .header-content {
       display: flex;
       justify-content: space-between;
       align-items: center;
       line-height: 60px;
-      font-size: xx-large;
+      font-size: large;
       color: #fff;
-      padding: 10px;
+      padding: 10px 20px;
+      background-color: rgba(0, 0, 0, 0.5);
     }
-    .logout-button {
-      display: flex;
-      align-items: center;
+    .header-content .stats {
+      font-size: medium;
+      margin-right: 20px;
     }
     .main-container {
       display: flex;
+      flex-direction: column;
       padding: 20px;
     }
-    .side-menu {
-      width: 20%;
-      padding: 10px;
-    }
     .content {
-      width: 80%;
-      padding: 10px;
       display: flex;
       flex-wrap: wrap;
       gap: 20px;
+      justify-content: center;
+      padding: 10px;
     }
     .el-card {
-      width: calc(33.33% - 20px);
-      margin-bottom: 20px;
+      width: 300px;
       background: rgba(255, 255, 255, 0.8);
       border-radius: 8px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       position: relative;
     }
-    .el-card img {
+    .el-card .el-image {
       width: 100%;
-      height: auto;
-      display: block;
+      height: 200px;
+      object-fit: cover;
     }
     .el-card .file-info {
       padding: 10px;
@@ -87,10 +86,12 @@
       border-radius: 20px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       display: flex;
-      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
     }
     .search-card .el-input__inner {
       border-radius: 20px;
+      width: 300px;
     }
   </style>
 </head>
@@ -101,8 +102,9 @@
         <div class="header-content">
           <span>Dashboard</span>
           <div class="search-card">
-            <el-input v-model="search" size="mini" placeholder="输入关键字搜索" style="width: 300px;"></el-input>
+            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
+          <span class="stats">记录总数量: {{ Number }}</span>
           <span class="logout-button">
             <el-tooltip content="退出登录" placement="bottom">
               <el-button type="text" icon="el-icon-logout" @click="handleLogout">退出</el-button>
@@ -111,11 +113,6 @@
         </div>
       </el-header>
       <el-main class="main-container">
-        <div class="side-menu">
-          <el-card shadow="always">记录总数量: {{ Number }}</el-card>
-          <el-card shadow="always">总文件大小: {{ totalFileSize }} MB</el-card>
-          <el-card shadow="always">最近上传: {{ recentFileName }}</el-card>
-        </div>
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
@@ -148,13 +145,11 @@
     el: '#app',
     data: {
       Number: 0,
-      totalFileSize: 0,
-      recentFileName: '',
       showLogoutButton: false,
       tableData: [],
       search: '',
       currentPage: 1,
-      pageSize: 9
+      pageSize: 8
     },
     computed: {
       filteredTableData() {
@@ -233,10 +228,6 @@
       },
       updateStats() {
         this.Number = this.tableData.length;
-        this.totalFileSize = this.tableData.reduce((total, file) => {
-          return total + (file.size && !isNaN(file.size) ? file.size : 0);
-        }, 0) / (1024 * 1024);
-        this.recentFileName = this.tableData.length > 0 ? this.tableData[0].name : '';
       }
     },
     mounted() {
