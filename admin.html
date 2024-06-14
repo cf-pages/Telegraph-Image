@@ -27,7 +27,6 @@
       border-bottom-left-radius: 10px; /* 左下角圆角 */
       border-bottom-right-radius: 10px; /* 右下角圆角 */
     }
-
     .header-content:hover {
       background-color: rgba(255, 255, 255, 0.9);
       transform: translateY(-2px);
@@ -66,6 +65,7 @@
     .content {
       display: grid;
       grid-template-columns: repeat(5, 1fr); /* 修改为5列布局 */
+      grid-template-rows: repeat(3, 1fr); /* 固定为3行布局 */
       gap: 20px;
       padding: 10px;
       flex-grow: 1;
@@ -94,12 +94,14 @@
       text-align: center;
       position: absolute;
       bottom: 0;
-      width: 100%;
+      width: 100%; /* 确保宽度占满底部 */
       box-sizing: border-box;
       display: flex;
       justify-content: center;
       align-items: center;
+      left: 0; /* 确保遮罩占满整个图片底部 */
     }
+
     .el-card .overlay {
       position: absolute;
       top: 0;
@@ -123,6 +125,7 @@
       display: flex;
       justify-content: center;
       margin-top: 20px;
+      padding-bottom: 20px; /* 确保分页栏固定在底部 */
     }
   </style>
 </head>
