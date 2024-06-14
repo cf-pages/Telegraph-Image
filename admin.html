@@ -52,6 +52,17 @@
     .header-content .action-icons i {
       font-size: 1.5em; /* 调整图标大小 */
       cursor: pointer; /* 添加鼠标指针效果 */
+      transition: color 0.3s; /* 悬停时颜色变化 */
+    }
+    .header-content .action-icons i:hover {
+      color: #007BFF; /* 悬停时颜色变化 */
+    }
+    .header-content .disabled {
+      color: #ccc;
+      pointer-events: none; /* 禁用点击 */
+    }
+    .el-dropdown-menu__item--selected {
+      background-color: #f0f0f0; /* 当前选择项的背景色 */
     }
     .search-card .el-input__inner {
       border-radius: 20px;
@@ -164,7 +175,7 @@
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
           <span class="stats">记录总数量: {{ Number }}</span>
-          <div class="actions">
+          <div class="actions action-icons">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort">
                 <span class="el-dropdown-link">
@@ -177,10 +188,10 @@
               </el-dropdown>
             </el-tooltip>
             <el-tooltip content="批量复制" placement="bottom">
-              <i class="fas fa-link" @click="handleBatchCopy"></i>
+              <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
             </el-tooltip>
             <el-tooltip content="批量删除" placement="bottom">
-              <i class="fas fa-trash-alt" @click="handleBatchDelete"></i>
+              <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
             </el-tooltip>
             <el-tooltip content="退出登录" placement="bottom">
               <i class="fas fa-home" @click="handleLogout"></i>
@@ -404,7 +415,7 @@
               return data.sort((a, b) => a.name.localeCompare(b.name));
             case 'dateDesc':
             default:
-              return data.sort((a, b) => new Date(b.date) - new Date(a.date));
+              return data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
           }
         }
       },
