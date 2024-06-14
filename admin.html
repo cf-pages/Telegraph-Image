@@ -48,6 +48,8 @@
     .header-content .stats {
       font-size: medium;
       margin-right: 20px;
+      display: flex;
+      align-items: center;
     }
     .header-content .actions {
       display: flex;
@@ -81,24 +83,14 @@
     .search-card .el-input__inner:focus {
       width: 400px; /* 聚焦时增加搜索栏宽度 */
     }
-    .upload-area {
-      width: 100px;
-      height: 50px;
-      border: 2px dashed #ccc;
-      border-radius: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      transition: border-color 0.3s ease;
-      margin: 0 auto;
-    }
-    .upload-area:hover {
-      border-color: #007BFF;
-    }
     .upload-icon {
-      font-size: 24px;
+      font-size: 1.5em;
       color: #007BFF;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .upload-icon:hover {
+      color: #0056b3;
     }
     .main-container {
       display: flex;
@@ -192,18 +184,16 @@
       <el-header>
         <div class="header-content">
           <span class="title" @click="refreshDashboard">Dashboard</span>
-          <div class="actions">
-            <el-tooltip content="上传图片" placement="bottom">
-              <div class="upload-area" @click="triggerFileUpload">
-                <i class="fas fa-upload upload-icon"></i>
-              </div>
-              <input type="file" id="fileUpload" @change="handleFileUpload" style="display: none;">
-            </el-tooltip>
-          </div>
           <div class="search-card">
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
-          <span class="stats">记录总数量: {{ Number }}</span>
+          <span class="stats">
+            记录总数量: {{ Number }}
+            <el-tooltip content="上传图片" placement="bottom">
+              <i class="fas fa-upload upload-icon" @click="triggerFileUpload"></i>
+            </el-tooltip>
+            <input type="file" id="fileUpload" @change="handleFileUpload" multiple style="display: none;">
+          </span>
           <div class="actions action-icons">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
@@ -309,9 +299,12 @@
           document.getElementById('fileUpload').click();
         },
         async handleFileUpload(event) {
-          const file = event.target.files[0];
+          const files = event.target.files;
           const formData = new FormData();
-          formData.append('file', file);
+
+          for (let i = 0; i < files.length; i++) {
+            formData.append('files[]', files[i]);
+          }
 
           try {
             const response = await fetch('/upload', {
