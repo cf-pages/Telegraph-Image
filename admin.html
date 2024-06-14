@@ -22,7 +22,7 @@
       color: #fff;
       padding: 10px 20px;
       background-color: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px); /* 顶栏的模糊效果 */
+      backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     }
     .header-content .stats {
@@ -37,7 +37,7 @@
     }
     .content {
       display: grid;
-      grid-template-columns: repeat(5, 1fr); /* 修改为5列布局 */
+      grid-template-columns: repeat(5, 1fr);
       gap: 20px;
       padding: 10px;
       flex-grow: 1;
@@ -49,25 +49,31 @@
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       position: relative;
-      transition: transform 0.3s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .el-card:hover {
       transform: scale(1.05);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
     .el-card .el-image {
       width: 100%;
       height: 200px;
       object-fit: cover;
+      transition: opacity 0.3s ease;
+    }
+    .el-card .el-image.is-loading {
+      opacity: 0.5;
     }
     .el-card .file-info {
       padding: 10px;
-      background: rgba(0, 0, 0, 0.6);
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
       color: white;
       text-align: center;
       position: absolute;
       bottom: 0;
       width: 100%;
       box-sizing: border-box;
+      font-size: small;
     }
     .el-card .overlay {
       position: absolute;
@@ -104,6 +110,9 @@
       justify-content: center;
       margin-top: 20px;
     }
+    .el-pagination {
+      font-size: medium;
+    }
   </style>
 </head>
 <body>
@@ -127,7 +136,7 @@
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
-              <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover" lazy></el-image>
+              <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover" lazy @load="handleImageLoad"></el-image>
               <div class="overlay">
                 <el-button size="mini" type="primary" @click="handleCopy(index, item.name)">复制地址</el-button>
                 <el-button size="mini" type="danger" @click="handleDelete(index, item.name)">删除</el-button>
@@ -163,7 +172,7 @@
       tableData: [],
       search: '',
       currentPage: 1,
-      pageSize: 15 // 修改为每页显示15张图片
+      pageSize: 15
     },
     computed: {
       filteredTableData() {
@@ -242,6 +251,9 @@
       },
       handlePageChange(page) {
         this.currentPage = page;
+      },
+      handleImageLoad(event) {
+        event.target.classList.remove('is-loading');
       },
       updateStats() {
         this.Number = this.tableData.length;
