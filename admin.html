@@ -177,13 +177,13 @@
           <span class="stats">记录总数量: {{ Number }}</span>
           <div class="actions action-icons">
             <el-tooltip content="排序" placement="bottom">
-              <el-dropdown @command="sort">
+              <el-dropdown @command="sort" :hide-on-click="false">
                 <span class="el-dropdown-link">
-                  <i class="fas fa-sort"></i>
+                  <i :class="sortIcon"></i>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="dateDesc">按时间倒序</el-dropdown-item>
-                  <el-dropdown-item command="nameAsc">按名称升序</el-dropdown-item>
+                  <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
+                  <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
@@ -259,6 +259,9 @@
           const start = (this.currentPage - 1) * this.pageSize;
           const end = start + this.pageSize;
           return sortedData.slice(start, end);
+        },
+        sortIcon() {
+          return this.sortOption === 'dateDesc' ? 'fas fa-sort-amount-down' : 'fas fa-sort-alpha-up';
         }
       },
       watch: {
@@ -267,6 +270,9 @@
             this.selectedFiles = newData.filter(file => file.selected);
           },
           deep: true
+        },
+        sortOption(newOption) {
+          localStorage.setItem('sortOption', newOption);
         }
       },
       methods: {
@@ -448,6 +454,10 @@
           .then(result => {
             this.tableData = result.map(file => ({ ...file, selected: false }));
             this.updateStats();
+            const savedSortOption = localStorage.getItem('sortOption');
+            if (savedSortOption) {
+              this.sortOption = savedSortOption;
+            }
             this.sortData(this.tableData); // 默认按时间倒序排序
           })
           .catch(error => {
