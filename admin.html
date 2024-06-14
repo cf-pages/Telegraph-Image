@@ -23,13 +23,12 @@
       backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.3s, transform 0.3s;
+      transition: background-color 0.3s;
       border-bottom-left-radius: 10px; /* 左下角圆角 */
       border-bottom-right-radius: 10px; /* 右下角圆角 */
     }
     .header-content:hover {
       background-color: rgba(255, 255, 255, 0.9);
-      transform: translateY(-2px);
     }
     .header-content .title {
       font-size: 2em;
@@ -37,8 +36,8 @@
       font-weight: bold;
     }
     .header-content .search-card {
-      flex-grow: 1;
-      margin: 0 20px;
+      margin-left: auto; /* 将搜索栏推到右边 */
+      margin-right: 20px; /* 在搜索栏和右侧统计信息之间添加间距 */
     }
     .header-content .stats {
       font-size: medium;
