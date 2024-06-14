@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ImgTC | Admin</title>
   <!-- Import CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
@@ -17,13 +18,20 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      line-height: 60px;
-      font-size: xx-large;
-      color: #fff;
       padding: 10px 20px;
-      background-color: rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px); /* 顶栏的模糊效果 */
+      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .header-content .title {
+      font-size: 2em;
+      color: #333;
+      font-weight: bold;
+    }
+    .header-content .search-card {
+      flex-grow: 1;
+      margin: 0 20px;
     }
     .header-content .stats {
       font-size: medium;
@@ -37,7 +45,7 @@
     }
     .content {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(5, 1fr); /* 修改为5列布局 */
       gap: 20px;
       padding: 10px;
       flex-grow: 1;
@@ -49,31 +57,25 @@
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       position: relative;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.3s ease;
     }
     .el-card:hover {
       transform: scale(1.05);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     }
     .el-card .el-image {
       width: 100%;
       height: 200px;
       object-fit: cover;
-      transition: opacity 0.3s ease;
-    }
-    .el-card .el-image.is-loading {
-      opacity: 0.5;
     }
     .el-card .file-info {
       padding: 10px;
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
+      background: rgba(0, 0, 0, 0.6);
       color: white;
       text-align: center;
       position: absolute;
       bottom: 0;
       width: 100%;
       box-sizing: border-box;
-      font-size: small;
     }
     .el-card .overlay {
       position: absolute;
@@ -94,11 +96,6 @@
     .overlay .el-button {
       margin: 5px;
     }
-    .search-card {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
     .search-card .el-input__inner {
       border-radius: 20px;
       width: 300px;
@@ -110,9 +107,6 @@
       justify-content: center;
       margin-top: 20px;
     }
-    .el-pagination {
-      font-size: medium;
-    }
   </style>
 </head>
 <body>
@@ -120,7 +114,7 @@
     <el-container>
       <el-header>
         <div class="header-content">
-          <span>Dashboard</span>
+          <span class="title">Dashboard</span>
           <div class="search-card">
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
@@ -136,7 +130,7 @@
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
-              <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover" lazy @load="handleImageLoad"></el-image>
+              <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover" lazy></el-image>
               <div class="overlay">
                 <el-button size="mini" type="primary" @click="handleCopy(index, item.name)">复制地址</el-button>
                 <el-button size="mini" type="danger" @click="handleDelete(index, item.name)">删除</el-button>
@@ -172,7 +166,7 @@
       tableData: [],
       search: '',
       currentPage: 1,
-      pageSize: 15
+      pageSize: 15 // 修改为每页显示15张图片
     },
     computed: {
       filteredTableData() {
@@ -251,9 +245,6 @@
       },
       handlePageChange(page) {
         this.currentPage = page;
-      },
-      handleImageLoad(event) {
-        event.target.classList.remove('is-loading');
       },
       updateStats() {
         this.Number = this.tableData.length;
