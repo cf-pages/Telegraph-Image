@@ -35,6 +35,11 @@
       font-size: 1.8em;
       color: #333;
       font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .header-content .title:hover {
+      color: #007BFF;
     }
     .header-content .search-card {
       margin-left: auto; /* 将搜索栏推到右边 */
@@ -75,6 +80,24 @@
     }
     .search-card .el-input__inner:focus {
       width: 400px; /* 聚焦时增加搜索栏宽度 */
+    }
+    .upload-area {
+      width: 50px;
+      height: 50px;
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: border-color 0.3s ease;
+    }
+    .upload-area:hover {
+      border-color: #007BFF;
+    }
+    .upload-icon {
+      font-size: 24px;
+      color: #007BFF;
     }
     .main-container {
       display: flex;
@@ -170,12 +193,18 @@
     <el-container>
       <el-header>
         <div class="header-content">
-          <span class="title">Dashboard</span>
+          <span class="title" @click="refreshDashboard">Dashboard</span>
           <div class="search-card">
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
           <span class="stats">记录总数量: {{ Number }}</span>
           <div class="actions action-icons">
+            <el-tooltip content="上传图片" placement="bottom">
+              <div class="upload-area" @click="triggerFileUpload">
+                <i class="fas fa-upload upload-icon"></i>
+              </div>
+              <input type="file" id="fileUpload" @change="handleFileUpload" style="display: none;">
+            </el-tooltip>
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
                 <span class="el-dropdown-link">
@@ -276,6 +305,43 @@
         }
       },
       methods: {
+        triggerFileUpload() {
+          document.getElementById('fileUpload').click();
+        },
+        async handleFileUpload(event) {
+          const file = event.target.files[0];
+          const formData = new FormData();
+          formData.append('file', file);
+
+          try {
+            const response = await fetch('/upload', {
+              method: 'POST',
+              body: formData,
+            });
+
+            if (response.ok) {
+              this.$message({
+                type: 'success',
+                message: '上传成功！'
+              });
+              this.refreshDashboard();
+            } else {
+              this.$message({
+                type: 'error',
+                message: '上传失败！'
+              });
+            }
+          } catch (error) {
+            console.error('上传失败:', error);
+            this.$message({
+              type: 'error',
+              message: '上传失败！'
+            });
+          }
+        },
+        refreshDashboard() {
+          location.reload(); // 或者使用 Vue Router 重定向到主页
+        },
         handleDelete(index, key) {
           this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
             confirmButtonText: '确定',
@@ -379,7 +445,7 @@
           }
         },
         handleLogout() {
-          window.location.href = 'https://imgtc-3i1.pages.dev/';
+          window.location.href = '/'; // 重定向到首页
         },
         handleCopy(index, key) {
           const text = `${document.location.origin}/file/${key}`;
