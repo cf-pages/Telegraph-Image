@@ -7,7 +7,6 @@
   <!-- Import CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/css/lightbox.min.css" rel="stylesheet">
   <style>
     body {
       background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
@@ -123,16 +122,7 @@
     .el-card:hover .overlay {
       opacity: 1;
     }
-    .el-card .overlay a {
-      display: block;
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 1;
-    }
-    .overlay .el-button {
+    .el-card .overlay .el-button {
       margin: 5px;
       z-index: 2;
     }
@@ -165,9 +155,12 @@
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
-              <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover" lazy></el-image>
               <div class="overlay">
-                <a :href="'/file/' + item.name" data-lightbox="image-1" data-title="Image Preview"></a>
+                <el-image
+                  :src="'/file/' + item.name"
+                  :preview-src-list="['/file/' + item.name]"
+                  fit="cover"
+                  lazy></el-image>
                 <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
                 <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
               </div>
@@ -193,7 +186,6 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
 <!-- Import JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.3/js/lightbox.min.js"></script>
 <script>
   var app = new Vue({
     el: '#app',
