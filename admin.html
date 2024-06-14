@@ -18,7 +18,7 @@
       justify-content: space-between;
       align-items: center;
       line-height: 60px;
-      font-size: large;
+      font-size: xx-large;
       color: #fff;
       padding: 10px 20px;
       background-color: rgba(0, 0, 0, 0.5);
@@ -93,6 +93,11 @@
       border-radius: 20px;
       width: 300px;
     }
+    .pagination-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
@@ -125,13 +130,16 @@
             </el-card>
           </template>
         </div>
-        <el-pagination
-          background
-          layout="prev, pager, next"
-          :total="filteredTableData.length"
-          :page-size="pageSize"
-          v-model:current-page="currentPage">
-        </el-pagination>
+        <div class="pagination-container">
+          <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="filteredTableData.length"
+            :page-size="pageSize"
+            @current-change="handlePageChange"
+            :current-page.sync="currentPage">
+          </el-pagination>
+        </div>
       </el-main>
     </el-container>
   </div>
@@ -225,6 +233,9 @@
             type: 'success'
           });
         }
+      },
+      handlePageChange(page) {
+        this.currentPage = page;
       },
       updateStats() {
         this.Number = this.tableData.length;
