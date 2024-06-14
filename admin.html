@@ -317,7 +317,21 @@
                 type: 'success',
                 message: '上传成功！'
               });
-              this.refreshDashboard();
+
+              // 获取上传的文件列表并更新
+              const result = await response.json();
+              const uploadedFiles = result.files;
+
+              uploadedFiles.forEach(file => {
+                this.tableData.push({
+                  name: file.name,
+                  metadata: { TimeStamp: Date.now() },
+                  selected: false
+                });
+              });
+
+              this.updateStats();
+              this.copyLinksToClipboard(uploadedFiles.map(file => `${document.location.origin}/file/${file.name}`));
             } else {
               this.$message({
                 type: 'error',
@@ -329,6 +343,31 @@
             this.$message({
               type: 'error',
               message: '上传失败！'
+            });
+          }
+        },
+        copyLinksToClipboard(links) {
+          const linkText = links.join('\n');
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(linkText).then(() => {
+              this.$message({
+                message: '链接已复制到剪贴板',
+                type: 'success'
+              });
+            });
+          } else {
+            const textarea = document.createElement('textarea');
+            document.body.appendChild(textarea);
+            textarea.style.position = 'fixed';
+            textarea.style.clip = 'rect(0 0 0 0)';
+            textarea.style.top = '10px';
+            textarea.value = linkText;
+            textarea.select();
+            document.execCommand('copy', true);
+            document.body.removeChild(textarea);
+            this.$message({
+              message: '链接已复制到剪贴板',
+              type: 'success'
             });
           }
         },
