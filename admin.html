@@ -165,11 +165,16 @@
           </div>
           <span class="stats">记录总数量: {{ Number }}</span>
           <div class="actions">
-            <el-tooltip content="按时间倒序排序" placement="bottom">
-              <i class="fas fa-sort-amount-down" @click="sort('dateDesc')"></i>
-            </el-tooltip>
-            <el-tooltip content="按名称升序排序" placement="bottom">
-              <i class="fas fa-sort-alpha-up" @click="sort('nameAsc')"></i>
+            <el-tooltip content="排序" placement="bottom">
+              <el-dropdown @command="sort">
+                <span class="el-dropdown-link">
+                  <i class="fas fa-sort"></i>
+                </span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="dateDesc">按时间倒序</el-dropdown-item>
+                  <el-dropdown-item command="nameAsc">按名称升序</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
             </el-tooltip>
             <el-tooltip content="批量复制" placement="bottom">
               <i class="fas fa-link" @click="handleBatchCopy"></i>
@@ -390,8 +395,8 @@
         updateStats() {
           this.Number = this.tableData.length;
         },
-        sort(option) {
-          this.sortOption = option;
+        sort(command) {
+          this.sortOption = command;
         },
         sortData(data) {
           switch (this.sortOption) {
@@ -432,6 +437,7 @@
           .then(result => {
             this.tableData = result.map(file => ({ ...file, selected: false }));
             this.updateStats();
+            this.sortData(this.tableData); // 默认按时间倒序排序
           })
           .catch(error => {
             this.$message({
