@@ -37,7 +37,7 @@
     }
     .content {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(5, 1fr); /* 修改为5列布局 */
       gap: 20px;
       padding: 10px;
       flex-grow: 1;
@@ -163,7 +163,7 @@
       tableData: [],
       search: '',
       currentPage: 1,
-      pageSize: 15
+      pageSize: 15 // 修改为每页显示15张图片
     },
     computed: {
       filteredTableData() {
