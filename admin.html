@@ -338,7 +338,11 @@
                     selected: false
                   });
                 } else {
-                  throw new Error('上传响应中缺少 src 属性');
+                  console.error('上传响应中缺少 src 属性:', result);
+                  this.$message({
+                    type: 'error',
+                    message: `文件 ${files[i].name} 上传失败！`
+                  });
                 }
               } else {
                 this.$message({
@@ -368,6 +372,12 @@
               this.$message({
                 message: '链接已复制到剪贴板',
                 type: 'success'
+              });
+            }).catch(err => {
+              console.error('复制到剪贴板失败:', err);
+              this.$message({
+                message: '复制到剪贴板失败',
+                type: 'error'
               });
             });
           } else {
