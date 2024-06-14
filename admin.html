@@ -55,6 +55,10 @@
     .search-card .el-input__inner:focus {
       width: 500px; /* 聚焦时增加搜索栏宽度 */
     }
+    .header-content .logout-button {
+      font-size: 1.5em; /* 调整图标大小 */
+      cursor: pointer; /* 添加鼠标指针效果 */
+    }
     .main-container {
       display: flex;
       flex-direction: column;
@@ -140,7 +144,7 @@
           <span class="stats">记录总数量: {{ Number }}</span>
           <span class="logout-button">
             <el-tooltip content="退出登录" placement="bottom">
-              <el-button type="text" icon="el-icon-logout" @click="handleLogout">退出</el-button>
+              <i class="fas fa-home" @click="handleLogout"></i>
             </el-tooltip>
           </span>
         </div>
