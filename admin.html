@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
   <style>
     body {
-      background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%); /* 更梦幻的渐变色 */
+      background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
       font-family: 'Arial', sans-serif;
       color: #333;
     }
@@ -28,6 +28,7 @@
       line-height: 60px;
       font-size: xx-large;
       color: #fff;
+      padding: 10px;
     }
     .logout-button {
       display: flex;
@@ -84,8 +85,8 @@
     .image-container {
       position: relative;
       overflow: hidden;
-      border-radius: 8px; /* 圆角效果 */
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
     }
     .image-container .el-image {
       display: block;
@@ -186,8 +187,8 @@
     el: '#app',
     data: {
       Number: 0,
-      totalFileSize: 0, // 新增的总文件大小
-      recentFileName: '', // 新增的最近上传文件名
+      totalFileSize: 0,
+      recentFileName: '',
       showLogoutButton: false,
       tableData: [],
       search: ''
@@ -199,9 +200,7 @@
     },
     methods: {
       handleDelete(index, key) {
-        console.log(key);
         if (confirm("确认删除该条记录吗?")) {
-          console.log("Yes")
           var requestOptions = {
             method: 'GET',
             redirect: 'follow',
@@ -210,21 +209,28 @@
 
           fetch("./api/manage/delete/" + key, requestOptions)
             .then(response => response.text())
-            .then(result => { console.log(result); this.tableData.splice(index, 1); this.updateStats(); })
-            .catch(error => { alert("An error occurred while synchronizing data with the server, please check the network connection"); console.log('error', error); });
-
-        } else {
-          console.log("No")
+            .then(result => {
+              this.tableData.splice(index, 1);
+              this.updateStats();
+            })
+            .catch(error => {
+              alert("An error occurred while synchronizing data with the server, please check the network connection");
+              console.log('error', error);
+            });
         }
       },
       handleLogout() {
-        // 重定向到图床上传地址
         window.location.href = 'https://imgtc-3i1.pages.dev/';
       },
       handleCopy(index, key) {
         const text = `${document.location.origin}/file/${key}`;
         if (navigator.clipboard) {
-          navigator.clipboard.writeText(text);
+          navigator.clipboard.writeText(text).then(() => {
+            this.$message({
+              message: '复制文件链接成功~',
+              type: 'success'
+            });
+          });
         } else {
           const textarea = document.createElement('textarea');
           document.body.appendChild(textarea);
@@ -235,25 +241,18 @@
           textarea.select();
           document.execCommand('copy', true);
           document.body.removeChild(textarea);
+          this.$message({
+            message: '复制文件链接成功~',
+            type: 'success'
+          });
         }
-        this.$message({
-          message: '复制文件链接成功~',
-          type: 'success'
-        });
       },
       updateStats() {
         this.Number = this.tableData.length;
         this.totalFileSize = this.tableData.reduce((total, file) => {
-          if (file.size && !isNaN(file.size)) {
-            return total + file.size;
-          } else {
-            console.error("Invalid file size:", file);
-            return total;
-          }
-        }, 0) / (1024 * 1024); // 假设 size 是字节，转换为 MB
+          return total + (file.size && !isNaN(file.size) ? file.size : 0);
+        }, 0) / (1024 * 1024);
         this.recentFileName = this.tableData.length > 0 ? this.tableData[0].name : '';
-        console.log("Total file size:", this.totalFileSize);
-        console.log("Recent file name:", this.recentFileName);
       }
     },
     mounted() {
@@ -263,14 +262,11 @@
         credentials: 'include'
       };
 
-      // 检查用户登录状态
       fetch("./api/manage/check", requestOptions)
         .then(response => response.text())
         .then(result => {
           if (result === "true") {
             this.showLogoutButton = true;
-          } else if (result === "Not using basic auth.") {
-            // 处理其他情况
           } else {
             window.location.href = "./api/manage/login";
           }
@@ -280,20 +276,10 @@
           console.log('error', error);
         });
 
-      // 获取表格数据
       fetch("./api/manage/list", requestOptions)
-        .then(response => {
-          if (response.status == 401) {
-            alert("请先登录");
-            window.location.href = "./api/manage/login";
-          } else {
-            return response;
-          }
-        })
-        .then(response => response.text())
+        .then(response => response.json())
         .then(result => {
-          this.tableData = JSON.parse(result);
-          console.log("Table Data:", this.tableData); // 打印表格数据
+          this.tableData = result;
           this.updateStats();
         })
         .catch(error => {
