@@ -144,6 +144,14 @@
       display: flex;
       justify-content: flex-start;
       padding: 10px;
+      gap: 10px; /* 添加按钮间距 */
+    }
+    .el-checkbox {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      transform: scale(1.5); /* 放大复选框 */
+      z-index: 10;
     }
   </style>
 </head>
@@ -168,6 +176,9 @@
         <div class="action-bar">
           <el-button type="danger" @click="handleBatchDelete" :disabled="selectedFiles.length === 0">
             批量删除
+          </el-button>
+          <el-button type="primary" @click="handleBatchCopy" :disabled="selectedFiles.length === 0">
+            批量复制链接
           </el-button>
         </div>
         <div class="content">
@@ -314,6 +325,31 @@
               message: '已取消批量删除'
             });
           });
+        },
+        handleBatchCopy() {
+          const links = this.selectedFiles.map(file => `${document.location.origin}/file/${file.name}`).join('\n');
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(links).then(() => {
+              this.$message({
+                message: '批量复制链接成功~',
+                type: 'success'
+              });
+            });
+          } else {
+            const textarea = document.createElement('textarea');
+            document.body.appendChild(textarea);
+            textarea.style.position = 'fixed';
+            textarea.style.clip = 'rect(0 0 0 0)';
+            textarea.style.top = '10px';
+            textarea.value = links;
+            textarea.select();
+            document.execCommand('copy', true);
+            document.body.removeChild(textarea);
+            this.$message({
+              message: '批量复制链接成功~',
+              type: 'success'
+            });
+          }
         },
         handleLogout() {
           window.location.href = 'https://imgtc-3i1.pages.dev/';
