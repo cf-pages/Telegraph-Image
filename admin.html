@@ -313,7 +313,7 @@
             formData.append('file', files[i]); // 确保使用键 'file'
 
             try {
-              const response = await fetch('https://imgtc-3i1.pages.dev/upload', {
+              const response = await fetch('/upload', {
                 method: 'POST',
                 body: formData,
               });
