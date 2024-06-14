@@ -22,6 +22,8 @@
       color: #fff;
       padding: 10px 20px;
       background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px); /* 顶栏的模糊效果 */
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     }
     .header-content .stats {
       font-size: medium;
@@ -31,21 +33,26 @@
       display: flex;
       flex-direction: column;
       padding: 20px;
+      min-height: calc(100vh - 80px);
     }
     .content {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 20px;
-      justify-content: center;
       padding: 10px;
+      flex-grow: 1;
     }
     .el-card {
-      width: 300px;
+      width: 100%;
       background: rgba(255, 255, 255, 0.8);
       border-radius: 8px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       position: relative;
+      transition: transform 0.3s ease;
+    }
+    .el-card:hover {
+      transform: scale(1.05);
     }
     .el-card .el-image {
       width: 100%;
@@ -60,6 +67,7 @@
       position: absolute;
       bottom: 0;
       width: 100%;
+      box-sizing: border-box;
     }
     .el-card .overlay {
       position: absolute;
@@ -81,10 +89,6 @@
       margin: 5px;
     }
     .search-card {
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.8);
-      border-radius: 20px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       display: flex;
       justify-content: center;
       margin-bottom: 20px;
@@ -92,6 +96,8 @@
     .search-card .el-input__inner {
       border-radius: 20px;
       width: 300px;
+      border: none;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
     .pagination-container {
       display: flex;
@@ -157,7 +163,7 @@
       tableData: [],
       search: '',
       currentPage: 1,
-      pageSize: 8
+      pageSize: 15
     },
     computed: {
       filteredTableData() {
