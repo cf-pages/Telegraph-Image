@@ -82,7 +82,7 @@
       width: 400px; /* 聚焦时增加搜索栏宽度 */
     }
     .upload-area {
-      width: 50px;
+      width: 100px;
       height: 50px;
       border: 2px dashed #ccc;
       border-radius: 10px;
@@ -91,6 +91,7 @@
       align-items: center;
       cursor: pointer;
       transition: border-color 0.3s ease;
+      margin: 0 auto;
     }
     .upload-area:hover {
       border-color: #007BFF;
@@ -131,11 +132,8 @@
       object-fit: cover;
       transition: opacity 0.3s ease;
     }
-    .el-card .el-image :hover {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      transition: opacity 0.3s ease;
+    .el-card .el-image:hover {
+      opacity: 0.8;
     }
     .el-card .file-info {
       padding: 10px;
@@ -194,17 +192,19 @@
       <el-header>
         <div class="header-content">
           <span class="title" @click="refreshDashboard">Dashboard</span>
-          <div class="search-card">
-            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
-          </div>
-          <span class="stats">记录总数量: {{ Number }}</span>
-          <div class="actions action-icons">
+          <div class="actions">
             <el-tooltip content="上传图片" placement="bottom">
               <div class="upload-area" @click="triggerFileUpload">
                 <i class="fas fa-upload upload-icon"></i>
               </div>
               <input type="file" id="fileUpload" @change="handleFileUpload" style="display: none;">
             </el-tooltip>
+          </div>
+          <div class="search-card">
+            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
+          </div>
+          <span class="stats">记录总数量: {{ Number }}</span>
+          <div class="actions action-icons">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
                 <span class="el-dropdown-link">
