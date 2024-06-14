@@ -91,6 +91,12 @@
       object-fit: cover;
       transition: opacity 0.3s ease;
     }
+    .el-card .el-image :hover {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      transition: opacity 0.3s ease;
+    }
     .el-card .file-info {
       padding: 10px;
       background: rgba(0, 0, 0, 0.6);
@@ -150,15 +156,15 @@
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
-              <div class="image-overlay">
-                <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
-                <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
-              </div>
               <el-image
                 :src="'/file/' + item.name"
                 :preview-src-list="['/file/' + item.name]"
                 fit="cover"
                 lazy></el-image>
+              <div class="image-overlay">
+                <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
+                <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+              </div>
               <div class="file-info">{{ item.name }}</div>
             </el-card>
           </template>
