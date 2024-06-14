@@ -38,15 +38,24 @@
     }
     .header-content .search-card {
       margin-left: auto; /* 将搜索栏推到右边 */
-      margin-right: 40px; /* 在搜索栏和右侧统计信息之间添加间距 */
+      margin-right: 20px; /* 在搜索栏和右侧统计信息之间添加间距 */
     }
     .header-content .stats {
       font-size: medium;
-      margin-right: 40px;
+      margin-right: 20px;
+    }
+    .header-content .actions {
+      display: flex;
+      align-items: center;
+      gap: 15px; /* 间距 */
+    }
+    .header-content .action-icons i {
+      font-size: 1.5em; /* 调整图标大小 */
+      cursor: pointer; /* 添加鼠标指针效果 */
     }
     .search-card .el-input__inner {
       border-radius: 20px;
-      width: 400px; /* 增加搜索栏宽度 */
+      width: 300px; /* 增加搜索栏宽度 */
       height: 40px; /* 增加搜索栏高度 */
       font-size: 1.2em; /* 增加搜索栏字体大小 */
       border: none;
@@ -54,11 +63,7 @@
       transition: width 0.3s;
     }
     .search-card .el-input__inner:focus {
-      width: 500px; /* 聚焦时增加搜索栏宽度 */
-    }
-    .header-content .logout-button {
-      font-size: 1.5em; /* 调整图标大小 */
-      cursor: pointer; /* 添加鼠标指针效果 */
+      width: 400px; /* 聚焦时增加搜索栏宽度 */
     }
     .main-container {
       display: flex;
@@ -140,12 +145,6 @@
       margin-top: 20px;
       padding-bottom: 20px; /* 确保分页栏固定在底部 */
     }
-    .action-bar {
-      display: flex;
-      justify-content: flex-start;
-      padding: 10px;
-      gap: 10px; /* 添加按钮间距 */
-    }
     .el-checkbox {
       position: absolute;
       top: 10px;
@@ -165,22 +164,26 @@
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
           <span class="stats">记录总数量: {{ Number }}</span>
-          <span class="logout-button">
+          <div class="actions">
+            <el-tooltip content="按时间倒序排序" placement="bottom">
+              <i class="fas fa-sort-amount-down" @click="sort('dateDesc')"></i>
+            </el-tooltip>
+            <el-tooltip content="按名称升序排序" placement="bottom">
+              <i class="fas fa-sort-alpha-up" @click="sort('nameAsc')"></i>
+            </el-tooltip>
+            <el-tooltip content="批量复制" placement="bottom">
+              <i class="fas fa-link" @click="handleBatchCopy"></i>
+            </el-tooltip>
+            <el-tooltip content="批量删除" placement="bottom">
+              <i class="fas fa-trash-alt" @click="handleBatchDelete"></i>
+            </el-tooltip>
             <el-tooltip content="退出登录" placement="bottom">
               <i class="fas fa-home" @click="handleLogout"></i>
             </el-tooltip>
-          </span>
+          </div>
         </div>
       </el-header>
       <el-main class="main-container">
-        <div class="action-bar">
-          <el-button type="danger" @click="handleBatchDelete" :disabled="selectedFiles.length === 0">
-            批量删除
-          </el-button>
-          <el-button type="primary" @click="handleBatchCopy" :disabled="selectedFiles.length === 0">
-            批量复制链接
-          </el-button>
-        </div>
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
@@ -228,16 +231,18 @@
         search: '',
         currentPage: 1,
         pageSize: 15, // 修改为每页显示15张图片
-        selectedFiles: []
+        selectedFiles: [],
+        sortOption: 'dateDesc' // 默认按时间倒序排序
       },
       computed: {
         filteredTableData() {
           return this.tableData.filter(data => !this.search || data.name.toLowerCase().includes(this.search.toLowerCase()));
         },
         paginatedTableData() {
+          const sortedData = this.sortData(this.filteredTableData);
           const start = (this.currentPage - 1) * this.pageSize;
           const end = start + this.pageSize;
-          return this.filteredTableData.slice(start, end);
+          return sortedData.slice(start, end);
         }
       },
       watch: {
@@ -384,6 +389,18 @@
         },
         updateStats() {
           this.Number = this.tableData.length;
+        },
+        sort(option) {
+          this.sortOption = option;
+        },
+        sortData(data) {
+          switch (this.sortOption) {
+            case 'nameAsc':
+              return data.sort((a, b) => a.name.localeCompare(b.name));
+            case 'dateDesc':
+            default:
+              return data.sort((a, b) => new Date(b.date) - new Date(a.date));
+          }
         }
       },
       mounted() {
