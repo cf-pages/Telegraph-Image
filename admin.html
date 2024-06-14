@@ -43,6 +43,9 @@
     }
     .content {
       width: 80%;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
       padding: 10px;
     }
     .el-card {
@@ -57,8 +60,60 @@
     .search-card {
       padding: 10px;
       background: rgba(255, 255, 255, 0.8);
-      border-radius: 8px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+    }
+    .search-card el-input {
+      border-radius: 20px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+    .logout-button el-button {
+      background: linear-gradient(45deg, #ff6f61, #de4f8a);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+      transition: background 0.3s ease, transform 0.3s ease;
+    }
+    .logout-button el-button:hover {
+      background: linear-gradient(45deg, #de4f8a, #ff6f61);
+      transform: scale(1.05);
+    }
+    .image-container {
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px; /* 圆角效果 */
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1); /* 阴影效果 */
+    }
+    .image-container .el-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.3s ease;
+    }
+    .image-container:hover .el-image {
+      transform: scale(1.1);
+    }
+    .image-container .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .image-container:hover .overlay {
+      opacity: 1;
+    }
+    .overlay .el-button {
+      margin: 0 5px;
     }
   </style>
 </head>
@@ -73,7 +128,7 @@
           </div>
           <span class="logout-button">
             <el-tooltip content="退出登录" placement="bottom">
-              <el-button type="text" icon="el-icon-logout" @click="handleLogout" style="color: white; font-size: 20px; background: rgba(0, 0, 0, 0.2); padding: 10px;"></el-button>
+              <el-button type="text" icon="el-icon-logout" @click="handleLogout"></el-button>
             </el-tooltip>
           </span>
         </div>
@@ -91,27 +146,26 @@
                 <el-table :data="filteredTableData" style="width: 100%">
                   <el-table-column label="File Info" prop="fileInfo">
                     <template slot-scope="scope">
-                      <div>{{ scope.row.name }}</div>
-                      <el-popover trigger="hover" placement="top">
-                        <p>{{ scope.row.metadata }}</p>
-                        <div slot="reference" class="name-wrapper">
-                          <el-tag size="medium">详情</el-tag>
-                        </div>
-                      </el-popover>
+                      <div class="file-info">
+                        <span>{{ scope.row.name }}</span>
+                        <el-popover trigger="hover" placement="top">
+                          <p>{{ scope.row.metadata }}</p>
+                          <div slot="reference" class="name-wrapper">
+                            <el-tag size="medium">详情</el-tag>
+                          </div>
+                        </el-popover>
+                      </div>
                     </template>
                   </el-table-column>
                   <el-table-column label="preview" prop="preview" align="center">
                     <template slot-scope="scope">
-                      <video v-if="scope.row.name.indexOf('.mp4') > 0" style="width: 100%; height: 180px;" controls>
-                        <source :src="'/file/' + scope.row.name" type="video/mp4">
-                      </video>
-                      <el-image v-else style="width: 100%; height: 100%;" :src="'/file/' + scope.row.name" :zoom-rate="1.2" :preview-src-list="['/file/' + scope.row.name]" fit="cover" lazy />
-                    </template>
-                  </el-table-column>
-                  <el-table-column align="right">
-                    <template slot="scope">
-                      <el-button size="mini" type="primary" @click="handleCopy(scope.$index, scope.row.name)">复制地址</el-button>
-                      <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row.name)">删除</el-button>
+                      <div class="image-container">
+                        <el-image v-else style="width: 100%; height: 100%;" :src="'/file/' + scope.row.name" :zoom-rate="1.2" :preview-src-list="['/file/' + scope.row.name]" fit="cover" lazy />
+                        <div class="overlay">
+                          <el-button size="mini" type="primary" @click="handleCopy(scope.$index, scope.row.name)">复制地址</el-button>
+                          <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row.name)">删除</el-button>
+                        </div>
+                      </div>
                     </template>
                   </el-table-column>
                 </el-table>
