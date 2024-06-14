@@ -18,9 +18,6 @@
     .el-image {
       text-align: center;
     }
-    .el-button + .el-button {
-      margin: 0;
-    }
     .header-content {
       display: flex;
       justify-content: space-between;
@@ -55,9 +52,6 @@
       border-radius: 8px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
     }
-    .el-button {
-      margin-right: 10px;
-    }
     .search-card {
       padding: 10px;
       background: rgba(255, 255, 255, 0.8);
@@ -65,10 +59,6 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       display: flex;
       align-items: center;
-    }
-    .search-card el-input {
-      border-radius: 20px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }
     .logout-button el-button {
       background: linear-gradient(45deg, #ff6f61, #de4f8a);
@@ -104,6 +94,7 @@
       width: 100%;
       height: 100%;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       background: rgba(0, 0, 0, 0.6);
@@ -114,7 +105,20 @@
       opacity: 1;
     }
     .overlay .el-button {
-      margin: 0 5px;
+      margin: 5px 0;
+    }
+    .file-info {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 5px;
+      text-align: center;
+    }
+    .search-card .el-input__inner {
+      border-radius: 20px;
     }
   </style>
 </head>
@@ -144,32 +148,14 @@
           <el-row :gutter="12">
             <el-col :span="24">
               <template>
-                <el-table :data="filteredTableData" style="width: 100%">
-                  <el-table-column label="File Info" prop="fileInfo">
-                    <template slot-scope="scope">
-                      <div class="file-info">
-                        <span>{{ scope.row.name }}</span>
-                        <el-popover trigger="hover" placement="top">
-                          <p>{{ scope.row.metadata }}</p>
-                          <div slot="reference" class="name-wrapper">
-                            <el-tag size="medium">详情</el-tag>
-                          </div>
-                        </el-popover>
-                      </div>
-                    </template>
-                  </el-table-column>
-                  <el-table-column label="preview" prop="preview" align="center">
-                    <template slot-scope="scope">
-                      <div class="image-container">
-                        <el-image v-if="scope.row.name" style="width: 100%; height: 100%;" :src="'/file/' + scope.row.name" :preview-src-list="['/file/' + scope.row.name]" fit="cover" lazy></el-image>
-                        <div class="overlay">
-                          <el-button size="mini" type="primary" @click="handleCopy(scope.$index, scope.row.name)">复制地址</el-button>
-                          <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row.name)">删除</el-button>
-                        </div>
-                      </div>
-                    </template>
-                  </el-table-column>
-                </el-table>
+                <div v-for="(item, index) in filteredTableData" :key="index" class="image-container">
+                  <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover" lazy></el-image>
+                  <div class="overlay">
+                    <el-button size="mini" type="primary" @click="handleCopy(index, item.name)">复制地址</el-button>
+                    <el-button size="mini" type="danger" @click="handleDelete(index, item.name)">删除</el-button>
+                  </div>
+                  <div class="file-info">{{ item.name }}</div>
+                </div>
               </template>
             </el-col>
           </el-row>
@@ -200,7 +186,11 @@
     },
     methods: {
       handleDelete(index, key) {
-        if (confirm("确认删除该条记录吗?")) {
+        this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
           var requestOptions = {
             method: 'GET',
             redirect: 'follow',
@@ -212,12 +202,24 @@
             .then(result => {
               this.tableData.splice(index, 1);
               this.updateStats();
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              });
             })
             .catch(error => {
-              alert("An error occurred while synchronizing data with the server, please check the network connection");
+              this.$message({
+                type: 'error',
+                message: '删除失败，请检查网络连接'
+              });
               console.log('error', error);
             });
-        }
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
       },
       handleLogout() {
         window.location.href = 'https://imgtc-3i1.pages.dev/';
@@ -272,7 +274,10 @@
           }
         })
         .catch(error => {
-          alert("An error occurred while synchronizing data with the server, please check the network connection");
+          this.$message({
+            type: 'error',
+            message: '同步数据时出错，请检查网络连接'
+          });
           console.log('error', error);
         });
 
@@ -283,7 +288,10 @@
           this.updateStats();
         })
         .catch(error => {
-          alert("An error occurred while synchronizing data with the server, please check the network connection");
+          this.$message({
+            type: 'error',
+            message: '同步数据时出错，请检查网络连接'
+          });
           console.log('error', error);
         });
     }
