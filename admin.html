@@ -154,17 +154,10 @@
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
-              <div @click="openImagePreview(['/file/' + item.name])" style="cursor: pointer;">
-                <el-image
-                  :src="'/file/' + item.name"
-                  :preview-src-list="['/file/' + item.name]"
-                  fit="cover"
-                  lazy>
-                </el-image>
-              </div>
+              <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover" lazy></el-image>
               <div class="overlay">
-                <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
-                <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+                <el-button size="mini" type="primary" @click="handleCopy(index, item.name)">复制地址</el-button>
+                <el-button size="mini" type="danger" @click="handleDelete(index, item.name)">删除</el-button>
               </div>
               <div class="file-info">{{ item.name }}</div>
             </el-card>
@@ -189,7 +182,6 @@
 <!-- Import JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
 <script>
-  Vue.use(ELEMENT.ImageViewer);
   var app = new Vue({
     el: '#app',
     data: {
@@ -280,11 +272,6 @@
       },
       updateStats() {
         this.Number = this.tableData.length;
-      },
-      openImagePreview(images) {
-        this.$imageViewer({
-          urlList: images
-        });
       }
     },
     mounted() {
