@@ -552,6 +552,7 @@
         }
       },
       mounted() {
+
         var requestOptions = {
           method: 'GET',
           redirect: 'follow',
@@ -578,6 +579,7 @@
         fetch("./api/manage/list", requestOptions)
           .then(response => response.json())
           .then(result => {
+            console.log(result); // 打印获取到的数据，确认是否包含上传的图片
             this.tableData = result.map(file => ({ ...file, selected: false }));
             this.updateStats();
             const savedSortOption = localStorage.getItem('sortOption');
