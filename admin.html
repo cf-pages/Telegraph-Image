@@ -129,7 +129,7 @@
           </div>
           <span class="logout-button">
             <el-tooltip content="退出登录" placement="bottom">
-              <el-button type="text" icon="el-icon-logout" @click="handleLogout"></el-button>
+              <el-button type="text" icon="el-icon-logout" @click="handleLogout">退出</el-button>
             </el-tooltip>
           </span>
         </div>
@@ -161,7 +161,7 @@
                   <el-table-column label="preview" prop="preview" align="center">
                     <template slot-scope="scope">
                       <div class="image-container">
-                        <el-image v-else style="width: 100%; height: 100%;" :src="'/file/' + scope.row.name" :zoom-rate="1.2" :preview-src-list="['/file/' + scope.row.name]" fit="cover" lazy />
+                        <el-image v-if="scope.row.name" style="width: 100%; height: 100%;" :src="'/file/' + scope.row.name" :preview-src-list="['/file/' + scope.row.name]" fit="cover" lazy></el-image>
                         <div class="overlay">
                           <el-button size="mini" type="primary" @click="handleCopy(scope.$index, scope.row.name)">复制地址</el-button>
                           <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row.name)">删除</el-button>
