@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
@@ -123,9 +124,15 @@
       background: rgba(0, 0, 0, 0.6);
       opacity: 0;
       transition: opacity 0.3s ease;
+      pointer-events: none; /* 遮罩不影响点击 */
     }
     .el-card:hover .image-overlay {
       opacity: 1;
+    }
+    .el-card .overlay-buttons {
+      display: flex;
+      gap: 10px;
+      pointer-events: auto; /* 按钮可以点击 */
     }
     .pagination-container {
       display: flex;
@@ -162,8 +169,10 @@
                 fit="cover"
                 lazy></el-image>
               <div class="image-overlay">
-                <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
-                <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+                <div class="overlay-buttons">
+                  <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
+                  <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+                </div>
               </div>
               <div class="file-info">{{ item.name }}</div>
             </el-card>
@@ -183,6 +192,8 @@
     </el-container>
   </div>
 </body>
+</html>
+
 <!-- Import Vue before Element -->
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
 <!-- Import JavaScript -->
