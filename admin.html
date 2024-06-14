@@ -86,12 +86,11 @@
     }
     .upload-icon {
       font-size: 1.5em;
-      color: #007BFF;
       cursor: pointer;
       transition: color 0.3s ease;
     }
     .upload-icon:hover {
-      color: #0056b3;
+      color: #007BFF;
     }
     .main-container {
       display: flex;
@@ -192,6 +191,7 @@
             记录总数量: {{ Number }}
           </span>
           <div class="actions action-icons">
+            <!-- 触发文件上传 -->
             <el-tooltip content="上传图片" placement="bottom">
               <i class="fas fa-upload" :class="uploadIconClass" @click="triggerFileUpload"></i>
             </el-tooltip>
@@ -306,53 +306,52 @@
         async handleFileUpload(event) {
           this.isUploading = true; // 开始上传时设置为true
           const files = event.target.files;
-          const formData = new FormData();
+          const uploadedFiles = [];
 
           for (let i = 0; i < files.length; i++) {
-            formData.append('files[]', files[i]);
-          }
+            const formData = new FormData();
+            formData.append('file', files[i]);
 
-          try {
-            const response = await fetch('/upload', {
-              method: 'POST',
-              body: formData,
-            });
-
-            if (response.ok) {
-              this.$message({
-                type: 'success',
-                message: '上传成功！'
+            try {
+              const response = await fetch('https://imgtc-3i1.pages.dev/upload', {
+                method: 'POST',
+                body: formData,
               });
 
-              // 获取上传的文件列表并更新
-              const result = await response.json();
-              const uploadedFiles = result.files;
+              if (response.ok) {
+                this.$message({
+                  type: 'success',
+                  message: `文件 ${files[i].name} 上传成功！`
+                });
 
-              uploadedFiles.forEach(file => {
+                // 获取上传的文件并更新
+                const result = await response.json();
+                uploadedFiles.push(result);
+
                 this.tableData.push({
-                  name: file.name,
+                  name: result.src.split('/').pop(),
                   metadata: { TimeStamp: Date.now() },
                   selected: false
                 });
-              });
 
-              this.updateStats();
-              this.copyLinksToClipboard(uploadedFiles.map(file => `${document.location.origin}/file/${file.name}`));
-            } else {
+              } else {
+                this.$message({
+                  type: 'error',
+                  message: `文件 ${files[i].name} 上传失败！`
+                });
+              }
+            } catch (error) {
+              console.error(`文件 ${files[i].name} 上传失败:`, error);
               this.$message({
                 type: 'error',
-                message: '上传失败！'
+                message: `文件 ${files[i].name} 上传失败！`
               });
             }
-          } catch (error) {
-            console.error('上传失败:', error);
-            this.$message({
-              type: 'error',
-              message: '上传失败！'
-            });
-          } finally {
-            this.isUploading = false; // 上传结束后设置为false
           }
+
+          this.updateStats();
+          this.copyLinksToClipboard(uploadedFiles.map(file => `${document.location.origin}${file.src}`));
+          this.isUploading = false; // 上传结束后设置为false
         },
         copyLinksToClipboard(links) {
           const linkText = links.join('\n');
