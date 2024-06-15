@@ -15,6 +15,7 @@
       margin: 0;
       padding: 0;
     }
+
     .header-content {
       display: flex;
       justify-content: space-between;
@@ -28,23 +29,29 @@
       border-bottom-left-radius: 10px;
       border-bottom-right-radius: 10px;
     }
+
     .header-content:hover {
       background-color: rgba(255, 255, 255, 0.85);
       box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
     }
+
     .title {
       font-size: 1.8em;
       font-weight: bold;
       cursor: pointer;
       transition: color 0.3s ease;
+      color: #333;
     }
+
     .title:hover {
-      color: #007BFF;
+      color: #ff6f61;
     }
+
     .search-card {
       margin-left: auto;
       margin-right: 20px;
     }
+
     .stats {
       font-size: 1.2em;
       margin-right: 20px;
@@ -55,49 +62,61 @@
       border-radius: 10px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       transition: background-color 0.3s ease, box-shadow 0.3s ease;
-      color: #888888;
+      color: #333;
     }
+
     .stats .fa-database {
       margin-right: 10px;
       font-size: 1.5em;
       transition: color 0.3s ease;
-      color: inherit; /* 继承父元素颜色 */
+      color: inherit;
     }
+
     .stats:hover {
-      background-color: #f0f0f0;
+      background-color: #ffefef;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-      color: #007BFF;
+      color: #ff6f61;
     }
+
     .stats:hover .fa-database {
-      color: #007BFF; /* 悬停时database图标变为深色 */
+      color: #ff6f61;
     }
+
     .header-content .actions {
       display: flex;
       align-items: center;
-      gap: 15px; /* 图标间距 */
+      gap: 15px;
     }
+
     .header-content .actions i {
-      font-size: 1.5em; /* 调整图标大小 */
-      cursor: pointer; /* 添加鼠标指针效果 */
-      transition: color 0.3s; /* 悬停时颜色变化 */
-      color: #888888; /* 默认浅色 */
+      font-size: 1.5em;
+      cursor: pointer;
+      transition: color 0.3s, transform 0.3s;
+      color: #333;
     }
+
     .header-content .actions i:hover {
-      color: #007BFF; /* 悬停时变为深色 */
+      color: #ff6f61;
+      transform: scale(1.2);
     }
+
     .header-content .actions .el-dropdown-link i {
-      color: #888888; /* 排序图标的默认浅色 */
+      color: #333;
     }
+
     .header-content .actions .el-dropdown-link i:hover {
-      color: #007BFF; /* 排序图标悬停时变为深色 */
+      color: #ff6f61;
     }
+
     .header-content .actions .disabled {
-      color: #ccc;
+      color: #bbb;
       pointer-events: none;
     }
+
     .header-content .actions .enabled {
-      color: #007BFF;
+      color: #ff6f61;
     }
+
     .search-card .el-input__inner {
       border-radius: 20px;
       width: 300px;
@@ -107,15 +126,18 @@
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       transition: width 0.3s;
     }
+
     .search-card .el-input__inner:focus {
       width: 400px;
     }
+
     .main-container {
       display: flex;
       flex-direction: column;
       padding: 20px;
       min-height: calc(100vh - 80px);
     }
+
     .content {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -124,6 +146,7 @@
       padding: 10px;
       flex-grow: 1;
     }
+
     .el-card {
       width: 100%;
       background: rgba(255, 255, 255, 0.6);
@@ -133,18 +156,22 @@
       position: relative;
       transition: transform 0.3s ease;
     }
+
     .el-card:hover {
       transform: scale(1.05);
     }
+
     .el-image {
       width: 100%;
       height: 200px;
       object-fit: cover;
       transition: opacity 0.3s ease;
     }
+
     .el-image:hover {
       opacity: 0.8;
     }
+
     .file-info {
       padding: 10px;
       background: rgba(0, 0, 0, 0.6);
@@ -153,12 +180,13 @@
       position: absolute;
       bottom: 0;
       left: 0;
-      width: 100%; /* 确保宽度占满底部 */
+      width: 100%;
       box-sizing: border-box;
       display: flex;
       justify-content: center;
       align-items: center;
     }
+
     .image-overlay {
       position: absolute;
       top: 0;
@@ -173,20 +201,24 @@
       transition: opacity 0.3s ease;
       pointer-events: none;
     }
+
     .el-card:hover .image-overlay {
       opacity: 1;
     }
+
     .overlay-buttons {
       display: flex;
       gap: 10px;
       pointer-events: auto;
     }
+
     .pagination-container {
       display: flex;
       justify-content: center;
       margin-top: 20px;
       padding-bottom: 20px;
     }
+
     .el-checkbox {
       position: absolute;
       top: 10px;
