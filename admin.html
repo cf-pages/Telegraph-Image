@@ -140,8 +140,7 @@
     }
     .el-card .el-image {
       width: 100%;
-      height: auto;
-      aspect-ratio: 4 / 3; /* 确保宽高比一致 */
+      height: 200px;
       object-fit: cover;
       transition: opacity 0.3s ease;
     }
@@ -211,7 +210,7 @@
 <body>
   <div id="app">
     <el-container>
-      <el-header ref="header">
+      <el-header>
         <div class="header-content">
           <span class="title" @click="refreshDashboard">Dashboard</span>
           <div class="search-card">
@@ -249,7 +248,7 @@
           </div>
         </div>
       </el-header>
-      <el-main class="main-container" ref="container">
+      <el-main class="main-container">
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
@@ -270,7 +269,7 @@
           </template>
         </div>
       </el-main>
-      <div class="pagination-container" ref="pagination">
+      <div class="pagination-container">
         <el-pagination
           background
           layout="prev, pager, next"
@@ -296,7 +295,7 @@
         tableData: [],
         search: '',
         currentPage: 1,
-        pageSize: 18, // 默认每页显示18张图片
+        pageSize: 15, // 默认每页显示15张图片
         selectedFiles: [],
         sortOption: 'dateDesc', // 默认按时间倒序排序
         isUploading: false // 用于显示上传状态
@@ -365,7 +364,7 @@
                   uploadedFiles.push({ src: normalizedSrc });
 
                   // 自动加载图片
-                  await this.loadImage(`${normalizedSrc}`);
+                  await this.loadImage(`https://imgtc-3i1.pages.dev${normalizedSrc}`);
                 } else {
                   console.error('上传响应中缺少 src 属性:', result);
                   this.$message({
@@ -410,7 +409,6 @@
             console.error('加载图片时出错:', error);
           }
         },
-
         copyLinksToClipboard(links) {
           const linkText = links.join('\n');
           if (navigator.clipboard) {
@@ -594,18 +592,11 @@
           }
         },
         adjustPageSize() {
-          this.$nextTick(() => {
-            const containerWidth = this.$refs.container.offsetWidth;
-            const itemsPerRow = Math.floor(containerWidth / 220); // 动态调整每行图片数量
-            const containerHeight = window.innerHeight - this.$refs.header.offsetHeight - this.$refs.pagination.offsetHeight - 40; // 计算容器高度，减去页眉和分页的高度，再减去一些间隙
-            const itemHeight = (containerWidth / itemsPerRow) * (3 / 4); // 动态调整图片高度，保持宽高比为4:3
-            const rowsPerPage = Math.floor(containerHeight / (itemHeight + 20)); // 计算每页行数
-            this.pageSize = itemsPerRow * rowsPerPage; // 计算每页图片数
-          });
+          const zoomLevel = window.innerWidth / window.outerWidth; // Calculate zoom level based on window size
+          this.pageSize = Math.floor(15 / zoomLevel); // Adjust page size based on zoom level
         }
       },
       mounted() {
-        this.adjustPageSize();
         window.addEventListener('resize', this.adjustPageSize);
 
         var requestOptions = {
@@ -650,6 +641,8 @@
             });
             console.log('error', error);
           });
+
+        this.adjustPageSize(); // 初始化时调整页大小
       }
     });
   </script>
