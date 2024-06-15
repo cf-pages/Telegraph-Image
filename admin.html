@@ -262,7 +262,7 @@
               <div class="image-overlay">
                 <div class="overlay-buttons">
                   <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
-                  <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el按钮>
+                  <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
                 </div>
               </div>
               <div class="file-info">{{ item.name }}</div>
@@ -365,7 +365,7 @@
                   uploadedFiles.push({ src: normalizedSrc });
 
                   // 自动加载图片
-                  await this.loadImage(`https://imgtc-3i1.pages.dev${normalizedSrc}`);
+                  await this.loadImage(`${normalizedSrc}`);
                 } else {
                   console.error('上传响应中缺少 src 属性:', result);
                   this.$message({
