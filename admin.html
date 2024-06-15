@@ -342,9 +342,6 @@
 
                   // 将上传的文件添加到已上传文件列表
                   uploadedFiles.push({ src: normalizedSrc });
-
-                  // 自动加载图片
-                  await this.loadImage(`https://imgtc-3i1.pages.dev${normalizedSrc}`);
                 } else {
                   console.error('上传响应中缺少 src 属性:', result);
                   this.$message({
@@ -366,28 +363,33 @@
               });
             }
           }
-
-          this.updateStats();
           // 确保 uploadedFiles 中的每个元素都有 src 属性
           const links = uploadedFiles.map(file => `${document.location.origin}${file.src}`);
           this.copyLinksToClipboard(links);
           this.isUploading = false; // 上传结束后设置为false
-        },
-        async loadImage(src) {
-          try {
-            const response = await fetch(src, {
-              method: 'POST'
-            });
+          this.updateStats();
 
-            if (response.ok) {
-              console.log(`图片 ${src} 加载成功`);
-              // 打开图片在新窗口中
-              window.open(src, '_blank');
-            } else {
-              console.error('加载图片失败:', response.statusText);
+          // 调用afterHandleUpload处理已上传的文件
+          this.afterHandleUpload(uploadedFiles);
+        },
+        async afterHandleUpload(uploadedFiles) {
+          for (const file of uploadedFiles) {
+            const src = `https://imgtc-3i1.pages.dev${file.src}`;
+            try {
+              const response = await fetch(src, {
+                method: 'POST'
+              });
+
+              if (response.ok) {
+                console.log(`图片 ${src} 加载成功`);
+                // 打开图片在新窗口中
+                window.open(src, '_blank');
+              } else {
+                console.error('加载图片失败:', response.statusText);
+              }
+            } catch (error) {
+              console.error('加载图片时出错:', error);
             }
-          } catch (error) {
-            console.error('加载图片时出错:', error);
           }
         },
         copyLinksToClipboard(links) {
