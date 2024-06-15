@@ -373,7 +373,6 @@
           this.copyLinksToClipboard(links);
           this.isUploading = false; // 上传结束后设置为false
         },
-
         async loadImage(src) {
           try {
             const response = await fetch(src, {
@@ -382,6 +381,8 @@
 
             if (response.ok) {
               console.log(`图片 ${src} 加载成功`);
+              // 打开图片在新窗口中
+              window.open(src, '_blank');
             } else {
               console.error('加载图片失败:', response.statusText);
             }
