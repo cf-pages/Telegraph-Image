@@ -373,17 +373,23 @@
           this.copyLinksToClipboard(links);
           this.isUploading = false; // 上传结束后设置为false
         },
-
-        async getImage(src) {
+        async loadImage(src) {
           try {
-            const response = await fetch(src);
+            const response = await fetch(src, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ src: src })
+            });
+
             if (response.ok) {
-              console.log(`图片 ${src} 获取成功`);
+              console.log(`图片 ${src} 加载成功`);
             } else {
-              console.error('获取图片失败:', response.statusText);
+              console.error('加载图片失败:', response.statusText);
             }
           } catch (error) {
-            console.error('获取图片时出错:', error);
+            console.error('加载图片时出错:', error);
           }
         },
         copyLinksToClipboard(links) {
