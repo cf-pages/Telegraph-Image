@@ -322,7 +322,7 @@
             formData.append('file', files[i]); // 确保使用键 'file'
 
             try {
-              const response = await fetch('/upload', {
+              const response = await fetch('http://127.0.0.1:36677/upload', {
                 method: 'POST',
                 body: formData,
               });
@@ -330,20 +330,16 @@
               if (response.ok) {
                 const result = await response.json();
 
-                // 如果服务器返回的是数组，取第一个元素
-                const fileInfo = Array.isArray(result) ? result[0] : result;
-
-                if (fileInfo.src) {
-                  const normalizedSrc = fileInfo.src.replace(/\\/g, '/');
+                if (result.success && result.result.length > 0) {
                   this.$message({
                     type: 'success',
                     message: `文件 ${files[i].name} 上传成功！`
                   });
 
                   // 将上传的文件添加到已上传文件列表
-                  uploadedFiles.push({ src: normalizedSrc });
+                  uploadedFiles.push({ src: result.result[0] });
                 } else {
-                  console.error('上传响应中缺少 src 属性:', result);
+                  console.error('上传响应失败:', result);
                   this.$message({
                     type: 'error',
                     message: `文件 ${files[i].name} 上传失败！`
@@ -365,10 +361,10 @@
           }
 
           // 确保 uploadedFiles 中的每个元素都有 src 属性
-          const links = uploadedFiles.map(file => `${document.location.origin}${file.src}`);
+          const links = uploadedFiles.map(file => file.src);
           this.copyLinksToClipboard(links);
           this.isUploading = false; // 上传结束后设置为false
-          refreshDashboard();
+          this.refreshDashboard();
         },
         copyLinksToClipboard(links) {
           const linkText = links.join('\n');
