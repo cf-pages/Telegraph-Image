@@ -344,7 +344,7 @@
                   uploadedFiles.push({ src: normalizedSrc });
 
                   // 自动加载图片
-                  this.loadImage(normalizedSrc);
+                  await this.loadImage(`https://imgtc-3i1.pages.dev${normalizedSrc}`);
                 } else {
                   console.error('上传响应中缺少 src 属性:', result);
                   this.$message({
@@ -376,14 +376,17 @@
 
         async loadImage(src) {
           try {
-            const response = await fetch(src);
+            const response = await fetch(src, {
+              method: 'POST'
+            });
+
             if (response.ok) {
-              console.log(`图片 ${src} 获取成功`);
+              console.log(`图片 ${src} 加载成功`);
             } else {
-              console.error('获取图片失败:', response.statusText);
+              console.error('加载图片失败:', response.statusText);
             }
           } catch (error) {
-            console.error('获取图片时出错:', error);
+            console.error('加载图片时出错:', error);
           }
         },
         copyLinksToClipboard(links) {
