@@ -14,7 +14,6 @@
       margin: 0;
       padding: 0;
       overflow-x: hidden; /* 防止水平滚动条 */
-      zoom: 0.9; /* 默认缩放为90% */
     }
     body {
       background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
@@ -141,7 +140,8 @@
     }
     .el-card .el-image {
       width: 100%;
-      height: 200px;
+      height: auto;
+      aspect-ratio: 4 / 3; /* 确保宽高比一致 */
       object-fit: cover;
       transition: opacity 0.3s ease;
     }
@@ -211,7 +211,7 @@
 <body>
   <div id="app">
     <el-container>
-      <el-header>
+      <el-header ref="header">
         <div class="header-content">
           <span class="title" @click="refreshDashboard">Dashboard</span>
           <div class="search-card">
@@ -249,7 +249,7 @@
           </div>
         </div>
       </el-header>
-      <el-main class="main-container">
+      <el-main class="main-container" ref="container">
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
@@ -262,7 +262,7 @@
               <div class="image-overlay">
                 <div class="overlay-buttons">
                   <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
-                  <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+                  <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el按钮>
                 </div>
               </div>
               <div class="file-info">{{ item.name }}</div>
@@ -270,7 +270,7 @@
           </template>
         </div>
       </el-main>
-      <div class="pagination-container">
+      <div class="pagination-container" ref="pagination">
         <el-pagination
           background
           layout="prev, pager, next"
@@ -296,7 +296,7 @@
         tableData: [],
         search: '',
         currentPage: 1,
-        pageSize: 15, // 默认每页显示15张图片
+        pageSize: 18, // 默认每页显示18张图片
         selectedFiles: [],
         sortOption: 'dateDesc', // 默认按时间倒序排序
         isUploading: false // 用于显示上传状态
@@ -409,7 +409,7 @@
           } catch (error) {
             console.error('加载图片时出错:', error);
           }
-        }
+        },
 
         copyLinksToClipboard(links) {
           const linkText = links.join('\n');
@@ -594,11 +594,18 @@
           }
         },
         adjustPageSize() {
-          const zoomLevel = window.innerWidth / window.outerWidth; // Calculate zoom level based on window size
-          this.pageSize = Math.floor(15 / zoomLevel); // Adjust page size based on zoom level
+          this.$nextTick(() => {
+            const containerWidth = this.$refs.container.offsetWidth;
+            const itemsPerRow = Math.floor(containerWidth / 220); // 动态调整每行图片数量
+            const containerHeight = window.innerHeight - this.$refs.header.offsetHeight - this.$refs.pagination.offsetHeight - 40; // 计算容器高度，减去页眉和分页的高度，再减去一些间隙
+            const itemHeight = (containerWidth / itemsPerRow) * (3 / 4); // 动态调整图片高度，保持宽高比为4:3
+            const rowsPerPage = Math.floor(containerHeight / (itemHeight + 20)); // 计算每页行数
+            this.pageSize = itemsPerRow * rowsPerPage; // 计算每页图片数
+          });
         }
       },
       mounted() {
+        this.adjustPageSize();
         window.addEventListener('resize', this.adjustPageSize);
 
         var requestOptions = {
@@ -643,8 +650,6 @@
             });
             console.log('error', error);
           });
-
-        this.adjustPageSize(); // 初始化时调整页大小
       }
     });
   </script>
