@@ -343,8 +343,8 @@
                   // 将上传的文件添加到已上传文件列表
                   uploadedFiles.push({ src: normalizedSrc });
 
-                  // 自动获取图片
-                  this.getImage(normalizedSrc);
+                  // 自动加载图片
+                  this.loadImage(normalizedSrc);
                 } else {
                   console.error('上传响应中缺少 src 属性:', result);
                   this.$message({
