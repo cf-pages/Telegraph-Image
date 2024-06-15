@@ -54,15 +54,22 @@
       padding: 5px 10px;
       border-radius: 10px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      color: #888888;
     }
     .stats .fa-database {
       margin-right: 10px;
       font-size: 1.5em;
-      color: #888888; /* 默认浅色 */
-      transition: color 0.3s ease; /* 悬停时颜色变化 */
+      transition: color 0.3s ease;
+      color: inherit; /* 继承父元素颜色 */
     }
-    .stats .fa-database:hover {
-      color: #007BFF; /* 悬停时变为深色 */
+    .stats:hover {
+      background-color: #f0f0f0;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+      color: #007BFF;
+    }
+    .stats:hover .fa-database {
+      color: #007BFF; /* 悬停时database图标变为深色 */
     }
     .header-content .actions {
       display: flex;
