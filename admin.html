@@ -58,7 +58,7 @@
     .stats .fa-database {
       margin-right: 10px;
       font-size: 1.5em;
-      color: #cccccc; /* 默认浅色 */
+      color: #888888; /* 默认浅色 */
       transition: color 0.3s ease; /* 悬停时颜色变化 */
     }
     .stats .fa-database:hover {
@@ -73,20 +73,23 @@
       font-size: 1.5em; /* 调整图标大小 */
       cursor: pointer; /* 添加鼠标指针效果 */
       transition: color 0.3s; /* 悬停时颜色变化 */
-      color: #cccccc; /* 默认浅色 */
+      color: #888888; /* 默认浅色 */
     }
     .header-content .actions i:hover {
       color: #007BFF; /* 悬停时变为深色 */
     }
     .header-content .actions .el-dropdown-link i {
-      color: #cccccc; /* 排序图标的默认浅色 */
+      color: #888888; /* 排序图标的默认浅色 */
     }
     .header-content .actions .el-dropdown-link i:hover {
       color: #007BFF; /* 排序图标悬停时变为深色 */
     }
-    .disabled {
+    .header-content .actions .disabled {
       color: #ccc;
       pointer-events: none;
+    }
+    .header-content .actions .enabled {
+      color: #007BFF;
     }
     .search-card .el-input__inner {
       border-radius: 20px;
@@ -183,7 +186,7 @@
       transform: scale(1.5);
       z-index: 10;
     }
-</style>
+  </style>
 </head>
 <body>
   <div id="app">
@@ -195,7 +198,7 @@
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
           <span class="stats">
-            记录总数量: {{ Number }}
+            <i class="fas fa-database"></i> 记录总数量: {{ Number }}
           </span>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
