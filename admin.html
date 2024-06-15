@@ -387,11 +387,7 @@
         async loadImage(src) {
           try {
             const response = await fetch(src, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ src: src })
+              method: 'POST'
             });
 
             if (response.ok) {
