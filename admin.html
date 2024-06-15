@@ -32,21 +32,20 @@
       background-color: rgba(255, 255, 255, 0.85);
       box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
     }
-    .header-content .title {
+    .title {
       font-size: 1.8em;
-      color: #333;
       font-weight: bold;
       cursor: pointer;
       transition: color 0.3s ease;
     }
-    .header-content .title:hover {
+    .title:hover {
       color: #007BFF;
     }
-    .header-content .search-card {
-      margin-left: auto; /* 将搜索栏推到右边 */
-      margin-right: 20px; /* 在搜索栏和右侧统计信息之间添加间距 */
+    .search-card {
+      margin-left: auto;
+      margin-right: 20px;
     }
-    .header-content .stats {
+    .stats {
       font-size: 1.2em;
       margin-right: 20px;
       display: flex;
@@ -56,52 +55,33 @@
       border-radius: 10px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
-    .header-content .stats .fa-database {
+    .stats .fa-database {
       margin-right: 10px;
-      color: #007BFF;
       font-size: 1.5em;
     }
-    .header-content .actions {
-      display: flex;
-      align-items: center;
-      gap: 15px; /* 间距 */
+    .actions i {
+      font-size: 1.5em;
+      cursor: pointer;
+      transition: color 0.3s;
     }
-    .header-content .action-icons i {
-      font-size: 1.5em; /* 调整图标大小 */
-      cursor: pointer; /* 添加鼠标指针效果 */
-      transition: color 0.3s; /* 悬停时颜色变化 */
-      color: #007BFF; /* 统一图标颜色 */
+    .actions i:hover {
+      color: #007BFF;
     }
-    .header-content .action-icons i:hover {
-      color: #0056b3; /* 悬停时颜色变化 */
-    }
-    .header-content .disabled {
+    .disabled {
       color: #ccc;
-      pointer-events: none; /* 禁用点击 */
-    }
-    .el-dropdown-menu__item--selected {
-      background-color: #f0f0f0; /* 当前选择项的背景色 */
+      pointer-events: none;
     }
     .search-card .el-input__inner {
       border-radius: 20px;
-      width: 300px; /* 增加搜索栏宽度 */
-      height: 40px; /* 增加搜索栏高度 */
-      font-size: 1.2em; /* 增加搜索栏字体大小 */
+      width: 300px;
+      height: 40px;
+      font-size: 1.2em;
       border: none;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       transition: width 0.3s;
     }
     .search-card .el-input__inner:focus {
-      width: 400px; /* 聚焦时增加搜索栏宽度 */
-    }
-    .upload-icon {
-      font-size: 1.5em;
-      cursor: pointer;
-      transition: color 0.3s ease;
-      color: #007BFF;
-    }
-    .upload-icon:hover {
-      color: #0056b3;
+      width: 400px;
     }
     .main-container {
       display: flex;
@@ -111,8 +91,8 @@
     }
     .content {
       display: grid;
-      grid-template-columns: repeat(5, 1fr); /* 修改为5列布局 */
-      grid-template-rows: repeat(3, 1fr); /* 固定为3行布局 */
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(3, 1fr);
       gap: 20px;
       padding: 10px;
       flex-grow: 1;
@@ -129,30 +109,29 @@
     .el-card:hover {
       transform: scale(1.05);
     }
-    .el-card .el-image {
+    .el-image {
       width: 100%;
       height: 200px;
       object-fit: cover;
       transition: opacity 0.3s ease;
     }
-    .el-card .el-image:hover {
+    .el-image:hover {
       opacity: 0.8;
     }
-    .el-card .file-info {
+    .file-info {
       padding: 10px;
       background: rgba(0, 0, 0, 0.6);
       color: white;
       text-align: center;
       position: absolute;
       bottom: 0;
-      width: 100%; /* 确保宽度占满底部 */
+      width: 100%;
       box-sizing: border-box;
       display: flex;
       justify-content: center;
       align-items: center;
-      left: 0; /* 确保遮罩占满整个图片底部 */
     }
-    .el-card .image-overlay {
+    .image-overlay {
       position: absolute;
       top: 0;
       left: 0;
@@ -164,27 +143,27 @@
       background: rgba(0, 0, 0, 0.6);
       opacity: 0;
       transition: opacity 0.3s ease;
-      pointer-events: none; /* 遮罩不影响点击 */
+      pointer-events: none;
     }
     .el-card:hover .image-overlay {
       opacity: 1;
     }
-    .el-card .overlay-buttons {
+    .overlay-buttons {
       display: flex;
       gap: 10px;
-      pointer-events: auto; /* 按钮可以点击 */
+      pointer-events: auto;
     }
     .pagination-container {
       display: flex;
       justify-content: center;
       margin-top: 20px;
-      padding-bottom: 20px; /* 确保分页栏固定在底部 */
+      padding-bottom: 20px;
     }
     .el-checkbox {
       position: absolute;
       top: 10px;
       right: 10px;
-      transform: scale(1.5); /* 放大复选框 */
+      transform: scale(1.5);
       z-index: 10;
     }
   </style>
@@ -201,12 +180,7 @@
           <span class="stats">
             <i class="fas fa-database"></i> 记录总数量: {{ Number }}
           </span>
-          <div class="actions action-icons">
-            <!-- 触发文件上传 -->
-            <el-tooltip content="上传图片" placement="bottom">
-              <i class="fas fa-upload" :class="uploadIconClass" @click="triggerFileUpload"></i>
-            </el-tooltip>
-            <input type="file" id="fileUpload" @change="handleFileUpload" style="display: none;">
+          <div class="actions">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
                 <span class="el-dropdown-link">
@@ -269,7 +243,7 @@
   <!-- Import JavaScript -->
   <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
   <script>
-    var app = new Vue({
+    new Vue({
       el: '#app',
       data: {
         Number: 0,
@@ -277,10 +251,10 @@
         tableData: [],
         search: '',
         currentPage: 1,
-        pageSize: 15, // 修改为每页显示15张图片
+        pageSize: 15,
         selectedFiles: [],
-        sortOption: 'dateDesc', // 默认按时间倒序排序
-        isUploading: false // 用于显示上传状态
+        sortOption: 'dateDesc',
+        isUploading: false
       },
       computed: {
         filteredTableData() {
@@ -294,9 +268,6 @@
         },
         sortIcon() {
           return this.sortOption === 'dateDesc' ? 'fas fa-sort-amount-down' : 'fas fa-sort-alpha-up';
-        },
-        uploadIconClass() {
-          return this.isUploading ? 'upload-icon fa-spinner fa-spin' : 'upload-icon';
         }
       },
       watch: {
@@ -311,91 +282,8 @@
         }
       },
       methods: {
-        triggerFileUpload() {
-          document.getElementById('fileUpload').click();
-        },
-        async handleFileUpload(event) {
-          this.isUploading = true; // 开始上传时设置为true
-          const file = event.target.files[0]; // 只处理单个文件
-
-          const formData = new FormData();
-          formData.append('file', file); // 确保使用键 'file'
-
-          try {
-            const response = await fetch('/upload', {
-              method: 'POST',
-              body: formData,
-            });
-
-            if (response.ok) {
-              const result = await response.json();
-
-              if (result.src) {
-                const normalizedSrc = result.src.replace(/\\/g, '/');
-                this.$message({
-                  type: 'success',
-                  message: `文件 ${file.name} 上传成功！`
-                });
-
-                // 将上传的文件添加到已上传文件列表
-                this.tableData.push({ name: normalizedSrc });
-              } else {
-                console.error('上传响应中缺少 src 属性:', result);
-                this.$message({
-                  type: 'error',
-                  message: `文件 ${file.name} 上传失败！`
-                });
-              }
-            } else {
-              this.$message({
-                type: 'error',
-                message: `文件 ${file.name} 上传失败！`
-              });
-            }
-          } catch (error) {
-            console.error(`文件 ${file.name} 上传失败:`, error);
-            this.$message({
-              type: 'error',
-              message: `文件 ${file.name} 上传失败！`
-            });
-          }
-
-          this.isUploading = false; // 上传结束后设置为false
-          this.refreshDashboard();
-        },
-        copyLinksToClipboard(links) {
-          const linkText = links.join('\n');
-          if (navigator.clipboard) {
-            navigator.clipboard.writeText(linkText).then(() => {
-              this.$message({
-                message: '链接已复制到剪贴板',
-                type: 'success'
-              });
-            }).catch(err => {
-              console.error('复制到剪贴板失败:', err);
-              this.$message({
-                message: '复制到剪贴板失败',
-                type: 'error'
-              });
-            });
-          } else {
-            const textarea = document.createElement('textarea');
-            document.body.appendChild(textarea);
-            textarea.style.position = 'fixed';
-            textarea.style.clip = 'rect(0 0 0 0)';
-            textarea.style.top = '10px';
-            textarea.value = linkText;
-            textarea.select();
-            document.execCommand('copy', true);
-            document.body.removeChild(textarea);
-            this.$message({
-              message: '链接已复制到剪贴板',
-              type: 'success'
-            });
-          }
-        },
         refreshDashboard() {
-          location.reload(); // 或者使用 Vue Router 重定向到主页
+          location.reload();
         },
         handleDelete(index, key) {
           this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
@@ -403,35 +291,14 @@
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
-            var requestOptions = {
-              method: 'GET',
-              redirect: 'follow',
-              credentials: 'include'
-            };
-
-            fetch("./api/manage/delete/" + key, requestOptions)
-              .then(response => response.text())
-              .then(result => {
-                this.tableData.splice(index, 1);
+            fetch(`./api/manage/delete/${key}`, { method: 'GET', credentials: 'include' })
+              .then(response => response.ok ? this.tableData.splice(index, 1) : Promise.reject())
+              .then(() => {
                 this.updateStats();
-                this.$message({
-                  type: 'success',
-                  message: '删除成功!'
-                });
+                this.$message.success('删除成功!');
               })
-              .catch(error => {
-                this.$message({
-                  type: 'error',
-                  message: '删除失败，请检查网络连接'
-                });
-                console.log('error', error);
-              });
-          }).catch(() => {
-            this.$message({
-              type: 'info',
-              message: '已取消删除'
-            });
-          });
+              .catch(() => this.$message.error('删除失败，请检查网络连接'));
+          }).catch(() => this.$message.info('已取消删除'));
         },
         handleBatchDelete() {
           this.$confirm('此操作将永久删除选中的文件, 是否继续?', '提示', {
@@ -439,9 +306,7 @@
             cancelButtonText: '取消',
             type: 'warning'
           }).then(() => {
-            const promises = this.selectedFiles.map(file => {
-              return fetch(`./api/manage/delete/${file.name}`, { method: 'GET', credentials: 'include' });
-            });
+            const promises = this.selectedFiles.map(file => fetch(`./api/manage/delete/${file.name}`, { method: 'GET', credentials: 'include' }));
 
             Promise.all(promises)
               .then(results => {
@@ -455,77 +320,35 @@
                 });
                 this.selectedFiles = [];
                 this.updateStats();
-                this.$message({
-                  type: 'success',
-                  message: '批量删除成功!'
-                });
+                this.$message.success('批量删除成功!');
               })
-              .catch(error => {
-                this.$message({
-                  type: 'error',
-                  message: '批量删除失败，请检查网络连接'
-                });
-                console.log('error', error);
-              });
-          }).catch(() => {
-            this.$message({
-              type: 'info',
-              message: '已取消批量删除'
-            });
-          });
+              .catch(() => this.$message.error('批量删除失败，请检查网络连接'));
+          }).catch(() => this.$message.info('已取消批量删除'));
         },
         handleBatchCopy() {
           const links = this.selectedFiles.map(file => `${document.location.origin}/file/${file.name}`).join('\n');
-          if (navigator.clipboard) {
-            navigator.clipboard.writeText(links).then(() => {
-              this.$message({
-                message: '批量复制链接成功~',
-                type: 'success'
-              });
-            });
-          } else {
-            const textarea = document.createElement('textarea');
-            document.body.appendChild(textarea);
-            textarea.style.position = 'fixed';
-            textarea.style.clip = 'rect(0 0 0 0)';
-            textarea.style.top = '10px';
-            textarea.value = links;
-            textarea.select();
-            document.execCommand('copy', true);
-            document.body.removeChild(textarea);
-            this.$message({
-              message: '批量复制链接成功~',
-              type: 'success'
-            });
-          }
+          navigator.clipboard ? navigator.clipboard.writeText(links).then(() => this.$message.success('批量复制链接成功~')) :
+            this.copyToClipboardFallback(links);
+        },
+        copyToClipboardFallback(text) {
+          const textarea = document.createElement('textarea');
+          document.body.appendChild(textarea);
+          textarea.style.position = 'fixed';
+          textarea.style.clip = 'rect(0 0 0 0)';
+          textarea.style.top = '10px';
+          textarea.value = text;
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          this.$message.success('批量复制链接成功~');
         },
         handleLogout() {
-          window.location.href = '/'; // 重定向到首页
+          window.location.href = '/';
         },
         handleCopy(index, key) {
           const text = `${document.location.origin}/file/${key}`;
-          if (navigator.clipboard) {
-            navigator.clipboard.writeText(text).then(() => {
-              this.$message({
-                message: '复制文件链接成功~',
-                type: 'success'
-              });
-            });
-          } else {
-            const textarea = document.createElement('textarea');
-            document.body.appendChild(textarea);
-            textarea.style.position = 'fixed';
-            textarea.style.clip = 'rect(0 0 0 0)';
-            textarea.style.top = '10px';
-            textarea.value = text;
-            textarea.select();
-            document.execCommand('copy', true);
-            document.body.removeChild(textarea);
-            this.$message({
-              message: '复制文件链接成功~',
-              type: 'success'
-            });
-          }
+          navigator.clipboard ? navigator.clipboard.writeText(text).then(() => this.$message.success('复制文件链接成功~')) :
+            this.copyToClipboardFallback(text);
         },
         handlePageChange(page) {
           this.currentPage = page;
@@ -537,59 +360,28 @@
           this.sortOption = command;
         },
         sortData(data) {
-          switch (this.sortOption) {
-            case 'nameAsc':
-              return data.sort((a, b) => a.name.localeCompare(b.name));
-            case 'dateDesc':
-            default:
-              return data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
-          }
+          return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
+            data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
         }
       },
       mounted() {
-
-        var requestOptions = {
-          method: 'GET',
-          redirect: 'follow',
-          credentials: 'include'
-        };
-
-        fetch("./api/manage/check", requestOptions)
+        fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
           .then(response => response.text())
-          .then(result => {
-            if (result === "true") {
-              this.showLogoutButton = true;
-            } else {
-              window.location.href = "./api/manage/login";
-            }
-          })
-          .catch(error => {
-            this.$message({
-              type: 'error',
-              message: '同步数据时出错，请检查网络连接'
-            });
-            console.log('error', error);
-          });
+          .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
+          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
-        fetch("./api/manage/list", requestOptions)
+        fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
           .then(response => response.json())
           .then(result => {
-            console.log(result); // 打印获取到的数据，确认是否包含上传的图片
             this.tableData = result.map(file => ({ ...file, selected: false }));
             this.updateStats();
             const savedSortOption = localStorage.getItem('sortOption');
             if (savedSortOption) {
               this.sortOption = savedSortOption;
             }
-            this.sortData(this.tableData); // 默认按时间倒序排序
+            this.sortData(this.tableData);
           })
-          .catch(error => {
-            this.$message({
-              type: 'error',
-              message: '同步数据时出错，请检查网络连接'
-            });
-            console.log('error', error);
-          });
+          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
       }
     });
   </script>
