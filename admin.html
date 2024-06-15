@@ -59,13 +59,25 @@
       margin-right: 10px;
       font-size: 1.5em;
     }
-    .actions i {
-      font-size: 1.5em;
-      cursor: pointer;
-      transition: color 0.3s;
+    .header-content .actions {
+      display: flex;
+      align-items: center;
+      gap: 15px; /* 间距保持不变 */
     }
-    .actions i:hover {
-      color: #007BFF;
+    .header-content .actions i {
+      font-size: 1.5em; /* 调整图标大小 */
+      cursor: pointer; /* 添加鼠标指针效果 */
+      transition: color 0.3s; /* 悬停时颜色变化 */
+      color: #007BFF; /* 设置图标颜色为排序图标的颜色 */
+    }
+    .header-content .actions i:hover {
+      color: #0056b3; /* 悬停时颜色变化，稍微深一点的颜色 */
+    }
+    .header-content .actions .el-dropdown-link i {
+      color: #007BFF; /* 排序图标的颜色 */
+    }
+    .header-content .actions .el-dropdown-link i:hover {
+      color: #0056b3; /* 排序图标悬停时的颜色 */
     }
     .disabled {
       color: #ccc;
@@ -166,7 +178,7 @@
       transform: scale(1.5);
       z-index: 10;
     }
-  </style>
+</style>
 </head>
 <body>
   <div id="app">
