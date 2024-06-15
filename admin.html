@@ -368,21 +368,7 @@
           const links = uploadedFiles.map(file => `${document.location.origin}${file.src}`);
           this.copyLinksToClipboard(links);
           this.isUploading = false; // 上传结束后设置为false
-          this.refreshData(); // 上传成功后刷新数据
-          this.updateStats();
-        },
-        async refreshData() {
-          try {
-            const response = await fetch('/api/manage/list');
-            const result = await response.json();
-            this.tableData = result.map(file => ({
-              ...file,
-              selected: false
-            }));
-            this.updateStats();
-          } catch (error) {
-            console.error('Failed to refresh data:', error);
-          }
+          refreshDashboard();
         },
         copyLinksToClipboard(links) {
           const linkText = links.join('\n');
