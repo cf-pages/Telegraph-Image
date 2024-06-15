@@ -14,6 +14,7 @@
       margin: 0;
       padding: 0;
       overflow-x: hidden; /* 防止水平滚动条 */
+      zoom: 0.9; /* 默认缩放为90% */
     }
     body {
       background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
@@ -121,7 +122,7 @@
     }
     .content {
       display: grid;
-      grid-template-columns: repeat(5, 1fr); /* 修改为5列布局 */
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* 自动调整列数 */
       grid-template-rows: auto; /* 自动调整行数 */
       gap: 20px;
       padding: 10px;
@@ -187,7 +188,16 @@
       display: flex;
       justify-content: center;
       margin-top: 20px;
-      padding-bottom: 20px; /* 确保分页栏固定在底部 */
+      padding-bottom: 20px;
+      position: sticky; /* 分页栏固定在页面底部 */
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px); /* 适用于Safari */
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1);
+      border-top-left-radius: 10px; /* 左上角圆角 */
+      border-top-right-radius: 10px; /* 右上角圆角 */
     }
     .el-checkbox {
       position: absolute;
@@ -259,17 +269,17 @@
             </el-card>
           </template>
         </div>
-        <div class="pagination-container">
-          <el-pagination
-            background
-            layout="prev, pager, next"
-            :total="filteredTableData.length"
-            :page-size="pageSize"
-            @current-change="handlePageChange"
-            :current-page.sync="currentPage">
-          </el-pagination>
-        </div>
       </el-main>
+      <div class="pagination-container">
+        <el-pagination
+          background
+          layout="prev, pager, next"
+          :total="filteredTableData.length"
+          :page-size="pageSize"
+          @current-change="handlePageChange"
+          :current-page.sync="currentPage">
+        </el-pagination>
+      </div>
     </el-container>
   </div>
 
@@ -286,7 +296,7 @@
         tableData: [],
         search: '',
         currentPage: 1,
-        pageSize: 15, // 修改为每页显示15张图片
+        pageSize: 15, // 默认每页显示15张图片
         selectedFiles: [],
         sortOption: 'dateDesc', // 默认按时间倒序排序
         isUploading: false // 用于显示上传状态
@@ -386,15 +396,21 @@
         },
         async loadImage(src) {
           try {
-            const response = await fetch(src, {
-              method: 'POST'
-            });
+            // 创建一个新的Image对象
+            const img = new Image();
+            img.src = src;
 
-            if (response.ok) {
+            img.onload = () => {
               console.log(`图片 ${src} 加载成功`);
-            } else {
-              console.error('加载图片失败:', response.statusText);
-            }
+            };
+
+            img.onerror = (error) => {
+              console.error('加载图片失败:', error);
+            };
+
+            // 将图片对象添加到DOM中，如果需要显示图片
+            document.body.appendChild(img);
+
           } catch (error) {
             console.error('加载图片时出错:', error);
           }
@@ -580,9 +596,14 @@
             default:
               return data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
           }
+        },
+        adjustPageSize() {
+          const zoomLevel = window.innerWidth / window.outerWidth; // Calculate zoom level based on window size
+          this.pageSize = Math.floor(15 / zoomLevel); // Adjust page size based on zoom level
         }
       },
       mounted() {
+        window.addEventListener('resize', this.adjustPageSize);
 
         var requestOptions = {
           method: 'GET',
@@ -626,6 +647,8 @@
             });
             console.log('error', error);
           });
+
+        this.adjustPageSize(); // 初始化时调整页大小
       }
     });
   </script>
