@@ -30,7 +30,7 @@
     }
     .header-content:hover {
       background-color: rgba(255, 255, 255, 0.8);
-      transform: translateY(3%);
+      transform: scale(1.05);
     }
     .header-content .title {
       font-size: 1.8em;
@@ -47,10 +47,19 @@
       margin-right: 20px; /* 在搜索栏和右侧统计信息之间添加间距 */
     }
     .header-content .stats {
-      font-size: medium;
+      font-size: 1.2em;
       margin-right: 20px;
       display: flex;
       align-items: center;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 5px 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .header-content .stats .fa-database {
+      margin-right: 10px;
+      color: #007BFF;
+      font-size: 1.5em;
     }
     .header-content .actions {
       display: flex;
@@ -188,7 +197,7 @@
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
           <span class="stats">
-            记录总数量: {{ Number }}
+            <i class="fas fa-database"></i> 记录总数量: {{ Number }}
           </span>
           <div class="actions action-icons">
             <!-- 触发文件上传 -->
@@ -334,12 +343,8 @@
                   // 将上传的文件添加到已上传文件列表
                   uploadedFiles.push({ src: normalizedSrc });
 
-                  // 更新表格数据
-                  this.tableData.push({
-                    name: normalizedSrc.split('/').pop(),
-                    metadata: { TimeStamp: Date.now() },
-                    selected: false
-                  });
+                  // 自动获取图片
+                  this.getImage(normalizedSrc);
                 } else {
                   console.error('上传响应中缺少 src 属性:', result);
                   this.$message({
@@ -367,6 +372,19 @@
           const links = uploadedFiles.map(file => `${document.location.origin}${file.src}`);
           this.copyLinksToClipboard(links);
           this.isUploading = false; // 上传结束后设置为false
+        },
+
+        async getImage(src) {
+          try {
+            const response = await fetch(src);
+            if (response.ok) {
+              console.log(`图片 ${src} 获取成功`);
+            } else {
+              console.error('获取图片失败:', response.statusText);
+            }
+          } catch (error) {
+            console.error('获取图片时出错:', error);
+          }
         },
         copyLinksToClipboard(links) {
           const linkText = links.join('\n');
