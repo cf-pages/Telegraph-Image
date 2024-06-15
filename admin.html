@@ -363,14 +363,17 @@
               });
             }
           }
+
           // 确保 uploadedFiles 中的每个元素都有 src 属性
           const links = uploadedFiles.map(file => `${document.location.origin}${file.src}`);
           this.copyLinksToClipboard(links);
           this.isUploading = false; // 上传结束后设置为false
           this.updateStats();
 
-          // 调用afterHandleUpload处理已上传的文件
-          this.afterHandleUpload(uploadedFiles);
+          // 延迟后调用afterHandleUpload处理已上传的文件
+          setTimeout(() => {
+            this.afterHandleUpload(uploadedFiles);
+          }, 2000); // 延迟2秒
         },
         async afterHandleUpload(uploadedFiles) {
           for (const file of uploadedFiles) {
@@ -382,7 +385,8 @@
 
               if (response.ok) {
                 console.log(`图片 ${src} 加载成功`);
-
+                // 打开图片在新窗口中
+                window.open(src, '_blank');
               } else {
                 console.error('加载图片失败:', response.statusText);
               }
