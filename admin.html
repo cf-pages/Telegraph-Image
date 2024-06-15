@@ -25,8 +25,8 @@
       border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       transition: background-color 0.5s ease, box-shadow 0.5s ease;
-      border-bottom-left-radius: 10px; /* 左下角圆角 */
-      border-bottom-right-radius: 10px; /* 右下角圆角 */
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
     }
     .header-content:hover {
       background-color: rgba(255, 255, 255, 0.85);
@@ -70,9 +70,10 @@
       font-size: 1.5em; /* 调整图标大小 */
       cursor: pointer; /* 添加鼠标指针效果 */
       transition: color 0.3s; /* 悬停时颜色变化 */
+      color: #007BFF; /* 统一图标颜色 */
     }
     .header-content .action-icons i:hover {
-      color: #007BFF; /* 悬停时颜色变化 */
+      color: #0056b3; /* 悬停时颜色变化 */
     }
     .header-content .disabled {
       color: #ccc;
@@ -97,9 +98,10 @@
       font-size: 1.5em;
       cursor: pointer;
       transition: color 0.3s ease;
+      color: #007BFF;
     }
     .upload-icon:hover {
-      color: #007BFF;
+      color: #0056b3;
     }
     .main-container {
       display: flex;
@@ -204,7 +206,7 @@
             <el-tooltip content="上传图片" placement="bottom">
               <i class="fas fa-upload" :class="uploadIconClass" @click="triggerFileUpload"></i>
             </el-tooltip>
-            <input type="file" id="fileUpload" @change="handleFileUpload" multiple style="display: none;">
+            <input type="file" id="fileUpload" @change="handleFileUpload" style="display: none;">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
                 <span class="el-dropdown-link">
@@ -314,55 +316,50 @@
         },
         async handleFileUpload(event) {
           this.isUploading = true; // 开始上传时设置为true
-          const files = event.target.files;
-          const uploadedFiles = [];
+          const file = event.target.files[0]; // 只处理单个文件
 
-          for (let i = 0; i < files.length; i++) {
-            const formData = new FormData();
-            formData.append('file', files[i]); // 确保使用键 'file'
+          const formData = new FormData();
+          formData.append('file', file); // 确保使用键 'file'
 
-            try {
-              const response = await fetch('http://127.0.0.1:36677/upload', {
-                method: 'POST',
-                body: formData,
-              });
+          try {
+            const response = await fetch('/upload', {
+              method: 'POST',
+              body: formData,
+            });
 
-              if (response.ok) {
-                const result = await response.json();
+            if (response.ok) {
+              const result = await response.json();
 
-                if (result.success && result.result.length > 0) {
-                  this.$message({
-                    type: 'success',
-                    message: `文件 ${files[i].name} 上传成功！`
-                  });
+              if (result.src) {
+                const normalizedSrc = result.src.replace(/\\/g, '/');
+                this.$message({
+                  type: 'success',
+                  message: `文件 ${file.name} 上传成功！`
+                });
 
-                  // 将上传的文件添加到已上传文件列表
-                  uploadedFiles.push({ src: result.result[0] });
-                } else {
-                  console.error('上传响应失败:', result);
-                  this.$message({
-                    type: 'error',
-                    message: `文件 ${files[i].name} 上传失败！`
-                  });
-                }
+                // 将上传的文件添加到已上传文件列表
+                this.tableData.push({ name: normalizedSrc });
               } else {
+                console.error('上传响应中缺少 src 属性:', result);
                 this.$message({
                   type: 'error',
-                  message: `文件 ${files[i].name} 上传失败！`
+                  message: `文件 ${file.name} 上传失败！`
                 });
               }
-            } catch (error) {
-              console.error(`文件 ${files[i].name} 上传失败:`, error);
+            } else {
               this.$message({
                 type: 'error',
-                message: `文件 ${files[i].name} 上传失败！`
+                message: `文件 ${file.name} 上传失败！`
               });
             }
+          } catch (error) {
+            console.error(`文件 ${file.name} 上传失败:`, error);
+            this.$message({
+              type: 'error',
+              message: `文件 ${file.name} 上传失败！`
+            });
           }
 
-          // 确保 uploadedFiles 中的每个元素都有 src 属性
-          const links = uploadedFiles.map(file => file.src);
-          this.copyLinksToClipboard(links);
           this.isUploading = false; // 上传结束后设置为false
           this.refreshDashboard();
         },
@@ -525,8 +522,8 @@
             document.execCommand('copy', true);
             document.body.removeChild(textarea);
             this.$message({
-                message: '复制文件链接成功~',
-                type: 'success'
+              message: '复制文件链接成功~',
+              type: 'success'
             });
           }
         },
