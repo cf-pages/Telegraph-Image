@@ -258,6 +258,9 @@
             <el-tooltip content="批量删除" placement="bottom">
               <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
             </el-tooltip>
+            <el-tooltip content="博客" placement="bottom">
+              <i class="fas fa-blog" @click="handleBlogNavigation"></i>
+            </el-tooltip>
             <el-tooltip content="退出登录" placement="bottom">
               <i class="fas fa-home" @click="handleLogout"></i>
             </el-tooltip>
@@ -402,6 +405,9 @@
           document.body.removeChild(textarea);
           this.$message.success('批量复制链接成功~');
         },
+        handleBlogNavigation() {
+          window.location.href = 'https://djchan.xyz/';
+        },
         handleLogout() {
           window.location.href = '/';
         },
@@ -446,7 +452,7 @@
             this.tableData = result.map(file => ({ ...file, selected: false }));
             this.updateStats();
             console.log(result);
-            const savedSortOption = localStorage.getItem('sortOption');
+            const savedSortOption = localStorage.getItem('sortOption'); //  记录排序方式
             if (savedSortOption) {
               this.sortOption = savedSortOption;
             }
