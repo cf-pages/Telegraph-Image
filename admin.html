@@ -445,6 +445,7 @@
           .then(result => {
             this.tableData = result.map(file => ({ ...file, selected: false }));
             this.updateStats();
+            console.log(result);
             const savedSortOption = localStorage.getItem('sortOption');
             if (savedSortOption) {
               this.sortOption = savedSortOption;
