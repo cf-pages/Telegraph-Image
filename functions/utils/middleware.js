@@ -1,6 +1,6 @@
 import sentryPlugin from "@cloudflare/pages-plugin-sentry";
 
-function errorHandling(context) {
+export function errorHandling(context) {
   const env = context.env;
   if (typeof env.disable_telemetry == "undefined" || env.disable_telemetry == null || env.disable_telemetry == "") {
     return sentryPlugin({
@@ -10,7 +10,7 @@ function errorHandling(context) {
   return context.next();
 }
 
-function telemetryData(context) {
+export function telemetryData(context) {
   const env = context.env;
   if (typeof env.disable_telemetry == "undefined" || env.disable_telemetry == null || env.disable_telemetry == "") {
     try {
@@ -52,7 +52,3 @@ function telemetryData(context) {
   }
   return context.next();
 }
-
-
-export const onRequest = [errorHandling, telemetryData];
-
