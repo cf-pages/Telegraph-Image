@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@cloudflare/pages-plugin-sentry": "^1.1.3",
+    "@sentry/tracing": "^7.114.0"
+  },
+  "devDependencies": {
+    "wrangler": "^3.63.0"
+  }
+}
