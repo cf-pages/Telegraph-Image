@@ -1,4 +1,4 @@
-node_modules
+node_modules/.bin/*
+node_modules/.mf/*
 .wrangler/*
 data/*
-

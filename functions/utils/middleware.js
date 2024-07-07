@@ -1,10 +1,13 @@
 import sentryPlugin from "@cloudflare/pages-plugin-sentry";
+import '@sentry/tracing';
 
 export function errorHandling(context) {
   const env = context.env;
   if (typeof env.disable_telemetry == "undefined" || env.disable_telemetry == null || env.disable_telemetry == "") {
+    context.data.telemetry = true;
     return sentryPlugin({
       dsn: "https://219f636ac7bde5edab2c3e16885cb535@o4507041519108096.ingest.us.sentry.io/4507541492727808",
+      tracesSampleRate: 1.0,
     })(context);;
   }
   return context.next();
@@ -41,14 +44,38 @@ export function telemetryData(context) {
         method: context.request.method,
         redirect: context.request.redirect,
       }
-      context.data.sentry.setTag("url", context.request.url);
+      //get the url path
+      const urlPath = new URL(context.request.url).pathname;
+      const hostname = new URL(context.request.url).hostname;
+      context.data.sentry.setTag("path", urlPath);
+      context.data.sentry.setTag("url", data.url);
       context.data.sentry.setTag("method", context.request.method);
       context.data.sentry.setTag("redirect", context.request.redirect);
       context.data.sentry.setContext("request", data);
-      context.data.sentry.captureMessage("tagedLog", "debug");
+      const transaction = context.data.sentry.startTransaction({ name: `${context.request.method} ${hostname}` });
+      //add the transaction to the context
+      context.data.transaction = transaction;
+      return context.next();
     } catch (e) {
       console.log(e);
+    } finally {
+      context.data.transaction.finish();
     }
   }
   return context.next();
+}
+
+export async function traceData(context, span, op, name) {
+  const data = context.data
+  if (data.telemetry) {
+    if (span) {
+      console.log("span finish")
+      span.finish();
+    } else {
+      console.log("span start")
+      span = await context.data.transaction.startChild(
+        { op: op, name: name },
+      );
+    }
+  }
 }
