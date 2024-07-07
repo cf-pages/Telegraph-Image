@@ -65,6 +65,36 @@
 Hostloc @feixiang 和@乌拉擦 提供的思路和代码
 
 ## 更新日志
+2024 年 7 月 6 日--后台管理页面更新
+
+- 支持两个新的管理页面视图（网格视图和瀑布流）
+
+    1、网格视图，感谢@DJChanahCJD 提交的代码
+        支持批量删除/复制链接
+        支持按时间倒序排序
+        支持分页功能
+        ![](https://camo.githubusercontent.com/a0551aa92f39517f0b30d86883882c1af4c9b3486e540c7750af4dbe707371fa/68747470733a2f2f696d6774632d3369312e70616765732e6465762f66696c652f6262616438336561616630356635333731363237322e706e67)
+    2、瀑布流视图，感谢@panther125 提交的代码
+        ![](https://camo.githubusercontent.com/63d64491afc5654186248141bd343c363808bf8a77d3b879ffc1b8e57e5ac85d/68747470733a2f2f696d6167652e67696e636f64652e6963752f66696c652f3930346435373737613363306530613936623963642e706e67)
+
+- 添加自动更新支持
+
+    现在fork的项目能够自动和上游仓库同步最新的更改，自动实装最新的项目功能，感谢 @bian2022
+
+    打开自动更新步骤：
+        当你 fork 项目之后，由于 Github 的限制，需要手动去你 fork 后的项目的 Actions 页面启用 Workflows，并启用 Upstream Sync Action，启用之后即可开启每小时定时自动更新：
+        ![](https://im.gurl.eu.org/file/f27ff07538de656844923.png)
+        ![](https://im.gurl.eu.org/file/063b360119211c9b984c0.png)
+    `如果你遇到了 Upstream Sync 执行错误，请手动 Sync Fork 一次！`
+
+    手动更新代码
+
+    如果你想让手动立即更新，可以查看 [Github 的文档](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork) 了解如何让 fork 的项目与上游代码同步。
+
+    你可以 star/watch 本项目或者 follow 作者来及时获得新功能更新通知。
+- 添加远端遥测
+
+    可通过添加`disable_telemetry`环境变量退出遥测
 
 2023 年 1 月 18 日--图片管理功能更新
 

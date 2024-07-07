@@ -33,7 +33,20 @@
      <span style="
      position: absolute;
      right: 0px;
-      " v-if="showLogoutButton"><el-button
+      " v-if="showLogoutButton">
+      <a href="./admin-imgtc.html">
+      <el-button
+      size="mini"
+      type="warning"
+      >网格视图</el-button>
+      </a>
+      <a href="./admin-waterfall.html">
+      <el-button
+      size="mini"
+      type="primary"
+      >瀑布流</el-button>
+      </a>
+      <el-button
                     size="mini"
                     type="info"
                     @click="handleLogout()">退出登录</el-button></span></div> 

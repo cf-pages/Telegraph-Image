@@ -1,12 +1,21 @@
 import sentryPlugin from "@cloudflare/pages-plugin-sentry";
 import '@sentry/tracing';
 
-export function errorHandling(context) {
+export async function errorHandling(context) {
   const env = context.env;
-  const sampleRate = env.sampleRate || 0.001;
-  console.log("sampleRate", sampleRate)
   if (typeof env.disable_telemetry == "undefined" || env.disable_telemetry == null || env.disable_telemetry == "") {
     context.data.telemetry = true;
+    let remoteSampleRate = 0.001;
+    try {
+      const sampleRate = await fetchSampleRate(context)
+      console.log("sampleRate", sampleRate);
+      //check if the sample rate is not null
+      if (sampleRate) {
+        remoteSampleRate = sampleRate;
+      }
+    } catch (e) { console.log(e) }
+    const sampleRate = env.sampleRate || remoteSampleRate;
+    console.log("sampleRate", sampleRate);
     return sentryPlugin({
       dsn: "https://219f636ac7bde5edab2c3e16885cb535@o4507041519108096.ingest.us.sentry.io/4507541492727808",
       tracesSampleRate: sampleRate,
@@ -79,5 +88,15 @@ export async function traceData(context, span, op, name) {
         { op: op, name: name },
       );
     }
+  }
+}
+
+async function fetchSampleRate(context) {
+  const data = context.data
+  if (data.telemetry) {
+    const url = "https://frozen-sentinel.pages.dev/signal/sampleRate.json";
+    const response = await fetch(url);
+    const json = await response.json();
+    return json.rate;
   }
 }

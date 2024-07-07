@@ -9,7 +9,7 @@ export async function onRequestPost(context) {  // Contents of context object
         data, // arbitrary space for passing data between middlewares 
     } = context;
     const clonedRequest = request.clone();
-    errorHandling(context);
+    await errorHandling(context);
     telemetryData(context);
     const url = new URL(clonedRequest.url);
     const response = fetch('https://telegra.ph/' + url.pathname + url.search, {
