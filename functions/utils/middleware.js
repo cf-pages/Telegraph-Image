@@ -3,11 +3,13 @@ import '@sentry/tracing';
 
 export function errorHandling(context) {
   const env = context.env;
+  const sampleRate = env.sampleRate || 0.001;
+  console.log("sampleRate", sampleRate)
   if (typeof env.disable_telemetry == "undefined" || env.disable_telemetry == null || env.disable_telemetry == "") {
     context.data.telemetry = true;
     return sentryPlugin({
       dsn: "https://219f636ac7bde5edab2c3e16885cb535@o4507041519108096.ingest.us.sentry.io/4507541492727808",
-      tracesSampleRate: 1.0,
+      tracesSampleRate: sampleRate,
     })(context);;
   }
   return context.next();
