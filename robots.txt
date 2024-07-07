@@ -1,0 +1,6 @@
+user-agent: *
+Disallow: /
+User-agent: DataForSeoBot
+Disallow: /
+User-agent: *
+Crawl-delay: 1
