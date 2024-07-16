@@ -1,145 +1,94 @@
-<!doctype html>
-<html data-n-head-ssr>
-  <body>
-    <div class="url-box" data-v-793b8fc8="">
-      <div class="copy-url" style="" data-v-793b8fc8="">
-        <div class="input-group" data-v-793b8fc8="">
-          <input readonly="readonly" id="url-content" class="input-sm" data-v-793b8fc8="" type="text">
-          <div data-clipboard-target="#url-content" class="input-group-button" data-v-793b8fc8="">
-            <svg aria-hidden="true" height="16" version="1.1" viewBox="0 0 14 16" width="14" class="octicon octicon-clippy" data-v-793b8fc8="">
-              <path d="M2 13h4v1H2v-1zm5-6H2v1h5V7zm2 3V8l-3 3 3 3v-2h5v-2H9zM4.5 9H2v1h2.5V9zM2 12h2.5v-1H2v1zm9 1h1v2c-.02.28-.11.52-.3.7-.19.18-.42.28-.7.3H1c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1h3c0-1.11.89-2 2-2 1.11 0 2 .89 2 2h3c.55 0 1 .45 1 1v5h-1V6H1v9h10v-2zM2 5h8c0-.55-.45-1-1-1H8c-.55 0-1-.45-1-1s-.45-1-1-1-1 .45-1 1-.45 1-1 1H3c-.55 0-1 .45-1 1z" fill-rule="evenodd" data-v-793b8fc8=""></path>
-            </svg>
-          </div>
-        </div>
-        <div class="re-upload" data-v-793b8fc8="">
-          <svg height="26" viewBox="0 0 1024 1024" width="26" xmlns="http://www.w3.org/2000/svg" data-v-793b8fc8="">
-            <path d="M396.8 200.533333l64 64L384 341.333333h298.666667c119.466667 0 213.333333 93.866667 213.333333 213.333334s-93.866667 213.333333-213.333333 213.333333H298.666667v-85.333333h384c72.533333 0 128-55.466667 128-128s-55.466667-128-128-128H170.666667l226.133333-226.133334z" fill="#d73a49" p-id="7650" data-v-793b8fc8=""></path>
-          </svg>
-        </div>
-      </div>
-    </div>
-
     <script>
-    // 等待整个文档加载完毕
-    document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener('DOMContentLoaded', function() {
         var lastInputValue = ''; // 用于存储上一次输入框的值
         var timer; // 用于存储定时器的引用
 
-        // 等待输入框元素生成
         var waitForElement = setInterval(function() {
-            var inputElement = document.getElementById('url-content');
-            if (inputElement) {
-                inputElement.addEventListener('input', function() {
-                    var url = inputElement.value.trim(); // 获取输入框的值
-                    if (url !== '' && url !== lastInputValue) {
-                        lastInputValue = url; // 更新上一次输入框的值
+          var inputElement = document.getElementById('url-content');
+          if (inputElement) {
+            inputElement.addEventListener('input', function() {
+              var url = inputElement.value.trim(); // 获取输入框的值
+              if (url !== '' && url !== lastInputValue) {
+                lastInputValue = url; // 更新上一次输入框的值
 
-                        var altText = url.split('/').pop(); // 获取图片链接的最后一部分作为 Alt Text
-                        var markdownImage = `![${altText}](${url})`;
-                        var bbcodeImage = `[img]${url}[/img]`;
-                        var htmlImage = `<img src="${url}" alt="${altText}" />`;
+                var altText = url.split('/').pop(); // 获取图片链接的最后一部分作为 Alt Text
+                var markdownImage = `![${altText}](${url})`;
+                console.log('生成的 Markdown 格式的图片链接：', markdownImage);
 
-                        console.log('生成的 Markdown 格式的图片链接：', markdownImage);
-                        console.log('生成的 BBCode 格式的图片链接：', bbcodeImage);
-                        console.log('生成的 HTML 格式的图片链接：', htmlImage);
+                var existingMarkdownDiv = document.querySelector('.markdown-container');
+                if (existingMarkdownDiv) {
+                  existingMarkdownDiv.remove();
+                }
 
-                        // 检查并删除已有的输入框和按钮容器
-                        var existingContainer = document.querySelector('.link-container');
-                        if (existingContainer) {
-                            existingContainer.remove();
-                        }
+                var newDiv = document.createElement('div');
+                newDiv.classList.add('markdown-container');
+                newDiv.style.display = 'flex';
+                newDiv.style.alignItems = 'center';
+                newDiv.style.marginBottom = '10px';
 
-                        // 创建包含链接和复制文本按钮的新元素
-                        var newDiv = document.createElement('div');
-                        newDiv.classList.add('link-container');
-                        newDiv.style.display = 'flex'; // 设置样式
-                        newDiv.style.flexDirection = 'column';
-                        newDiv.style.gap = '10px';
-                        newDiv.style.marginTop = '10px';
+                var markdownInput = document.createElement('input');
+                markdownInput.setAttribute('type', 'text');
+                markdownInput.setAttribute('readonly', 'readonly');
+                markdownInput.value = markdownImage;
+                markdownInput.style.flexGrow = '1';
+                markdownInput.style.marginRight = '10px';
+                markdownInput.style.padding = '5px';
+                markdownInput.style.border = '1px solid #ccc';
+                markdownInput.style.borderRadius = '4px';
 
-                        // 创建生成链接的函数
-                        function createLinkElement(link, label) {
-                            var container = document.createElement('div');
-                            container.style.display = 'flex';
-                            container.style.alignItems = 'center';
+                var copyButton = document.createElement('span');
+                copyButton.textContent = '复制Markdown';
+                copyButton.style.padding = '5px 10px';
+                copyButton.style.backgroundColor = '#007bff';
+                copyButton.style.color = 'white';
+                copyButton.style.border = 'none';
+                copyButton.style.borderRadius = '4px';
+                copyButton.style.cursor = 'pointer';
+                copyButton.style.minWidth = '114px';
+                copyButton.style.textAlign = 'center';
+                copyButton.addEventListener('click', function() {
+                  markdownInput.select();
+                  document.execCommand('copy');
+                  copyButton.textContent = '已复制';
+                  copyButton.style.pointerEvents = 'none';
+                  console.log('已复制文本:', markdownInput.value);
 
-                            var input = document.createElement('input');
-                            input.setAttribute('type', 'text');
-                            input.setAttribute('readonly', 'readonly');
-                            input.value = link;
-                            input.style.flexGrow = '1';
-                            input.style.marginRight = '10px';
-                            input.style.padding = '5px';
-                            input.style.border = '1px solid #ccc';
-                            input.style.borderRadius = '4px';
-
-                            var button = document.createElement('span');
-                            button.textContent = `复制${label}`;
-                            button.style.padding = '5px 10px';
-                            button.style.backgroundColor = '#007bff';
-                            button.style.color = 'white';
-                            button.style.border = 'none';
-                            button.style.borderRadius = '4px';
-                            button.style.cursor = 'pointer';
-                            button.style.minWidth = '114px';
-                            button.style.textAlign = 'center';
-                            button.addEventListener('click', function() {
-                                input.select();
-                                document.execCommand('copy');
-                                button.textContent = '已复制';
-                                button.style.pointerEvents = 'none';
-                                console.log(`已复制文本: ${link}`);
-
-                                setTimeout(function() {
-                                    button.textContent = `复制${label}`;
-                                    button.style.pointerEvents = 'auto';
-                                }, 2000);
-                            });
-                            button.addEventListener('mouseover', function() {
-                                button.style.backgroundColor = '#0056b3';
-                            });
-                            button.addEventListener('mouseout', function() {
-                                button.style.backgroundColor = '#007bff';
-                            });
-
-                            container.appendChild(input);
-                            container.appendChild(button);
-                            return container;
-                        }
-
-                        // 创建不同格式的链接元素
-                        var markdownElement = createLinkElement(markdownImage, 'Markdown');
-                        var bbcodeElement = createLinkElement(bbcodeImage, 'BBCode');
-                        var htmlElement = createLinkElement(htmlImage, 'HTML');
-
-                        newDiv.appendChild(markdownElement);
-                        newDiv.appendChild(bbcodeElement);
-                        newDiv.appendChild(htmlElement);
-
-                        // 获取要插入新元素的位置（通过类名获取元素）
-                        var urlBoxElements = document.querySelectorAll('.url-box[data-v-793b8fc8=""]');
-                        if (urlBoxElements.length > 0) {
-                            var urlBox = urlBoxElements[0];
-                            urlBox.parentNode.insertBefore(newDiv, urlBox.nextSibling);
-                        } else {
-                            console.error('未找到类名为 url-box 且 data-v-793b8fc8 属性为空的元素！');
-                        }
-                    }
-
-                    // 如果定时器存在，则清除定时器
-                    if (timer) {
-                        clearTimeout(timer);
-                    }
-
-                    // 设置2分钟后关闭定时器
-                    timer = setTimeout(function() {
-                        clearInterval(waitForElement); // 停止等待输入框元素的检查
-                        console.log('定时器已关闭');
-                    }, 2 * 60 * 1000); // 2分钟，单位是毫秒
+                  setTimeout(function() {
+                    copyButton.textContent = '复制Markdown';
+                    copyButton.style.pointerEvents = 'auto';
+                  }, 2000);
                 });
-            }
-        }, 1000); // 每1000毫秒检查一次是否生成了输入框元素
-    });
+                copyButton.addEventListener('mouseover', function() {
+                  copyButton.style.backgroundColor = '#0056b3';
+                });
+                copyButton.addEventListener('mouseout', function() {
+                  copyButton.style.backgroundColor = '#007bff';
+                });
+
+                newDiv.appendChild(markdownInput);
+                newDiv.appendChild(copyButton);
+
+                var urlBoxElements = document.querySelectorAll('.url-box[data-v-793b8fc8=""]');
+                if (urlBoxElements.length > 0) {
+                  var urlBox = urlBoxElements[0];
+                  urlBox.parentNode.insertBefore(newDiv, urlBox.nextSibling);
+                } else {
+                  console.error('未找到类名为 url-box 且 data-v-793b8fc8 属性为空的元素！');
+                }
+              }
+
+              if (timer) {
+                clearTimeout(timer);
+              }
+
+              timer = setTimeout(function() {
+                clearInterval(waitForElement);
+                console.log('定时器已关闭');
+              }, 2 * 60 * 1000);
+            });
+          }
+        }, 1000);
+      });
     </script>
   </head>
   <body>
