@@ -2,8 +2,10 @@
 <!doctype html>
 <html data-n-head-ssr>
   <body>
-    <!-- 确保存在一个带有 id 为 'url-content' 的输入框 -->
-    <input id="url-content" type="text" placeholder="输入图片链接" />
+    <div class="url-box" data-v-793b8fc8="">
+      <!-- 输入框 -->
+      <input id="url-content" type="text" placeholder="输入图片链接" />
+    </div>
 
     <script>
     // 等待整个文档加载完毕
@@ -15,112 +17,114 @@
         var waitForElement = setInterval(function() {
             var inputElement = document.getElementById('url-content');
             if (inputElement) {
-                var url = inputElement.value.trim(); // 获取输入框的值
-                if (url !== '' && url !== lastInputValue) {
-                    lastInputValue = url; // 更新上一次输入框的值
+                inputElement.addEventListener('input', function() {
+                    var url = inputElement.value.trim(); // 获取输入框的值
+                    if (url !== '' && url !== lastInputValue) {
+                        lastInputValue = url; // 更新上一次输入框的值
 
-                    var altText = url.split('/').pop(); // 获取图片链接的最后一部分作为 Alt Text
-                    var markdownImage = `![${altText}](${url})`;
-                    var bbcodeImage = `[img]${url}[/img]`;
-                    var htmlImage = `<img src="${url}" alt="${altText}" />`;
-                    
-                    console.log('生成的 Markdown 格式的图片链接：', markdownImage);
-                    console.log('生成的 BBCode 格式的图片链接：', bbcodeImage);
-                    console.log('生成的 HTML 格式的图片链接：', htmlImage);
+                        var altText = url.split('/').pop(); // 获取图片链接的最后一部分作为 Alt Text
+                        var markdownImage = `![${altText}](${url})`;
+                        var bbcodeImage = `[img]${url}[/img]`;
+                        var htmlImage = `<img src="${url}" alt="${altText}" />`;
+                        
+                        console.log('生成的 Markdown 格式的图片链接：', markdownImage);
+                        console.log('生成的 BBCode 格式的图片链接：', bbcodeImage);
+                        console.log('生成的 HTML 格式的图片链接：', htmlImage);
 
-                    // 检查并删除已有的输入框和按钮容器
-                    var existingContainer = document.querySelector('.link-container');
-                    if (existingContainer) {
-                        existingContainer.remove();
-                    }
+                        // 检查并删除已有的输入框和按钮容器
+                        var existingContainer = document.querySelector('.link-container');
+                        if (existingContainer) {
+                            existingContainer.remove();
+                        }
 
-                    // 创建包含链接和复制文本按钮的新元素
-                    var newDiv = document.createElement('div');
-                    newDiv.classList.add('link-container');
-                    newDiv.style.display = 'flex'; // 设置样式
-                    newDiv.style.flexDirection = 'column';
-                    newDiv.style.gap = '10px';
-                    newDiv.style.marginTop = '10px';
+                        // 创建包含链接和复制文本按钮的新元素
+                        var newDiv = document.createElement('div');
+                        newDiv.classList.add('link-container');
+                        newDiv.style.display = 'flex'; // 设置样式
+                        newDiv.style.flexDirection = 'column';
+                        newDiv.style.gap = '10px';
+                        newDiv.style.marginTop = '10px';
 
-                    // 创建生成链接的函数
-                    function createLinkElement(link, label) {
-                        var container = document.createElement('div');
-                        container.style.display = 'flex';
-                        container.style.alignItems = 'center';
+                        // 创建生成链接的函数
+                        function createLinkElement(link, label) {
+                            var container = document.createElement('div');
+                            container.style.display = 'flex';
+                            container.style.alignItems = 'center';
 
-                        var input = document.createElement('input');
-                        input.setAttribute('type', 'text');
-                        input.setAttribute('readonly', 'readonly');
-                        input.value = link;
-                        input.style.flexGrow = '1';
-                        input.style.marginRight = '10px';
-                        input.style.padding = '5px';
-                        input.style.border = '1px solid #ccc';
-                        input.style.borderRadius = '4px';
+                            var input = document.createElement('input');
+                            input.setAttribute('type', 'text');
+                            input.setAttribute('readonly', 'readonly');
+                            input.value = link;
+                            input.style.flexGrow = '1';
+                            input.style.marginRight = '10px';
+                            input.style.padding = '5px';
+                            input.style.border = '1px solid #ccc';
+                            input.style.borderRadius = '4px';
 
-                        var button = document.createElement('span');
-                        button.textContent = `复制${label}`;
-                        button.style.padding = '5px 10px';
-                        button.style.backgroundColor = '#007bff';
-                        button.style.color = 'white';
-                        button.style.border = 'none';
-                        button.style.borderRadius = '4px';
-                        button.style.cursor = 'pointer';
-                        button.style.minWidth = '114px';
-                        button.style.textAlign = 'center';
-                        button.addEventListener('click', function() {
-                            input.select();
-                            document.execCommand('copy');
-                            button.textContent = '已复制';
-                            button.style.pointerEvents = 'none';
-                            console.log(`已复制文本: ${link}`);
-
-                            setTimeout(function() {
-                                button.textContent = `复制${label}`;
-                                button.style.pointerEvents = 'auto';
-                            }, 2000);
-                        });
-                        button.addEventListener('mouseover', function() {
-                            button.style.backgroundColor = '#0056b3';
-                        });
-                        button.addEventListener('mouseout', function() {
+                            var button = document.createElement('span');
+                            button.textContent = `复制${label}`;
+                            button.style.padding = '5px 10px';
                             button.style.backgroundColor = '#007bff';
-                        });
+                            button.style.color = 'white';
+                            button.style.border = 'none';
+                            button.style.borderRadius = '4px';
+                            button.style.cursor = 'pointer';
+                            button.style.minWidth = '114px';
+                            button.style.textAlign = 'center';
+                            button.addEventListener('click', function() {
+                                input.select();
+                                document.execCommand('copy');
+                                button.textContent = '已复制';
+                                button.style.pointerEvents = 'none';
+                                console.log(`已复制文本: ${link}`);
 
-                        container.appendChild(input);
-                        container.appendChild(button);
-                        return container;
+                                setTimeout(function() {
+                                    button.textContent = `复制${label}`;
+                                    button.style.pointerEvents = 'auto';
+                                }, 2000);
+                            });
+                            button.addEventListener('mouseover', function() {
+                                button.style.backgroundColor = '#0056b3';
+                            });
+                            button.addEventListener('mouseout', function() {
+                                button.style.backgroundColor = '#007bff';
+                            });
+
+                            container.appendChild(input);
+                            container.appendChild(button);
+                            return container;
+                        }
+
+                        // 创建不同格式的链接元素
+                        var markdownElement = createLinkElement(markdownImage, 'Markdown');
+                        var bbcodeElement = createLinkElement(bbcodeImage, 'BBCode');
+                        var htmlElement = createLinkElement(htmlImage, 'HTML');
+
+                        newDiv.appendChild(markdownElement);
+                        newDiv.appendChild(bbcodeElement);
+                        newDiv.appendChild(htmlElement);
+
+                        // 获取要插入新元素的位置（通过类名获取元素）
+                        var urlBoxElements = document.querySelectorAll('.url-box[data-v-793b8fc8=""]');
+                        if (urlBoxElements.length > 0) {
+                            var urlBox = urlBoxElements[0];
+                            urlBox.parentNode.insertBefore(newDiv, urlBox.nextSibling);
+                        } else {
+                            console.error('未找到类名为 url-box 且 data-v-793b8fc8 属性为空的元素！');
+                        }
                     }
 
-                    // 创建不同格式的链接元素
-                    var markdownElement = createLinkElement(markdownImage, 'Markdown');
-                    var bbcodeElement = createLinkElement(bbcodeImage, 'BBCode');
-                    var htmlElement = createLinkElement(htmlImage, 'HTML');
-
-                    newDiv.appendChild(markdownElement);
-                    newDiv.appendChild(bbcodeElement);
-                    newDiv.appendChild(htmlElement);
-
-                    // 获取要插入新元素的位置（通过类名获取元素）
-                    var urlBoxElements = document.querySelectorAll('.url-box[data-v-793b8fc8=""]');
-                    if (urlBoxElements.length > 0) {
-                        var urlBox = urlBoxElements[0];
-                        urlBox.parentNode.insertBefore(newDiv, urlBox);
-                    } else {
-                        console.error('未找到类名为 url-box 且 data-v-793b8fc8 属性为空的元素！');
+                    // 如果定时器存在，则清除定时器
+                    if (timer) {
+                        clearTimeout(timer);
                     }
-                }
 
-                // 如果定时器存在，则清除定时器
-                if (timer) {
-                    clearTimeout(timer);
-                }
-
-                // 设置2分钟后关闭定时器
-                timer = setTimeout(function() {
-                    clearInterval(waitForElement); // 停止等待输入框元素的检查
-                    console.log('定时器已关闭');
-                }, 2 * 60 * 1000); // 2分钟，单位是毫秒
+                    // 设置2分钟后关闭定时器
+                    timer = setTimeout(function() {
+                        clearInterval(waitForElement); // 停止等待输入框元素的检查
+                        console.log('定时器已关闭');
+                    }, 2 * 60 * 1000); // 2分钟，单位是毫秒
+                });
             }
         }, 1000); // 每1000毫秒检查一次是否生成了输入框元素
     });
