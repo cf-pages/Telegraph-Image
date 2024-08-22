@@ -238,7 +238,7 @@
           <div class="search-card">
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
-          <span class="stats">
+          <span class="stats" @click="selectedAll">
             <i class="fas fa-database"></i> 记录总数量: {{ Number }}
           </span>
           <div class="actions">
@@ -315,7 +315,8 @@
         pageSize: 15,
         selectedFiles: [],
         sortOption: 'dateDesc',
-        isUploading: false
+        isUploading: false,
+		selected:false
       },
       computed: {
         filteredTableData() {
@@ -423,7 +424,12 @@
         sortData(data) {
           return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
             data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
-        }
+        },
+		selectedAll(){
+			this.selected = !this.selected;
+			this.tableData = [...this.tableData].map(file => ({ ...file, selected: this.selected }));
+			this.selectedFiles = newData.filter(file => file.selected);
+		}
       },
       mounted() {
         fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
