@@ -3,6 +3,27 @@
 免费图片托管解决方案，Flickr/imgur 替代品。使用 Cloudflare Pages 和 Telegraph。
 
 [English](README-EN.md)|中文
+> [!WARNING]  
+> **The image upload feature is currently unavailable, but previously uploaded images can still be loaded normally.**
+> 
+> **已知问题：图片上传功能目前无法使用，但已有图片仍然可以正常加载。需要了解具体原因请看下面的内容**
+
+> [!IMPORTANT]
+> **Telegram has disabled the media upload functionality of Telegraph, which this project relies on. As a result, the image upload feature is no longer functional. We are currently working on a solution.**
+> 
+> **Telegram 已禁用本项目所依赖的 Telegraph 的新媒体上传功能，因此目前新图片上传功能将无法继续使用，我们正在寻找解决方案。**
+
+> [!NOTE]
+> 更多信息：
+> For more details, please refer to the official statement: [Telegram Announcement](https://t.me/durov/343)
+> 
+> ✂️ We’ve also disabled new media uploads to Telegraph, our standalone blogging tool, which seems to have been misused by anonymous actors.
+> 
+> ✂️ 我们还禁用了独立博客工具 Telegraph 的新媒体上传功能，因为它似乎被匿名用户滥用了。
+>
+> 相关issue: [#180](https://github.com/cf-pages/Telegraph-Image/issues/180) [#178](https://github.com/cf-pages/Telegraph-Image/issues/178)
+
+
 
 ## 如何部署
 
