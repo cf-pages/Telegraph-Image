@@ -10,7 +10,7 @@ export async function onRequest(context) {  // Contents of context object
 
     const url = new URL(request.url);
     let fileUrl = 'https://telegra.ph/' + url.pathname + url.search
-    if (url.pathname.length > 30) {
+    if (url.pathname.length > 39) {
         const formdata = new FormData();
         formdata.append("file_id", url.pathname);
 
@@ -27,7 +27,7 @@ export async function onRequest(context) {  // Contents of context object
         fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;  
 
     }
-    console.log(fileUrl) 
+
     const response = await fetch(fileUrl, {
         method: request.method,
         headers: request.headers,
