@@ -12,10 +12,18 @@ export async function onRequestPost(context) {  // Contents of context object
     await errorHandling(context);
     telemetryData(context);
     const url = new URL(clonedRequest.url);
-    const response = fetch('https://telegra.ph/' + url.pathname + url.search, {
+    url.searchParams.append('source', 'bugtracker');
+    const response = await fetch('https://telegra.ph/' + url.pathname + url.search, {
         method: clonedRequest.method,
         headers: clonedRequest.headers,
         body: clonedRequest.body,
     });
-    return response;
+    const originalBody = await response.json();
+    const wrappedBody = [originalBody];
+    const modifiedResponse = new Response(JSON.stringify(wrappedBody), {
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers
+    });
+    return modifiedResponse;
 }
