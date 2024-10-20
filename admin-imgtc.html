@@ -20,8 +20,8 @@
     .header-content {
       position: fixed;
       top: 0;
-      left: 5%;
-      right: 5%;
+      left: 1%;
+      right: 1%;
       z-index: 999;
       height: 60px;
       display: flex;
@@ -90,6 +90,14 @@
       color: #B39DDB; /* 使用柔和的淡紫色 */
     }
 
+    .fade-enter-active, .fade-leave-active {
+      transition: opacity 0.3s ease;
+    }
+
+    .fade-enter, .fade-leave-to {
+      opacity: 0;
+    }
+
     .header-content .actions {
       display: flex;
       align-items: center;
@@ -147,7 +155,6 @@
     }
 
     .main-container {
-      margin-top: 80px;
       display: flex;
       flex-direction: column;
       padding: 20px;
@@ -164,7 +171,7 @@
 
     .el-card {
       width: 100%;
-      aspect-ratio: 3 / 4;
+      aspect-ratio: 4 / 3;
       background: rgba(255, 255, 255, 0.6);
       border-radius: 8px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
@@ -248,6 +255,15 @@
     }
 
     @media (max-width: 768px) {
+      .content {
+        grid-template-columns: 1fr; /* 单列布局 */
+        gap: 10px;
+      }
+
+      .search-card, .stats {
+        display: none;
+      }
+
       .header-content .actions {
         display: none;
         flex-direction: column;
@@ -272,34 +288,36 @@
       <el-header>
         <div class="header-content">
           <span class="title" @click="refreshDashboard">Dashboard</span>
-          <div class="search-card">
+          <div class="search-card" v-show="windowWidth > 768">
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
-          <span class="stats">
+          <span class="stats" v-show="windowWidth > 768">
             <i class="fas fa-database"></i> 记录总数量: {{ Number }}
           </span>
-          <div class="actions" v-show="isMenuOpen || windowWidth > 768">
-            <el-tooltip content="排序" placement="bottom">
-              <el-dropdown @command="sort" :hide-on-click="false">
-                <span class="el-dropdown-link">
-                  <i :class="sortIcon"></i>
-                </span>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
-                  <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-            </el-tooltip>
-            <el-tooltip content="批量复制" placement="bottom">
-              <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
-            </el-tooltip>
-            <el-tooltip content="批量删除" placement="bottom">
-              <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
-            </el-tooltip>
-            <el-tooltip content="退出登录" placement="bottom">
-              <i class="fas fa-home" @click="handleLogout"></i>
-            </el-tooltip>
-          </div>
+          <transition name="fade">
+            <div class="actions" v-show="isMenuOpen || windowWidth > 768">
+              <el-tooltip content="排序" placement="bottom">
+                <el-dropdown @command="sort" :hide-on-click="false">
+                  <span class="el-dropdown-link">
+                    <i :class="sortIcon"></i>
+                  </span>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
+                    <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+              </el-tooltip>
+              <el-tooltip content="批量复制" placement="bottom">
+                <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
+              </el-tooltip>
+              <el-tooltip content="批量删除" placement="bottom">
+                <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
+              </el-tooltip>
+              <el-tooltip content="退出登录" placement="bottom">
+                <i class="fas fa-home" @click="handleLogout"></i>
+              </el-tooltip>
+            </div>
+          </transition>
           <i class="fas fa-bars menu-icon" @click="toggleMenu"></i>
         </div>
       </el-header>
@@ -388,28 +406,22 @@
         location.reload();
       },
       calculatePageSize() {
+        const minPageSize = 15;  // 最少卡片数量
         const cardMinWidth = 200; // 卡片最小宽度
-        const cardAspectRatio = 4 / 3; // 卡片的高宽比
+        const cardAspectRatio = 3 / 4; // 卡片的高宽比
         const gap = 20; // 卡片间的间隙
 
         const contentElement = document.querySelector('.content');
-        if (!contentElement) {
-          console.warn('Content element not found. Skipping page size calculation.');
-          return;
-        }
-        const containerWidth = contentElement.clientWidth;
+        const containerWidth = contentElement ? contentElement.clientWidth : 80;
         const columns = Math.floor(containerWidth / (cardMinWidth + gap));
 
         const headerElement = document.querySelector('.header-content');
-        if (!headerElement) {
-          console.warn('Header element not found. Using default header height.');
-        }
         const headerHeight = headerElement ? headerElement.offsetHeight : 60; // 使用默认值60px
         const containerHeight = window.innerHeight - headerHeight;
         const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
         const rows = Math.floor(containerHeight / (cardHeight + gap));
 
-        this.pageSize = columns * rows;
+        this.pageSize = Math.max(calculatedPageSize, minPageSize);
       },
       toggleMenu() {
         this.isMenuOpen = !this.isMenuOpen;
@@ -419,6 +431,7 @@
         if (this.windowWidth > 768) {
           this.isMenuOpen = false;
         }
+        this.calculatePageSize();
       },
       handleDelete(index, key) {
         this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
@@ -501,7 +514,7 @@
     },
     mounted() {
       window.addEventListener('resize', this.calculatePageSize);
-      this.calculatePageSize();
+      this.updateWindowWidth();
       fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
         .then(response => response.text())
         .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
