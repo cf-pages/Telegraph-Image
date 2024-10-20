@@ -260,7 +260,18 @@
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
           <el-tooltip class="stats" content="批量上传" placement="bottom">
-            <i class="fas fa-database"></i> 记录数：{{ Number }}
+            <el-upload
+              class="upload-demo"
+              action="/function/upload"
+              multiple
+              :on-success="handleUploadSuccess"
+              :on-error="handleUploadError"
+              :before-upload="beforeUpload"
+              :show-file-list="false"
+              :auto-upload="false"
+              ref="upload">
+              <i class="fas fa-database"></i> 记录数：{{ Number }}
+            </el-upload>
           </el-tooltip>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
@@ -338,6 +349,7 @@
       selectedFiles: [],
       sortOption: 'dateDesc',
       isUploading: false,
+      uploadFiles: [],
       windowWidth: window.innerWidth
     },
     computed: {
@@ -469,6 +481,36 @@
       sortData(data) {
         return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
           data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
+      },
+      handleUploadSuccess(response, file, fileList) {
+        console.log(response);
+        if (Array.isArray(response)) {
+          response.forEach(fileInfo => {
+            this.tableData.push({ ...fileInfo, selected: false });
+          });
+        } else {
+          this.tableData.push({ ...response, selected: false });
+        }
+        this.updateStats();
+        this.$message.success('批量上传成功!');
+      },
+      handleUploadError(err, file, fileList) {
+        this.$message.error(`上传失败: ${file.name}`);
+      },
+      beforeUpload(file) {
+        // 验证文件类型和大小
+        const isAllowedType = file.type.startsWith('image/') || file.type.startsWith('video/');
+        if (!isAllowedType) {
+          this.$message.error('只能上传图片或视频!');
+        }
+        const isLt5M = file.size / 1024 / 1024 < 5;
+        if (!isLt5M) {
+          this.$message.error('上传文件大小不能超过 5MB!');
+        }
+        return isAllowedType && isLt5M;
+      },
+      triggerUpload() {
+        this.$refs.upload.submit();
       }
     },
     mounted() {
