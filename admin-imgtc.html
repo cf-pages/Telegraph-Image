@@ -266,20 +266,7 @@
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
           <el-tooltip class="stats" content="批量上传" placement="bottom">
-            <el-upload
-              class="upload"
-              action="./upload"
-              accept="image/*,video/*"
-              method="POST"
-              multiple
-              :on-success="handleUploadSuccess"
-              :on-error="handleUploadError"
-              :before-upload="beforeUpload"
-              :show-file-list="false"
-              :auto-upload="false"
-              ref="upload">
               <i class="fas fa-database"></i> 记录数：{{ Number }}
-            </el-upload>
           </el-tooltip>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
