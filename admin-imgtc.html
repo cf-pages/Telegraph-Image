@@ -179,10 +179,11 @@
       position: relative;
       object-fit: cover;
       transition: transform 0.3s ease;
+      border: none;
     }
 
     .el-card:hover {
-      transform: scale(1.025);
+      transform: scale(1.02);
     }
 
     .el-image {
@@ -291,29 +292,32 @@
           <span class="stats" v-show="windowWidth > 768">
             <i class="fas fa-database"></i> 记录总数量: {{ Number }}
           </span>
-          <div class="actions">
-            <el-tooltip content="排序" placement="bottom">
-              <el-dropdown @command="sort" :hide-on-click="false">
-                <span class="el-dropdown-link">
-                  <i :class="sortIcon"></i>
-                </span>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
-                  <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-            </el-tooltip>
-            <el-tooltip content="批量复制" placement="bottom">
-              <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
-            </el-tooltip>
-            <el-tooltip content="批量删除" placement="bottom">
-              <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
-            </el-tooltip>
-            <el-tooltip content="退出登录" placement="bottom">
-              <i class="fas fa-home" @click="handleLogout"></i>
-            </el-tooltip>
+          <transition name="fade">
+            <div class="actions" v-show="isMenuOpen || windowWidth > 768">
+              <el-tooltip content="排序" placement="bottom">
+                <el-dropdown @command="sort" :hide-on-click="false">
+                  <span class="el-dropdown-link">
+                    <i :class="sortIcon"></i>
+                  </span>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
+                    <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+              </el-tooltip>
+              <el-tooltip content="批量复制" placement="bottom">
+                <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
+              </el-tooltip>
+              <el-tooltip content="批量删除" placement="bottom">
+                <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
+              </el-tooltip>
+              <el-tooltip content="退出登录" placement="bottom">
+                <i class="fas fa-home" @click="handleLogout"></i>
+              </el-tooltip>
+            </div>
           </div>
-        </div>
+       </transition>
+        <i class="fas fa-bars menu-icon" @click="toggleMenu" v-show="windowWidth <= 768">
       </el-header>
       <el-main class="main-container">
         <div class="content">
@@ -400,13 +404,13 @@
         location.reload();
       },
       calculatePageSize() {
-        const minPageSize = 8;  // 最少卡片数量
-        const cardMinWidth = 300; // 卡片最小宽度
+        const minPageSize = 16;  // 最少卡片数量
+        const cardMinWidth = 240; // 卡片最小宽度
         const cardAspectRatio = 3 / 4; // 卡片的高宽比
         const gap = 20; // 卡片间的间隙
 
         const contentElement = document.querySelector('.content');
-        const containerWidth = contentElement ? contentElement.clientWidth : 80;
+        const containerWidth = contentElement ? contentElement.clientWidth : 800;
         const columns = Math.floor(containerWidth / (cardMinWidth + gap));
 
         const headerElement = document.querySelector('.header-content');
