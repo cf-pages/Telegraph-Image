@@ -442,8 +442,9 @@
           // 对每个上传的文件进行GET请求
           if (Array.isArray(result)) {
             result.forEach(file => {
-              fetch(`${this.baseURL}/${file.src}`)
+              fetch(`${this.baseURL}${file.src}`)
                 .then(response => {
+                  console.log("response: ", response);
                   if (!response.ok) {
                     console.error(`无法获取文件: ${file.src}`);
                   }
