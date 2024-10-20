@@ -109,7 +109,7 @@
 
     .header-content .actions i:hover {
       color: #B39DDB; /* 使用柔和的淡紫色 */
-      transform: scale(1.2);
+      transform: scale(1.1);
     }
 
     .header-content .actions .el-dropdown-link i {
@@ -428,7 +428,6 @@
         fetch(this.baseURL + '/upload', {
           method: 'POST',
           body: formData,
-          credentials: 'include'
         })
         .then(response => {
           if (!response.ok) {
@@ -440,6 +439,20 @@
           console.log("result: ", result);
           this.$message.closeAll();
           this.$message.success('上传成功!');
+          // 对每个上传的文件进行GET请求
+          if (Array.isArray(result)) {
+            result.forEach(file => {
+              fetch(`${this.baseURL}/file/${file.name}`)
+                .then(response => {
+                  if (!response.ok) {
+                    console.error(`无法获取文件: ${file.name}`);
+                  }
+                })
+                .catch(error => {
+                  console.error(`获取文件时出错: ${file.name}`, error);
+                });
+            });
+          }
           // 刷新文件列表
           this.refreshFileList();
         })
