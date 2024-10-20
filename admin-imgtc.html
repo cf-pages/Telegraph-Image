@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ImgTC | Admin</title>
   <!-- Import CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" crossorigin="anonymous">
+  <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
   <style>
     body {
       background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
@@ -339,9 +340,9 @@
 
 </body>
 <!-- Import Vue before Element -->
-<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js" crossorigin="anonymous"></script>
 <!-- Import JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js" crossorigin="anonymous"></script>
 <script>
   new Vue({
     el: '#app',
@@ -545,16 +546,29 @@
       },
 
     mounted() {
+      var requestOptions = {
+        method: 'GET',
+        redirect: 'follow',
+        credentials: 'include'
+      };
       window.addEventListener('resize', this.calculatePageSize);
 
       this.updateWindowWidth();
-      fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
+      fetch("./api/manage/check", requestOptions)
         .then(response => response.text())
         .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
         .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
-      fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
-        .then(response => response.json())
+      fetch("./api/manage/list", requestOptions)
+        .then(response => {
+          if(response.status==401){
+            alert("请先登录");
+            window.location.href="./api/manage/login";
+          }
+          else{
+            return response;
+          }
+        })
         .then(result => {
           console.log("result: ", result);
           this.tableData = result.map(file => ({ ...file, selected: false }));
