@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1 ">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ImgTC | Admin</title>
   <!-- Import CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
@@ -172,9 +172,7 @@
     }
 
     .el-image {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
+      object-fit: cover;
       transition: opacity 0.3s ease;
     }
 
@@ -249,7 +247,6 @@
 
       .el-card{
         aspect-ratio: unset;  /*  取消卡片高宽比， */
-        height: auto;
       }
 
       .search-card{
@@ -265,16 +262,16 @@
         <div class="header-content">
           <span class="title" @click="refreshDashboard">Dashboard</span>
           <div class="search-card" v-show="windowWidth > 768">
-            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"/>
+            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
           <span class="stats">
-            <i class="fas fa-database"/> 记录总数量: {{ Number }}
+            <i class="fas fa-database"></i> 记录总数量: {{ Number }}
           </span>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
                 <span class="el-dropdown-link">
-                  <i :class="sortIcon"/>
+                  <i :class="sortIcon"></i>
                 </span>
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
@@ -283,13 +280,13 @@
               </el-dropdown>
             </el-tooltip>
             <el-tooltip content="批量复制" placement="bottom">
-              <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"/>
+              <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
             </el-tooltip>
             <el-tooltip content="批量删除" placement="bottom">
-              <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"/>
+              <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
             </el-tooltip>
             <el-tooltip content="退出登录" placement="bottom">
-              <i class="fas fa-home" @click="handleLogout"/>
+              <i class="fas fa-home" @click="handleLogout"></i>
             </el-tooltip>
           </div>
         </div>
@@ -298,7 +295,7 @@
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
-              <el-checkbox v-model="item.selected"/>
+              <el-checkbox v-model="item.selected"></el-checkbox>
               <el-image
                 :src="'/file/' + item.name"
                 :preview-src-list="['/file/' + item.name]"
