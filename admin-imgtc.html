@@ -442,14 +442,14 @@
           // 对每个上传的文件进行GET请求
           if (Array.isArray(result)) {
             result.forEach(file => {
-              fetch(`${this.baseURL}/file/${file.name}`)
+              fetch(`${this.baseURL}/${file.src}`)
                 .then(response => {
                   if (!response.ok) {
-                    console.error(`无法获取文件: ${file.name}`);
+                    console.error(`无法获取文件: ${file.src}`);
                   }
                 })
                 .catch(error => {
-                  console.error(`获取文件时出错: ${file.name}`, error);
+                  console.error(`获取文件时出错: ${file.src}`, error);
                 });
             });
           }
