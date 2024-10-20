@@ -515,7 +515,9 @@
         const formData = new FormData();
         formData.append("file", options.file);
         console.log("formData: ", formData);
-
+        console.log("options: ", options);
+        console.log("file: ", options.file);
+        console.log("uploadURL: ", "./upload");
         fetch("./upload", {
           method: 'POST',
           body: formData,
