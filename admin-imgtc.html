@@ -263,7 +263,7 @@
           <el-tooltip class="stats" content="批量上传" placement="bottom">
             <el-upload
               class="upload"
-              action="handleUpload"
+              :http-request="handleUpload"
               multiple
               :on-success="handleUploadSuccess"
               :on-error="handleUploadError"
@@ -271,9 +271,10 @@
               :show-file-list="false"
               :auto-upload="false"
               ref="upload">
-              <i class="fas fa-database"></i> 记录数：{{ Number }}
+              <i class="fas fa-upload"></i> 记录数：{{ Number }}
             </el-upload>
           </el-tooltip>
+          <el-progress v-if="uploadProgress > 0 && uploadProgress < 100" :percentage="uploadProgress" style="margin-top: 10px;"></el-progress>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
@@ -329,6 +330,9 @@
           </el-pagination>
         </div>
       </el-main>
+      <el-footer class="footer">
+        基于 <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener">Telegraph</a> 的图片上传工具
+      </el-footer>
     </el-container>
   </div>
 
@@ -349,8 +353,8 @@
       pageSize: 15,
       selectedFiles: [],
       sortOption: 'dateDesc',
-      isUploading: false,
       uploadFiles: [],
+      uploadProgress: 0, // 上传进度
       windowWidth: window.innerWidth
     },
     computed: {
@@ -511,31 +515,34 @@
         return isAllowedType && isLt5M;
       },
       handleUpload(options) {
-        // 自定义上传请求方法
         const formData = new FormData();
         formData.append("file", options.file);
+        console.log("开始上传文件:", options.file);
+
         console.log("formData: ", formData);
-        console.log("options: ", options);
-        console.log("file: ", options.file);
         console.log("uploadURL: ", "./upload");
-        fetch("./upload", {
+        fetch("./upload", { // 确保这个 URL 是正确的后端上传接口
           method: 'POST',
           body: formData,
-          credentials: "include"
+          credentials: "include",
         })
-        .then(response => response.json())
-        .then(result => {
-          if (result.error) {
-            options.onError(new Error(result.error));
-          } else {
-            options.onSuccess(result);
+        .then(response => {
+          console.log("上传响应状态:", response.status);
+          if (!response.ok) {
+            return response.json().then(err => { throw err; });
           }
+          return response.json();
+        })
+        .then(result => {
+          console.log("上传成功响应数据:", result);
+          options.onSuccess(result, options.file, options.fileList);
         })
         .catch(error => {
-          options.onError(error);
+          console.error("上传失败错误:", error);
+          options.onError(error, options.file, options.fileList);
         });
       },
-    },
+
     mounted() {
       window.addEventListener('resize', this.calculatePageSize);
 
@@ -561,6 +568,7 @@
     beforeDestroy() {
       window.removeEventListener('resize', this.calculatePageSize);
     }
-  });
+  }
+});
 </script>
 </html>
