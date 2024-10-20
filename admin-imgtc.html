@@ -266,7 +266,7 @@
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
           <span class="stats">
-            <i class="fas fa-database"></i> 记录总数量: {{ Number }}
+            <i class="fas fa-database"></i> 记录数: {{ Number }}
           </span>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
@@ -533,40 +533,25 @@
       },
 
     mounted() {
-      var requestOptions = {
-        method: 'GET',
-        redirect: 'follow',
-        credentials: 'include'
-      };
       window.addEventListener('resize', this.calculatePageSize);
-
       this.updateWindowWidth();
-      fetch("./api/manage/check", requestOptions)
+      fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
         .then(response => response.text())
         .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
         .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
-      fetch("./api/manage/list", requestOptions)
-        .then(response => {
-          if(response.status==401){
-            alert("请先登录");
-            window.location.href="./api/manage/login";
-          }
-          else{
-            return response;
-          }
-        })
-        .then(result => {
-          console.log("result: ", result);
-          this.tableData = result.map(file => ({ ...file, selected: false }));
-          this.updateStats();
-          const savedSortOption = localStorage.getItem('sortOption');
-          if (savedSortOption) {
-            this.sortOption = savedSortOption;
-          }
-          this.sortData(this.tableData);
-        })
-        .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+      fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
+      .then(response => response.json())
+      .then(result => {
+        this.tableData = result.map(file => ({ ...file, selected: false }));
+        this.updateStats();
+        const savedSortOption = localStorage.getItem('sortOption');
+        if (savedSortOption) {
+          this.sortOption = savedSortOption;
+        }
+        this.sortData(this.tableData);
+      })
+      .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
     },
     beforeDestroy() {
       window.removeEventListener('resize', this.calculatePageSize);
