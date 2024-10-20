@@ -259,11 +259,15 @@
         gap: 10px;
       }
 
-      .search-card, .stats {
+      .search-card{
         display: none;
       }
 
-      .header-content .actions {
+      .header-content .actions:not(.menu-open) {
+        display: none;
+      }
+
+      .header-content .actions.menu-open {
         flex-direction: column;
         background: rgba(255, 255, 255, 0.9);
         position: absolute;
@@ -289,11 +293,11 @@
           <div class="search-card" v-show="windowWidth > 768">
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
-          <span class="stats" v-show="windowWidth > 768">
+          <span class="stats">
             <i class="fas fa-database"></i> 记录总数量: {{ Number }}
           </span>
           <transition name="fade">
-            <div class="actions" v-show="isMenuOpen || windowWidth > 768">
+            <div class="actions" v-show="windowWidth > 768" :class="{ 'menu-open': isMenuOpen && windowWidth <= 768 }">
               <el-tooltip content="排序" placement="bottom">
                 <el-dropdown @command="sort" :hide-on-click="false">
                   <span class="el-dropdown-link">
@@ -314,10 +318,12 @@
               <el-tooltip content="退出登录" placement="bottom">
                 <i class="fas fa-home" @click="handleLogout"></i>
               </el-tooltip>
+              <el-tooltip content="点击展开" placement="bottom" v-show="windowWidth <= 768">
+                <i class="fas fa-bars menu-icon" @click="toggleMenu" ></i>
+              </el-tooltip>
             </div>
           </div>
-       </transition>
-        <i class="fas fa-bars menu-icon" @click="toggleMenu" v-show="windowWidth <= 768">
+        </transition>
       </el-header>
       <el-main class="main-container">
         <div class="content">
