@@ -18,11 +18,18 @@
     }
 
     .header-content {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+      height: 60px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 10px 20px;
       background-color: rgba(255, 255, 255, 0.75);
+      -webkit-backdrop-filter: blur(10px);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -133,6 +140,7 @@
     }
 
     .main-container {
+      margin-top: 80px;
       display: flex;
       flex-direction: column;
       padding: 20px;
@@ -141,8 +149,7 @@
 
     .content {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      grid-template-rows: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 20px;
       padding: 10px;
       flex-grow: 1;
@@ -150,16 +157,18 @@
 
     .el-card {
       width: 100%;
+      padding-bottom: 75%; /* 设置高度为宽度的75% */
       background: rgba(255, 255, 255, 0.6);
       border-radius: 8px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       position: relative;
+      object-fit: cover;
       transition: transform 0.3s ease;
     }
 
     .el-card:hover {
-      transform: scale(1.05);
+      transform: scale(1.025);
     }
 
     .el-image {
@@ -226,6 +235,28 @@
       right: 10px;
       transform: scale(1.5);
       z-index: 10;
+    }
+
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .stats {
+        margin: 10px 0;
+        font-size: 1em;
+      }
+
+      .content {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 10px;
+      }
+
+      .el-card {
+        margin: 0 auto;
+        max-width: 90%;
+      }
     }
   </style>
 </head>
