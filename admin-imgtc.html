@@ -79,6 +79,11 @@
       font-size: 1.5em;
       transition: color 0.3s ease;
       color: inherit;
+      cursor: pointer;
+      border-radius: 50%;
+      padding: 5px;
+      background-color: #f0eaf8;
+      border: 1px solid #B39DDB;
     }
 
     .stats:hover {
@@ -265,8 +270,9 @@
           <div class="search-card">
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
-          <el-tooltip class="stats" @click="handleUpload" content="批量上传" placement="bottom">
-              <i class="fas fa-database"></i> 记录数: {{ Number }}
+          <el-tooltip class="stats" content="批量上传" placement="bottom">
+              <i class="fas fa-database" @click="handleUpload"></i>
+              <span>记录数: {{ Number }}</span>
           </el-tooltip>
           <input type="file" ref="fileInput" style="display: none;" multiple @change="uploadFiles">
           <div class="actions">
