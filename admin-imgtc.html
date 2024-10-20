@@ -335,6 +335,7 @@
     new Vue({
       el: '#app',
       data: {
+        baseURL: document.location.origin,
         Number: 0,
         showLogoutButton: false,
         tableData: [],
@@ -417,9 +418,9 @@
           });
 
           console.log(formData);
-          console.log("uploadURL: ", './upload');
+          console.log("uploadURL: ", this.baseURL + '/upload');
           // 发送POST请求上传文件
-          fetch('./upload', {
+          fetch(this.baseURL + '/upload', {
             method: 'POST',
             body: formData,
             credentials: 'include'
@@ -431,6 +432,7 @@
             return response.json();
           })
           .then(result => {
+            console.log("result: ", result);
             this.$message.closeAll();
             this.$message.success('上传成功!');
             // 刷新文件列表
@@ -517,7 +519,7 @@
           window.location.href = '/';
         },
         handleCopy(index, key) {
-          const text = `${document.location.origin}/file/${key}`;
+          const text = `${this.baseURL}/file/${key}`;
           navigator.clipboard ? navigator.clipboard.writeText(text).then(() => this.$message.success('复制文件链接成功~')) :
             this.copyToClipboardFallback(text);
         },
@@ -537,6 +539,7 @@
       },
       mounted() {
         window.addEventListener('resize', this.calculatePageSize);
+        this.updateWindowWidth();
         fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
           .then(response => response.text())
           .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
@@ -554,6 +557,9 @@
             this.sortData(this.tableData);
           })
           .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+      },
+      beforeDestroy() {
+        window.removeEventListener('resize', this.calculatePageSize);
       }
     });
   </script>
