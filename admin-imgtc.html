@@ -265,9 +265,10 @@
           <div class="search-card">
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
-          <span class="stats">
-            <i class="fas fa-database"></i> 记录总数量: {{ Number }}
+          <span class="stats" @click="handleUpload">
+            <i class="fas fa-database"></i> 记录数: {{ Number }}
           </span>
+          <input type="file" ref="fileInput" style="display: none;" multiple @change="uploadFiles">
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
@@ -395,6 +396,65 @@
         updateWindowWidth() {
           this.windowWidth = window.innerWidth;
           this.calculatePageSize();
+        },
+        handleUpload() {
+          this.$refs.fileInput.click();
+        },
+        uploadFiles(event) {
+          const files = event.target.files;
+          if (files.length === 0) return;
+
+          const formData = new FormData();
+          for (let i = 0; i < files.length; i++) {
+            formData.append('file', files[i]);
+          }
+
+          // 显示上传进度
+          this.$message({
+            message: '正在上传文件...',
+            duration: 0,
+            showClose: false,
+          });
+
+          console.log(formData);
+          console.log("uploadURL: ", './upload');
+          // 发送POST请求上传文件
+          fetch('./upload', {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('上传失败');
+            }
+            return response.json();
+          })
+          .then(result => {
+            this.$message.closeAll();
+            this.$message.success('上传成功!');
+            // 刷新文件列表
+            this.refreshFileList();
+          })
+          .catch(error => {
+            this.$message.closeAll();
+            this.$message.error('上传失败，请检查网络连接');
+            console.error('上传错误:', error);
+          });
+
+          // 清空文件输入，以便可以重复选择相同的文件
+          event.target.value = '';
+        },
+        refreshFileList() {
+          // 重新获取文件列表
+          fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
+            .then(response => response.json())
+            .then(result => {
+              this.tableData = result.map(file => ({ ...file, selected: false }));
+              this.updateStats();
+              this.sortData(this.tableData);
+            })
+            .catch(() => this.$message.error('刷新文件列表失败，请检查网络连接'));
         },
         handleDelete(index, key) {
           this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
