@@ -20,8 +20,8 @@
     .header-content {
       position: fixed;
       top: 0;
-      left: 0;
-      right: 0;
+      left: 5%;
+      right: 5%;
       z-index: 999;
       height: 60px;
       display: flex;
@@ -44,7 +44,7 @@
     }
 
     .title {
-      font-size: 1.8em;
+      font-size: clamp(1.2em, 2vw, 1.8em);
       font-weight: bold;
       cursor: pointer;
       transition: color 0.3s ease;
@@ -61,10 +61,10 @@
     }
 
     .stats {
-      font-size: 1.2em;
-      margin-right: 20px;
       display: flex;
       align-items: center;
+      font-size: clamp(0.9em, 1.5vw, 1.2em);
+      margin-right: 20px;
       background: rgba(255, 255, 255, 0.9);
       padding: 5px 10px;
       border-radius: 10px;
@@ -94,6 +94,13 @@
       display: flex;
       align-items: center;
       gap: 15px;
+    }
+
+    .header-content .menu-icon {
+      display: none;
+      font-size: 1.5em;
+      cursor: pointer;
+      color: #333;
     }
 
     .header-content .actions i {
@@ -149,7 +156,7 @@
 
     .content {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 20px;
       padding: 10px;
       flex-grow: 1;
@@ -157,7 +164,7 @@
 
     .el-card {
       width: 100%;
-      padding-bottom: 75%; /* 设置高度为宽度的75% */
+      aspect-ratio: 3 / 4;
       background: rgba(255, 255, 255, 0.6);
       border-radius: 8px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
@@ -183,6 +190,12 @@
     }
 
     .file-info {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       padding: 10px;
       background: rgba(0, 0, 0, 0.6);
       color: white;
@@ -192,9 +205,6 @@
       left: 0;
       width: 100%;
       box-sizing: border-box;
-      display: flex;
-      justify-content: center;
-      align-items: center;
     }
 
     .image-overlay {
@@ -238,24 +248,20 @@
     }
 
     @media (max-width: 768px) {
-      .header-content {
+      .header-content .actions {
+        display: none;
         flex-direction: column;
-        text-align: center;
+        background: rgba(255, 255, 255, 0.9);
+        position: absolute;
+        top: 60px;
+        right: 20px;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
-      .stats {
-        margin: 10px 0;
-        font-size: 1em;
-      }
-
-      .content {
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-        gap: 10px;
-      }
-
-      .el-card {
-        margin: 0 auto;
-        max-width: 90%;
+      .header-content .menu-icon {
+        display: block;
       }
     }
   </style>
@@ -272,7 +278,7 @@
           <span class="stats">
             <i class="fas fa-database"></i> 记录总数量: {{ Number }}
           </span>
-          <div class="actions">
+          <div class="actions" v-show="isMenuOpen || windowWith > 768">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
                 <span class="el-dropdown-link">
@@ -294,6 +300,7 @@
               <i class="fas fa-home" @click="handleLogout"></i>
             </el-tooltip>
           </div>
+          <i class="fas fa-bars menu-icon" @click="toggleMenu"></i>
         </div>
       </el-header>
       <el-main class="main-container">
@@ -330,152 +337,182 @@
     </el-container>
   </div>
 
-  <!-- Import Vue before Element -->
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
-  <!-- Import JavaScript -->
-  <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
-  <script>
-    new Vue({
-      el: '#app',
-      data: {
-        Number: 0,
-        showLogoutButton: false,
-        tableData: [],
-        search: '',
-        currentPage: 1,
-        pageSize: 15,
-        selectedFiles: [],
-        sortOption: 'dateDesc',
-        isUploading: false
-      },
-      computed: {
-        filteredTableData() {
-          return this.tableData.filter(data => !this.search || data.name.toLowerCase().includes(this.search.toLowerCase()));
-        },
-        paginatedTableData() {
-          const sortedData = this.sortData(this.filteredTableData);
-          const start = (this.currentPage - 1) * this.pageSize;
-          const end = start + this.pageSize;
-          return sortedData.slice(start, end);
-        },
-        sortIcon() {
-          return this.sortOption === 'dateDesc' ? 'fas fa-sort-amount-down' : 'fas fa-sort-alpha-up';
-        }
-      },
-      watch: {
-        tableData: {
-          handler(newData) {
-            this.selectedFiles = newData.filter(file => file.selected);
-          },
-          deep: true
-        },
-        sortOption(newOption) {
-          localStorage.setItem('sortOption', newOption);
-        }
-      },
-      methods: {
-        refreshDashboard() {
-          location.reload();
-        },
-        handleDelete(index, key) {
-          this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(() => {
-            fetch(`./api/manage/delete/${key}`, { method: 'GET', credentials: 'include' })
-              .then(response => response.ok ? this.tableData.splice(index, 1) : Promise.reject())
-              .then(() => {
-                this.updateStats();
-                this.$message.success('删除成功!');
-              })
-              .catch(() => this.$message.error('删除失败，请检查网络连接'));
-          }).catch(() => this.$message.info('已取消删除'));
-        },
-        handleBatchDelete() {
-          this.$confirm('此操作将永久删除选中的文件, 是否继续?', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(() => {
-            const promises = this.selectedFiles.map(file => fetch(`./api/manage/delete/${file.name}`, { method: 'GET', credentials: 'include' }));
-
-            Promise.all(promises)
-              .then(results => {
-                results.forEach((response, index) => {
-                  if (response.ok) {
-                    const fileIndex = this.tableData.findIndex(file => file.name === this.selectedFiles[index].name);
-                    if (fileIndex !== -1) {
-                      this.tableData.splice(fileIndex, 1);
-                    }
-                  }
-                });
-                this.selectedFiles = [];
-                this.updateStats();
-                this.$message.success('批量删除成功!');
-              })
-              .catch(() => this.$message.error('批量删除失败，请检查网络连接'));
-          }).catch(() => this.$message.info('已取消批量删除'));
-        },
-        handleBatchCopy() {
-          const links = this.selectedFiles.map(file => `${document.location.origin}/file/${file.name}`).join('\n');
-          navigator.clipboard ? navigator.clipboard.writeText(links).then(() => this.$message.success('批量复制链接成功~')) :
-            this.copyToClipboardFallback(links);
-        },
-        copyToClipboardFallback(text) {
-          const textarea = document.createElement('textarea');
-          document.body.appendChild(textarea);
-          textarea.style.position = 'fixed';
-          textarea.style.clip = 'rect(0 0 0 0)';
-          textarea.style.top = '10px';
-          textarea.value = text;
-          textarea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textarea);
-          this.$message.success('批量复制链接成功~');
-        },
-        handleLogout() {
-          window.location.href = '/';
-        },
-        handleCopy(index, key) {
-          const text = `${document.location.origin}/file/${key}`;
-          navigator.clipboard ? navigator.clipboard.writeText(text).then(() => this.$message.success('复制文件链接成功~')) :
-            this.copyToClipboardFallback(text);
-        },
-        handlePageChange(page) {
-          this.currentPage = page;
-        },
-        updateStats() {
-          this.Number = this.tableData.length;
-        },
-        sort(command) {
-          this.sortOption = command;
-        },
-        sortData(data) {
-          return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
-            data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
-        }
-      },
-      mounted() {
-        fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
-          .then(response => response.text())
-          .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
-          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
-
-        fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
-          .then(response => response.json())
-          .then(result => {
-            this.tableData = result.map(file => ({ ...file, selected: false }));
-            this.updateStats();
-            const savedSortOption = localStorage.getItem('sortOption');
-            if (savedSortOption) {
-              this.sortOption = savedSortOption;
-            }
-            this.sortData(this.tableData);
-          })
-          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
-      }
-    });
-  </script>
 </body>
+<!-- Import Vue before Element -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+<!-- Import JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
+<script>
+  new Vue({
+    el: '#app',
+    data: {
+      Number: 0,
+      showLogoutButton: false,
+      tableData: [],
+      search: '',
+      currentPage: 1,
+      pageSize: 15,
+      selectedFiles: [],
+      sortOption: 'dateDesc',
+      isUploading: false,
+      isMenuOpen: false,
+      windowWidth: window.innerWidth
+    },
+    computed: {
+      filteredTableData() {
+        return this.tableData.filter(data => !this.search || data.name.toLowerCase().includes(this.search.toLowerCase()));
+      },
+      paginatedTableData() {
+        const sortedData = this.sortData(this.filteredTableData);
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = start + this.pageSize;
+        return sortedData.slice(start, end);
+      },
+      sortIcon() {
+        return this.sortOption === 'dateDesc' ? 'fas fa-sort-amount-down' : 'fas fa-sort-alpha-up';
+      }
+    },
+    watch: {
+      tableData: {
+        handler(newData) {
+          this.selectedFiles = newData.filter(file => file.selected);
+        },
+        deep: true
+      },
+      sortOption(newOption) {
+        localStorage.setItem('sortOption', newOption);
+      }
+    },
+    methods: {
+      refreshDashboard() {
+        location.reload();
+      },
+      calculatePageSize() {
+        const cardMinWidth = 200; // 卡片最小宽度
+        const cardAspectRatio = 4 / 3; // 卡片的高宽比
+        const gap = 20; // 卡片间的间隙
+
+        const containerWidth = document.querySelector('.content').clientWidth;
+        const columns = Math.floor(containerWidth / (cardMinWidth + gap));
+
+        const containerHeight = window.innerHeight - document.querySelector('.header-content').offsetHeight;
+        const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
+        const rows = Math.floor(containerHeight / (cardHeight + gap));
+
+        this.pageSize = columns * rows;
+      },
+      toggleMenu() {
+        this.isMenuOpen = !this.isMenuOpen;
+      },
+      updateWindowWidth() {
+        this.windowWidth = window.innerWidth;
+        if (this.windowWidth > 768) {
+          this.isMenuOpen = false;
+        }
+      },
+      handleDelete(index, key) {
+        this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          fetch(`./api/manage/delete/${key}`, { method: 'GET', credentials: 'include' })
+            .then(response => response.ok ? this.tableData.splice(index, 1) : Promise.reject())
+            .then(() => {
+              this.updateStats();
+              this.$message.success('删除成功!');
+            })
+            .catch(() => this.$message.error('删除失败，请检查网络连接'));
+        }).catch(() => this.$message.info('已取消删除'));
+      },
+      handleBatchDelete() {
+        this.$confirm('此操作将永久删除选中的文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const promises = this.selectedFiles.map(file => fetch(`./api/manage/delete/${file.name}`, { method: 'GET', credentials: 'include' }));
+
+          Promise.all(promises)
+            .then(results => {
+              results.forEach((response, index) => {
+                if (response.ok) {
+                  const fileIndex = this.tableData.findIndex(file => file.name === this.selectedFiles[index].name);
+                  if (fileIndex !== -1) {
+                    this.tableData.splice(fileIndex, 1);
+                  }
+                }
+              });
+              this.selectedFiles = [];
+              this.updateStats();
+              this.$message.success('批量删除成功!');
+            })
+            .catch(() => this.$message.error('批量删除失败，请检查网络连接'));
+        }).catch(() => this.$message.info('已取消批量删除'));
+      },
+      handleBatchCopy() {
+        const links = this.selectedFiles.map(file => `${document.location.origin}/file/${file.name}`).join('\n');
+        navigator.clipboard ? navigator.clipboard.writeText(links).then(() => this.$message.success('批量复制链接成功~')) :
+          this.copyToClipboardFallback(links);
+      },
+      copyToClipboardFallback(text) {
+        const textarea = document.createElement('textarea');
+        document.body.appendChild(textarea);
+        textarea.style.position = 'fixed';
+        textarea.style.clip = 'rect(0 0 0 0)';
+        textarea.style.top = '10px';
+        textarea.value = text;
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        this.$message.success('批量复制链接成功~');
+      },
+      handleLogout() {
+        window.location.href = '/';
+      },
+      handleCopy(index, key) {
+        const text = `${document.location.origin}/file/${key}`;
+        navigator.clipboard ? navigator.clipboard.writeText(text).then(() => this.$message.success('复制文件链接成功~')) :
+          this.copyToClipboardFallback(text);
+      },
+      handlePageChange(page) {
+        this.currentPage = page;
+      },
+      updateStats() {
+        this.Number = this.tableData.length;
+      },
+      sort(command) {
+        this.sortOption = command;
+      },
+      sortData(data) {
+        return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
+          data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
+      }
+    },
+    mounted() {
+      window.addEventListener('resize', this.calculatePageSize);
+      this.calculatePageSize();
+      fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
+        .then(response => response.text())
+        .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
+        .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+
+      fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
+        .then(response => response.json())
+        .then(result => {
+          this.tableData = result.map(file => ({ ...file, selected: false }));
+          this.updateStats();
+          const savedSortOption = localStorage.getItem('sortOption');
+          if (savedSortOption) {
+            this.sortOption = savedSortOption;
+          }
+          this.sortData(this.tableData);
+        })
+        .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+    },
+    beforeDestroy() {
+      window.removeEventListener('resize', this.calculatePageSize);
+    }
+  });
+</script>
 </html>
