@@ -18,6 +18,12 @@
     }
 
     .header-content {
+      position: fixed;
+      top: 0;
+      left: 1%;
+      right: 1%;
+      z-index: 999;
+      height: clamp(50px, 8vh, 70px);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -38,7 +44,7 @@
     }
 
     .title {
-      font-size: 1.8em;
+      font-size: clamp(1.2em, 2vw, 1.8em);
       font-weight: bold;
       cursor: pointer;
       transition: color 0.3s ease;
@@ -55,10 +61,11 @@
     }
 
     .stats {
-      font-size: 1.2em;
-      margin-right: 20px;
       display: flex;
       align-items: center;
+      cursor: pointer;
+      font-size: clamp(0.9em, 1.5vw, 1.2em);
+      margin: 0 16px 0 10px;
       background: rgba(255, 255, 255, 0.9);
       padding: 5px 10px;
       border-radius: 10px;
@@ -121,8 +128,8 @@
 
     .search-card .el-input__inner {
       border-radius: 20px;
-      width: 300px;
-      height: 40px;
+      width: clamp(200px, 25vw, 300px);
+      height: clamp(30px, 5vh, 40px);
       font-size: 1.2em;
       border: none;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -130,7 +137,7 @@
     }
 
     .search-card .el-input__inner:focus {
-      width: 400px;
+      width: clamp(250px, 30vw, 400px);
     }
 
     .main-container {
@@ -142,8 +149,7 @@
 
     .content {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      grid-template-rows: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 20px;
       padding: 10px;
       flex-grow: 1;
@@ -151,21 +157,22 @@
 
     .el-card {
       width: 100%;
+      aspect-ratio: 4 / 3;
       background: rgba(255, 255, 255, 0.6);
       border-radius: 8px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       position: relative;
+      object-fit: cover;
       transition: transform 0.3s ease;
+      border: none;
     }
 
     .el-card:hover {
-      transform: scale(1.05);
+      transform: scale(1.02);
     }
 
     .el-image {
-      width: 100%;
-      height: 200px;
       object-fit: cover;
       transition: opacity 0.3s ease;
     }
@@ -175,6 +182,12 @@
     }
 
     .file-info {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
       padding: 10px;
       background: rgba(0, 0, 0, 0.6);
       color: white;
@@ -184,9 +197,6 @@
       left: 0;
       width: 100%;
       box-sizing: border-box;
-      display: flex;
-      justify-content: center;
-      align-items: center;
     }
 
     .image-overlay {
@@ -227,6 +237,21 @@
       right: 10px;
       transform: scale(1.5);
       z-index: 10;
+    }
+
+    /* 适配移动端 */
+    @media (max-width: 768px) {
+      .content {
+        grid-template-columns: 1fr; /* 单列布局 */
+        gap: 10px;
+      }
+      .el-card{
+        aspect-ratio: unset;  /*  取消卡片高宽比， */
+        min-height: 180px;
+      }
+      .search-card {
+        display: none;
+      }
     }
   </style>
 </head>
