@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1 ">
   <title>ImgTC | Admin</title>
   <!-- Import CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
@@ -90,25 +90,10 @@
       color: #B39DDB; /* 使用柔和的淡紫色 */
     }
 
-    .fade-enter-active, .fade-leave-active {
-      transition: opacity 0.3s ease;
-    }
-
-    .fade-enter, .fade-leave-to {
-      opacity: 0;
-    }
-
     .header-content .actions {
       display: flex;
       align-items: center;
       gap: 15px;
-    }
-
-    .header-content .menu-icon {
-      display: none;
-      font-size: 1.5em;
-      cursor: pointer;
-      color: #333;
     }
 
     .header-content .actions i {
@@ -187,7 +172,9 @@
     }
 
     .el-image {
-      object-fit: cover;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
       transition: opacity 0.3s ease;
     }
 
@@ -253,33 +240,20 @@
       z-index: 10;
     }
 
+    /* 适配移动端 */
     @media (max-width: 768px) {
       .content {
         grid-template-columns: 1fr; /* 单列布局 */
         gap: 10px;
       }
 
+      .el-card{
+        aspect-ratio: unset;  /*  取消卡片高宽比， */
+        height: auto;
+      }
+
       .search-card{
-        display: none;
-      }
-
-      .header-content .actions:not(.menu-open) {
-        display: none;
-      }
-
-      .header-content .actions.menu-open {
-        flex-direction: column;
-        background: rgba(255, 255, 255, 0.9);
-        position: absolute;
-        top: 60px;
-        right: 20px;
-        padding: 10px;
-        border-radius: 5px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      .header-content .menu-icon {
-        display: block;
+        display: none;  /*  隐藏搜索框 */
       }
     }
   </style>
@@ -291,45 +265,40 @@
         <div class="header-content">
           <span class="title" @click="refreshDashboard">Dashboard</span>
           <div class="search-card" v-show="windowWidth > 768">
-            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
+            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"/>
           </div>
           <span class="stats">
-            <i class="fas fa-database"></i> 记录总数量: {{ Number }}
+            <i class="fas fa-database"/> 记录总数量: {{ Number }}
           </span>
-          <transition name="fade">
-            <div class="actions" v-show="windowWidth > 768" :class="{ 'menu-open': isMenuOpen && windowWidth <= 768 }">
-              <el-tooltip content="排序" placement="bottom">
-                <el-dropdown @command="sort" :hide-on-click="false">
-                  <span class="el-dropdown-link">
-                    <i :class="sortIcon"></i>
-                  </span>
-                  <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
-                    <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
-                  </el-dropdown-menu>
-                </el-dropdown>
-              </el-tooltip>
-              <el-tooltip content="批量复制" placement="bottom">
-                <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
-              </el-tooltip>
-              <el-tooltip content="批量删除" placement="bottom">
-                <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
-              </el-tooltip>
-              <el-tooltip content="退出登录" placement="bottom">
-                <i class="fas fa-home" @click="handleLogout"></i>
-              </el-tooltip>
-              <el-tooltip content="点击展开" placement="bottom" v-show="windowWidth <= 768">
-                <i class="fas fa-bars menu-icon" @click="toggleMenu" ></i>
-              </el-tooltip>
-            </div>
+          <div class="actions">
+            <el-tooltip content="排序" placement="bottom">
+              <el-dropdown @command="sort" :hide-on-click="false">
+                <span class="el-dropdown-link">
+                  <i :class="sortIcon"/>
+                </span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
+                  <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-tooltip>
+            <el-tooltip content="批量复制" placement="bottom">
+              <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"/>
+            </el-tooltip>
+            <el-tooltip content="批量删除" placement="bottom">
+              <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"/>
+            </el-tooltip>
+            <el-tooltip content="退出登录" placement="bottom">
+              <i class="fas fa-home" @click="handleLogout"/>
+            </el-tooltip>
           </div>
-        </transition>
+        </div>
       </el-header>
       <el-main class="main-container">
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
-              <el-checkbox v-model="item.selected"></el-checkbox>
+              <el-checkbox v-model="item.selected"/>
               <el-image
                 :src="'/file/' + item.name"
                 :preview-src-list="['/file/' + item.name]"
@@ -377,7 +346,6 @@
       selectedFiles: [],
       sortOption: 'dateDesc',
       isUploading: false,
-      isMenuOpen: false,
       windowWidth: window.innerWidth
     },
     computed: {
@@ -410,7 +378,7 @@
         location.reload();
       },
       calculatePageSize() {
-        const minPageSize = 16;  // 最少卡片数量
+        const minPageSize = 15;  // 最少卡片数量
         const cardMinWidth = 240; // 卡片最小宽度
         const cardAspectRatio = 3 / 4; // 卡片的高宽比
         const gap = 20; // 卡片间的间隙
@@ -427,14 +395,8 @@
 
         this.pageSize = Math.max(rows * columns, minPageSize);
       },
-      toggleMenu() {
-        this.isMenuOpen = !this.isMenuOpen;
-      },
       updateWindowWidth() {
         this.windowWidth = window.innerWidth;
-        if (this.windowWidth > 768) {
-          this.isMenuOpen = false;
-        }
         this.calculatePageSize();
       },
       handleDelete(index, key) {
