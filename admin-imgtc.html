@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ImgTC | Admin</title>
   <!-- Import CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
   <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
   <style>
     body {
@@ -18,12 +18,6 @@
     }
 
     .header-content {
-      position: fixed;
-      top: 0;
-      left: 1%;
-      right: 1%;
-      z-index: 999;
-      height: clamp(50px, 8vh, 70px);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -44,7 +38,7 @@
     }
 
     .title {
-      font-size: clamp(1.2em, 2vw, 1.8em);
+      font-size: 1.8em;
       font-weight: bold;
       cursor: pointer;
       transition: color 0.3s ease;
@@ -61,11 +55,10 @@
     }
 
     .stats {
+      font-size: 1.2em;
+      margin-right: 20px;
       display: flex;
       align-items: center;
-      cursor: pointer;
-      font-size: clamp(0.9em, 1.5vw, 1.2em);
-      margin: 0 16px 0 10px;
       background: rgba(255, 255, 255, 0.9);
       padding: 5px 10px;
       border-radius: 10px;
@@ -128,8 +121,8 @@
 
     .search-card .el-input__inner {
       border-radius: 20px;
-      width: clamp(200px, 25vw, 300px);
-      height: clamp(30px, 5vh, 40px);
+      width: 300px;
+      height: 40px;
       font-size: 1.2em;
       border: none;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -137,7 +130,7 @@
     }
 
     .search-card .el-input__inner:focus {
-      width: clamp(250px, 30vw, 400px);
+      width: 400px;
     }
 
     .main-container {
@@ -149,7 +142,8 @@
 
     .content {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(3, 1fr);
       gap: 20px;
       padding: 10px;
       flex-grow: 1;
@@ -157,22 +151,21 @@
 
     .el-card {
       width: 100%;
-      aspect-ratio: 4 / 3;
       background: rgba(255, 255, 255, 0.6);
       border-radius: 8px;
       box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       position: relative;
-      object-fit: cover;
       transition: transform 0.3s ease;
-      border: none;
     }
 
     .el-card:hover {
-      transform: scale(1.02);
+      transform: scale(1.05);
     }
 
     .el-image {
+      width: 100%;
+      height: 200px;
       object-fit: cover;
       transition: opacity 0.3s ease;
     }
@@ -182,12 +175,6 @@
     }
 
     .file-info {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
       padding: 10px;
       background: rgba(0, 0, 0, 0.6);
       color: white;
@@ -197,6 +184,9 @@
       left: 0;
       width: 100%;
       box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .image-overlay {
@@ -238,21 +228,6 @@
       transform: scale(1.5);
       z-index: 10;
     }
-
-    /* 适配移动端 */
-    @media (max-width: 768px) {
-      .content {
-        grid-template-columns: 1fr; /* 单列布局 */
-        gap: 10px;
-      }
-      .el-card{
-        aspect-ratio: unset;  /*  取消卡片高宽比， */
-        min-height: 180px;
-      }
-      .search-card {
-        display: none;
-      }
-    }
   </style>
 </head>
 <body>
@@ -264,22 +239,9 @@
           <div class="search-card">
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
-          <el-tooltip class="stats" content="批量上传" placement="bottom">
-            <el-upload
-              class="upload"
-              action="./upload"
-              accept="image/*,video/*"
-              method="POST"
-              multiple
-              :on-success="handleUploadSuccess"
-              :on-error="handleUploadError"
-              :before-upload="beforeUpload"
-              :show-file-list="false"
-              :auto-upload="false"
-              ref="upload">
-              <i class="fas fa-database"></i> 记录数：{{ Number }}
-            </el-upload>
-          </el-tooltip>
+          <span class="stats">
+            <i class="fas fa-database"></i> 记录总数量: {{ Number }}
+          </span>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
@@ -338,253 +300,152 @@
     </el-container>
   </div>
 
-</body>
-<!-- Import Vue before Element -->
-<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js" crossorigin="anonymous"></script>
-<!-- Import JavaScript -->
-<script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js" crossorigin="anonymous"></script>
-<script>
-  new Vue({
-    el: '#app',
-    data: {
-      Number: 0,
-      showLogoutButton: false,
-      tableData: [],
-      search: '',
-      currentPage: 1,
-      pageSize: 15,
-      selectedFiles: [],
-      sortOption: 'dateDesc',
-      uploadFiles: [],
-      isUploading: false,
-      windowWidth: window.innerWidth
-    },
-    computed: {
-      filteredTableData() {
-        return this.tableData.filter(data => !this.search || data.name.toLowerCase().includes(this.search.toLowerCase()));
+  <!-- Import Vue before Element -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
+  <!-- Import JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        Number: 0,
+        showLogoutButton: false,
+        tableData: [],
+        search: '',
+        currentPage: 1,
+        pageSize: 15,
+        selectedFiles: [],
+        sortOption: 'dateDesc',
+        isUploading: false
       },
-      paginatedTableData() {
-        const sortedData = this.sortData(this.filteredTableData);
-        const start = (this.currentPage - 1) * this.pageSize;
-        const end = start + this.pageSize;
-        return sortedData.slice(start, end);
-      },
-      sortIcon() {
-        return this.sortOption === 'dateDesc' ? 'fas fa-sort-amount-down' : 'fas fa-sort-alpha-up';
-      }
-    },
-    watch: {
-      tableData: {
-        handler(newData) {
-          this.selectedFiles = newData.filter(file => file.selected);
+      computed: {
+        filteredTableData() {
+          return this.tableData.filter(data => !this.search || data.name.toLowerCase().includes(this.search.toLowerCase()));
         },
-        deep: true
+        paginatedTableData() {
+          const sortedData = this.sortData(this.filteredTableData);
+          const start = (this.currentPage - 1) * this.pageSize;
+          const end = start + this.pageSize;
+          return sortedData.slice(start, end);
+        },
+        sortIcon() {
+          return this.sortOption === 'dateDesc' ? 'fas fa-sort-amount-down' : 'fas fa-sort-alpha-up';
+        }
       },
-      sortOption(newOption) {
-        localStorage.setItem('sortOption', newOption);
-      }
-    },
-    methods: {
-      refreshDashboard() {
-        location.reload();
+      watch: {
+        tableData: {
+          handler(newData) {
+            this.selectedFiles = newData.filter(file => file.selected);
+          },
+          deep: true
+        },
+        sortOption(newOption) {
+          localStorage.setItem('sortOption', newOption);
+        }
       },
-      calculatePageSize() {
-        const minPageSize = 15;  // 最少卡片数量
-        const maxPageSize = 60;  // 最大卡片数量
-        const cardMinWidth = 240; // 卡片最小宽度
-        const cardAspectRatio = 3 / 4; // 卡片的高宽比
-        const gap = 20; // 卡片间的间隙
+      methods: {
+        refreshDashboard() {
+          location.reload();
+        },
+        handleDelete(index, key) {
+          this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            fetch(`./api/manage/delete/${key}`, { method: 'GET', credentials: 'include' })
+              .then(response => response.ok ? this.tableData.splice(index, 1) : Promise.reject())
+              .then(() => {
+                this.updateStats();
+                this.$message.success('删除成功!');
+              })
+              .catch(() => this.$message.error('删除失败，请检查网络连接'));
+          }).catch(() => this.$message.info('已取消删除'));
+        },
+        handleBatchDelete() {
+          this.$confirm('此操作将永久删除选中的文件, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            const promises = this.selectedFiles.map(file => fetch(`./api/manage/delete/${file.name}`, { method: 'GET', credentials: 'include' }));
 
-        const contentElement = document.querySelector('.content');
-        const containerWidth = contentElement ? contentElement.clientWidth : 800;
-        const columns = Math.floor(containerWidth / (cardMinWidth + gap));
-
-        const headerElement = document.querySelector('.header-content');
-        const headerHeight = headerElement ? headerElement.offsetHeight : 60; // 使用默认值60px
-        const containerHeight = window.innerHeight - headerHeight;
-        const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
-        const rows = Math.floor(containerHeight / (cardHeight + gap));
-
-        this.pageSize = Math.max(Math.min(rows * columns, maxPageSize), minPageSize);
-      },
-      updateWindowWidth() {
-        this.windowWidth = window.innerWidth;
-        this.calculatePageSize();
-      },
-      handleDelete(index, key) {
-        this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          fetch(`./api/manage/delete/${key}`, { method: 'GET', credentials: 'include' })
-            .then(response => response.ok ? this.tableData.splice(index, 1) : Promise.reject())
-            .then(() => {
-              this.updateStats();
-              this.$message.success('删除成功!');
-            })
-            .catch(() => this.$message.error('删除失败，请检查网络连接'));
-        }).catch(() => this.$message.info('已取消删除'));
-      },
-      handleBatchDelete() {
-        this.$confirm('此操作将永久删除选中的文件, 是否继续?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          const promises = this.selectedFiles.map(file => fetch(`./api/manage/delete/${file.name}`, { method: 'GET', credentials: 'include' }));
-
-          Promise.all(promises)
-            .then(results => {
-              results.forEach((response, index) => {
-                if (response.ok) {
-                  const fileIndex = this.tableData.findIndex(file => file.name === this.selectedFiles[index].name);
-                  if (fileIndex !== -1) {
-                    this.tableData.splice(fileIndex, 1);
+            Promise.all(promises)
+              .then(results => {
+                results.forEach((response, index) => {
+                  if (response.ok) {
+                    const fileIndex = this.tableData.findIndex(file => file.name === this.selectedFiles[index].name);
+                    if (fileIndex !== -1) {
+                      this.tableData.splice(fileIndex, 1);
+                    }
                   }
-                }
-              });
-              this.selectedFiles = [];
-              this.updateStats();
-              this.$message.success('批量删除成功!');
-            })
-            .catch(() => this.$message.error('批量删除失败，请检查网络连接'));
-        }).catch(() => this.$message.info('已取消批量删除'));
-      },
-      handleBatchCopy() {
-        const links = this.selectedFiles.map(file => `${document.location.origin}/file/${file.name}`).join('\n');
-        navigator.clipboard ? navigator.clipboard.writeText(links).then(() => this.$message.success('批量复制链接成功~')) :
-          this.copyToClipboardFallback(links);
-      },
-      copyToClipboardFallback(text) {
-        const textarea = document.createElement('textarea');
-        document.body.appendChild(textarea);
-        textarea.style.position = 'fixed';
-        textarea.style.clip = 'rect(0 0 0 0)';
-        textarea.style.top = '10px';
-        textarea.value = text;
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        this.$message.success('批量复制链接成功~');
-      },
-      handleLogout() {
-        window.location.href = '/';
-      },
-      handleCopy(index, key) {
-        const text = `${document.location.origin}/file/${key}`;
-        navigator.clipboard ? navigator.clipboard.writeText(text).then(() => this.$message.success('复制文件链接成功~')) :
-          this.copyToClipboardFallback(text);
-      },
-      handlePageChange(page) {
-        this.currentPage = page;
-      },
-      updateStats() {
-        this.Number = this.tableData.length;
-      },
-      sort(command) {
-        this.sortOption = command;
-      },
-      sortData(data) {
-        return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
-          data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
-      },
-      handleUploadSuccess(response, file, fileList) {
-        console.log(response);
-        if (Array.isArray(response)) {
-          response.forEach(fileInfo => {
-            this.tableData.push({ ...fileInfo, selected: false });
-          });
-        } else {
-          this.tableData.push({ ...response, selected: false });
+                });
+                this.selectedFiles = [];
+                this.updateStats();
+                this.$message.success('批量删除成功!');
+              })
+              .catch(() => this.$message.error('批量删除失败，请检查网络连接'));
+          }).catch(() => this.$message.info('已取消批量删除'));
+        },
+        handleBatchCopy() {
+          const links = this.selectedFiles.map(file => `${document.location.origin}/file/${file.name}`).join('\n');
+          navigator.clipboard ? navigator.clipboard.writeText(links).then(() => this.$message.success('批量复制链接成功~')) :
+            this.copyToClipboardFallback(links);
+        },
+        copyToClipboardFallback(text) {
+          const textarea = document.createElement('textarea');
+          document.body.appendChild(textarea);
+          textarea.style.position = 'fixed';
+          textarea.style.clip = 'rect(0 0 0 0)';
+          textarea.style.top = '10px';
+          textarea.value = text;
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+          this.$message.success('批量复制链接成功~');
+        },
+        handleLogout() {
+          window.location.href = '/';
+        },
+        handleCopy(index, key) {
+          const text = `${document.location.origin}/file/${key}`;
+          navigator.clipboard ? navigator.clipboard.writeText(text).then(() => this.$message.success('复制文件链接成功~')) :
+            this.copyToClipboardFallback(text);
+        },
+        handlePageChange(page) {
+          this.currentPage = page;
+        },
+        updateStats() {
+          this.Number = this.tableData.length;
+        },
+        sort(command) {
+          this.sortOption = command;
+        },
+        sortData(data) {
+          return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
+            data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
         }
-        this.updateStats();
-        this.$message.success('批量上传成功!');
       },
-      handleUploadError(err, file, fileList) {
-        this.$message.error(`上传失败: ${file.name}`);
-      },
-      beforeUpload(file) {
-        // 验证文件类型和大小
-        const isAllowedType = file.type.startsWith('image/') || file.type.startsWith('video/');
-        if (!isAllowedType) {
-          this.$message.error('只能上传图片或视频!');
-        }
-        const isLt5M = file.size / 1024 / 1024 < 5;
-        if (!isLt5M) {
-          this.$message.error('上传文件大小不能超过 5MB!');
-        }
-        return isAllowedType && isLt5M;
-      },
-      handleUpload(options) {
-        const formData = new FormData();
-        formData.append("file", options.file);
-        console.log("开始上传文件:", options.file);
+      mounted() {
+        fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
+          .then(response => response.text())
+          .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
+          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
-        console.log("formData: ", formData);
-        console.log("uploadURL: ", "./upload");
-        fetch("./upload", { // 确保这个 URL 是正确的后端上传接口
-          method: 'POST',
-          body: formData,
-          credentials: "include",
-        })
-        .then(response => {
-          console.log("上传响应状态:", response.status);
-          if (!response.ok) {
-            return response.json().then(err => { throw err; });
-          }
-          return response.json();
-        })
-        .then(result => {
-          console.log("上传成功响应数据:", result);
-          options.onSuccess(result, options.file, options.fileList);
-        })
-        .catch(error => {
-          console.error("上传失败错误:", error);
-          options.onError(error, options.file, options.fileList);
-        });
-      },
-
-    mounted() {
-      var requestOptions = {
-        method: 'GET',
-        redirect: 'follow',
-        credentials: 'include'
-      };
-      window.addEventListener('resize', this.calculatePageSize);
-
-      this.updateWindowWidth();
-      fetch("./api/manage/check", requestOptions)
-        .then(response => response.text())
-        .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
-        .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
-
-      fetch("./api/manage/list", requestOptions)
-        .then(response => {
-          if(response.status==401){
-            alert("请先登录");
-            window.location.href="./api/manage/login";
-          }
-          else{
-            return response;
-          }
-        })
-        .then(result => {
-          console.log("result: ", result);
-          this.tableData = result.map(file => ({ ...file, selected: false }));
-          this.updateStats();
-          const savedSortOption = localStorage.getItem('sortOption');
-          if (savedSortOption) {
-            this.sortOption = savedSortOption;
-          }
-          this.sortData(this.tableData);
-        })
-        .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
-    },
-    beforeDestroy() {
-      window.removeEventListener('resize', this.calculatePageSize);
-    }
-  }
-});
-</script>
+        fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
+          .then(response => response.json())
+          .then(result => {
+            this.tableData = result.map(file => ({ ...file, selected: false }));
+            this.updateStats();
+            const savedSortOption = localStorage.getItem('sortOption');
+            if (savedSortOption) {
+              this.sortOption = savedSortOption;
+            }
+            this.sortData(this.tableData);
+          })
+          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+      }
+    });
+  </script>
+</body>
 </html>
