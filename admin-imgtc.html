@@ -342,9 +342,7 @@
         pageSize: 15,
         selectedFiles: [],
         sortOption: 'dateDesc',
-        uploadFiles: [],
-        isUploading: false,
-        windowWidth: window.innerWidth
+        isUploading: false
       },
       computed: {
         filteredTableData() {
@@ -475,89 +473,18 @@
         sortData(data) {
           return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
             data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
-        },
-        handleUploadSuccess(response, file, fileList) {
-          console.log(response);
-          if (Array.isArray(response)) {
-            response.forEach(fileInfo => {
-              this.tableData.push({ ...fileInfo, selected: false });
-            });
-          } else {
-            this.tableData.push({ ...response, selected: false });
-          }
-          this.updateStats();
-          this.$message.success('批量上传成功!');
-        },
-        handleUploadError(err, file, fileList) {
-          this.$message.error(`上传失败: ${file.name}`);
-        },
-        beforeUpload(file) {
-          // 验证文件类型和大小
-          const isAllowedType = file.type.startsWith('image/') || file.type.startsWith('video/');
-          if (!isAllowedType) {
-            this.$message.error('只能上传图片或视频!');
-          }
-          const isLt5M = file.size / 1024 / 1024 < 5;
-          if (!isLt5M) {
-            this.$message.error('上传文件大小不能超过 5MB!');
-          }
-          return isAllowedType && isLt5M;
-        },
-        handleUpload(options) {
-          const formData = new FormData();
-          formData.append("file", options.file);
-          console.log("开始上传文件:", options.file);
-
-          console.log("formData: ", formData);
-          console.log("uploadURL: ", "./upload");
-          fetch("./upload", { // 确保这个 URL 是正确的后端上传接口
-            method: 'POST',
-            body: formData,
-            credentials: "include",
-          })
-          .then(response => {
-            console.log("上传响应状态:", response.status);
-            if (!response.ok) {
-              return response.json().then(err => { throw err; });
-            }
-            return response.json();
-          })
-          .then(result => {
-            console.log("上传成功响应数据:", result);
-            options.onSuccess(result, options.file, options.fileList);
-          })
-          .catch(error => {
-            console.error("上传失败错误:", error);
-            options.onError(error, options.file, options.fileList);
-          });
-        },
-
+        }
+      },
       mounted() {
-        var requestOptions = {
-          method: 'GET',
-          redirect: 'follow',
-          credentials: 'include'
-        };
         window.addEventListener('resize', this.calculatePageSize);
-
-        this.updateWindowWidth();
-        fetch("./api/manage/check", requestOptions)
+        fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
           .then(response => response.text())
           .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
           .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
-        fetch("./api/manage/list", requestOptions)
-          .then(response => {
-            if(response.status==401){
-              alert("请先登录");
-              window.location.href="./api/manage/login";
-            }
-            else{
-              return response;
-            }
-          })
+        fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
+          .then(response => response.json())
           .then(result => {
-            console.log("result: ", result);
             this.tableData = result.map(file => ({ ...file, selected: false }));
             this.updateStats();
             const savedSortOption = localStorage.getItem('sortOption');
@@ -567,12 +494,8 @@
             this.sortData(this.tableData);
           })
           .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
-      },
-      beforeDestroy() {
-        window.removeEventListener('resize', this.calculatePageSize);
       }
-    }
-  });
+    });
   </script>
 </body>
 </html>
