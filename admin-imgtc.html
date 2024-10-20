@@ -62,6 +62,7 @@
     .stats {
       display: flex;
       align-items: center;
+      cursor: pointer;
       font-size: clamp(0.9em, 1.5vw, 1.2em);
       margin: 0 16px 0 10px;
       background: rgba(255, 255, 255, 0.9);
@@ -261,8 +262,8 @@
           </div>
           <el-tooltip class="stats" content="批量上传" placement="bottom">
             <el-upload
-              class="upload-demo"
-              action="/function/upload"
+              class="upload"
+              action="handleUpload"
               multiple
               :on-success="handleUploadSuccess"
               :on-error="handleUploadError"
@@ -509,9 +510,28 @@
         }
         return isAllowedType && isLt5M;
       },
-      triggerUpload() {
-        this.$refs.upload.submit();
-      }
+      handleUpload(options) {
+        // 自定义上传请求方法
+        const formData = new FormData();
+        formData.append("file", options.file);
+
+        fetch("./upload", {
+          method: 'POST',
+          body: formData,
+          credentials: "include"
+        })
+        .then(response => response.json())
+        .then(result => {
+          if (result.error) {
+            options.onError(new Error(result.error));
+          } else {
+            options.onSuccess(result);
+          }
+        })
+        .catch(error => {
+          options.onError(error);
+        });
+      },
     },
     mounted() {
       window.addEventListener('resize', this.calculatePageSize);
