@@ -278,7 +278,7 @@
           <span class="stats">
             <i class="fas fa-database"></i> 记录总数量: {{ Number }}
           </span>
-          <div class="actions" v-show="isMenuOpen || windowWith > 768">
+          <div class="actions" v-show="isMenuOpen || windowWidth > 768">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
                 <span class="el-dropdown-link">
