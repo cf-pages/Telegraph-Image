@@ -144,6 +144,7 @@
       display: flex;
       flex-direction: column;
       padding: 20px;
+      margin-top: 20px;
       min-height: calc(100vh - 80px);
     }
 
@@ -264,9 +265,22 @@
           <div class="search-card">
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
-          <span class="stats">
-            <i class="fas fa-database"></i> 记录总数量: {{ Number }}
-          </span>
+          <el-tooltip class="stats" content="批量上传" placement="bottom">
+            <el-upload
+              class="upload"
+              action="./upload"
+              accept="image/*,video/*"
+              method="POST"
+              multiple
+              :on-success="handleUploadSuccess"
+              :on-error="handleUploadError"
+              :before-upload="beforeUpload"
+              :show-file-list="false"
+              :auto-upload="false"
+              ref="upload">
+              <i class="fas fa-database"></i> 记录数：{{ Number }}
+            </el-upload>
+          </el-tooltip>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
