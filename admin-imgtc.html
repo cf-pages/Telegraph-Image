@@ -186,8 +186,6 @@
     }
 
     .el-image {
-      width: 100%;
-      height: 200px;
       object-fit: cover;
       transition: opacity 0.3s ease;
     }
@@ -294,31 +292,28 @@
           <span class="stats" v-show="windowWidth > 768">
             <i class="fas fa-database"></i> 记录总数量: {{ Number }}
           </span>
-          <transition name="fade">
-            <div class="actions" v-show="isMenuOpen || windowWidth > 768">
-              <el-tooltip content="排序" placement="bottom">
-                <el-dropdown @command="sort" :hide-on-click="false">
-                  <span class="el-dropdown-link">
-                    <i :class="sortIcon"></i>
-                  </span>
-                  <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
-                    <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
-                  </el-dropdown-menu>
-                </el-dropdown>
-              </el-tooltip>
-              <el-tooltip content="批量复制" placement="bottom">
-                <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
-              </el-tooltip>
-              <el-tooltip content="批量删除" placement="bottom">
-                <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
-              </el-tooltip>
-              <el-tooltip content="退出登录" placement="bottom">
-                <i class="fas fa-home" @click="handleLogout"></i>
-              </el-tooltip>
-            </div>
-          </transition>
-          <i class="fas fa-bars menu-icon" @click="toggleMenu"></i>
+          <div class="actions">
+            <el-tooltip content="排序" placement="bottom">
+              <el-dropdown @command="sort" :hide-on-click="false">
+                <span class="el-dropdown-link">
+                  <i :class="sortIcon"></i>
+                </span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
+                  <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-tooltip>
+            <el-tooltip content="批量复制" placement="bottom">
+              <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
+            </el-tooltip>
+            <el-tooltip content="批量删除" placement="bottom">
+              <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
+            </el-tooltip>
+            <el-tooltip content="退出登录" placement="bottom">
+              <i class="fas fa-home" @click="handleLogout"></i>
+            </el-tooltip>
+          </div>
         </div>
       </el-header>
       <el-main class="main-container">
@@ -406,8 +401,8 @@
         location.reload();
       },
       calculatePageSize() {
-        const minPageSize = 15;  // 最少卡片数量
-        const cardMinWidth = 200; // 卡片最小宽度
+        const minPageSize = 8;  // 最少卡片数量
+        const cardMinWidth = 300; // 卡片最小宽度
         const cardAspectRatio = 3 / 4; // 卡片的高宽比
         const gap = 20; // 卡片间的间隙
 
