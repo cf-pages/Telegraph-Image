@@ -2,12 +2,11 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=0.5, maximum-scale=3.0, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ImgTC | Admin</title>
   <!-- Import CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
-  <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
   <style>
     body {
       background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
@@ -64,7 +63,7 @@
       display: flex;
       align-items: center;
       font-size: clamp(0.9em, 1.5vw, 1.2em);
-      margin-right: 0 16px 0 10px;
+      margin: 0 16px 0 10px;
       background: rgba(255, 255, 255, 0.9);
       padding: 5px 10px;
       border-radius: 10px;
@@ -127,8 +126,8 @@
 
     .search-card .el-input__inner {
       border-radius: 20px;
-      width: 300px;
-      height: 40px;
+      width: clamp(200px, 25vw, 300px);
+      height: clamp(30px, 5vh, 40px);
       font-size: 1.2em;
       border: none;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
@@ -136,7 +135,7 @@
     }
 
     .search-card .el-input__inner:focus {
-      width: 400px;
+      width: clamp(250px, 30vw, 400px);
     }
 
     .main-container {
@@ -244,14 +243,9 @@
         grid-template-columns: 1fr; /* 单列布局 */
         gap: 10px;
       }
-
       .el-card{
         aspect-ratio: unset;  /*  取消卡片高宽比， */
         min-height: 180px;
-      }
-
-      .search-card{
-        display: none;  /*  隐藏搜索框 */
       }
     }
   </style>
@@ -262,12 +256,12 @@
       <el-header>
         <div class="header-content">
           <span class="title" @click="refreshDashboard">Dashboard</span>
-          <div class="search-card" v-show="windowWidth > 768">
+          <div class="search-card">
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
-          <span class="stats">
+          <el-tooltip class="stats" content="批量上传" placement="bottom">
             <i class="fas fa-database"></i> 记录数：{{ Number }}
-          </span>
+          </el-tooltip>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
@@ -377,6 +371,7 @@
       },
       calculatePageSize() {
         const minPageSize = 15;  // 最少卡片数量
+        const maxPageSize = 60;  // 最大卡片数量
         const cardMinWidth = 240; // 卡片最小宽度
         const cardAspectRatio = 3 / 4; // 卡片的高宽比
         const gap = 20; // 卡片间的间隙
@@ -391,7 +386,7 @@
         const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
         const rows = Math.floor(containerHeight / (cardHeight + gap));
 
-        this.pageSize = Math.max(rows * columns, minPageSize);
+        this.pageSize = Math.max(Math.min(rows * columns, maxPageSize), minPageSize);
       },
       updateWindowWidth() {
         this.windowWidth = window.innerWidth;
