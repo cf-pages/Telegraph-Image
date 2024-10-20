@@ -274,7 +274,6 @@
               <i class="fas fa-upload"></i> 记录数：{{ Number }}
             </el-upload>
           </el-tooltip>
-          <el-progress v-if="uploadProgress > 0 && uploadProgress < 100" :percentage="uploadProgress" style="margin-top: 10px;"></el-progress>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
               <el-dropdown @command="sort" :hide-on-click="false">
