@@ -421,7 +421,7 @@
         const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
         const rows = Math.floor(containerHeight / (cardHeight + gap));
 
-        this.pageSize = Math.max(calculatedPageSize, minPageSize);
+        this.pageSize = Math.max(rows * columns, minPageSize);
       },
       toggleMenu() {
         this.isMenuOpen = !this.isMenuOpen;
