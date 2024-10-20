@@ -514,6 +514,7 @@
         // 自定义上传请求方法
         const formData = new FormData();
         formData.append("file", options.file);
+        console.log("formData: ", formData);
 
         fetch("./upload", {
           method: 'POST',
