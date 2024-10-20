@@ -554,6 +554,7 @@
       fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
         .then(response => response.json())
         .then(result => {
+          console.log("result: ", result);
           this.tableData = result.map(file => ({ ...file, selected: false }));
           this.updateStats();
           const savedSortOption = localStorage.getItem('sortOption');
