@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=0.5">
   <title>ImgTC | Admin</title>
   <!-- Import CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
@@ -23,7 +23,7 @@
       left: 1%;
       right: 1%;
       z-index: 999;
-      height: 60px;
+      height: clamp(50px, 8vh, 70px);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -247,6 +247,7 @@
 
       .el-card{
         aspect-ratio: unset;  /*  取消卡片高宽比， */
+        min-height: 180px;
       }
 
       .search-card{
