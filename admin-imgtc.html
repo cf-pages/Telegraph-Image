@@ -392,10 +392,20 @@
         const cardAspectRatio = 4 / 3; // 卡片的高宽比
         const gap = 20; // 卡片间的间隙
 
-        const containerWidth = document.querySelector('.content').clientWidth;
+        const contentElement = document.querySelector('.content');
+        if (!contentElement) {
+          console.warn('Content element not found. Skipping page size calculation.');
+          return;
+        }
+        const containerWidth = contentElement.clientWidth;
         const columns = Math.floor(containerWidth / (cardMinWidth + gap));
 
-        const containerHeight = window.innerHeight - document.querySelector('.header-content').offsetHeight;
+        const headerElement = document.querySelector('.header-content');
+        if (!headerElement) {
+          console.warn('Header element not found. Using default header height.');
+        }
+        const headerHeight = headerElement ? headerElement.offsetHeight : 60; // 使用默认值60px
+        const containerHeight = window.innerHeight - headerHeight;
         const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
         const rows = Math.floor(containerHeight / (cardHeight + gap));
 
