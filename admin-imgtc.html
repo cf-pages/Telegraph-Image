@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=0.5">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=0.5, maximum-scale=3.0, user-scalable=yes">
   <title>ImgTC | Admin</title>
   <!-- Import CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
@@ -64,7 +64,7 @@
       display: flex;
       align-items: center;
       font-size: clamp(0.9em, 1.5vw, 1.2em);
-      margin-right: 20px;
+      margin-right: 0 16px 0 10px;
       background: rgba(255, 255, 255, 0.9);
       padding: 5px 10px;
       border-radius: 10px;
@@ -266,7 +266,7 @@
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
           <span class="stats">
-            <i class="fas fa-database"></i> 记录总数量: {{ Number }}
+            <i class="fas fa-database"></i> 记录数：{{ Number }}
           </span>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
@@ -478,6 +478,7 @@
     },
     mounted() {
       window.addEventListener('resize', this.calculatePageSize);
+
       this.updateWindowWidth();
       fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
         .then(response => response.text())
