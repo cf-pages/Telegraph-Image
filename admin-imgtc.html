@@ -266,7 +266,8 @@
             <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
           </div>
           <el-tooltip class="stats" content="批量上传" placement="bottom">
-              <i class="fas fa-database" @click="handleUpload"></i> 记录数：{{ Number }}
+              <i class="fas fa-database" @click="handleUpload"></i>
+              <span>记录数：{{ Number }}</span>
           </el-tooltip>
           <div class="actions">
             <el-tooltip content="排序" placement="bottom">
