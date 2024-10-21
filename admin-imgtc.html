@@ -174,20 +174,12 @@
 
     .el-card:hover {
       transform: scale(1.02);
+      cursor: pointer;
     }
 
     .el-image {
       object-fit: cover;
-      width: 100%;
-      height: 100%;
       transition: opacity 0.3s ease;
-    }
-
-    .el-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
     }
 
     .el-image:hover {
@@ -339,8 +331,8 @@
                 :src="'/file/' + item.name"
                 :preview-src-list="['/file/' + item.name]"
                 fit="cover"
-                lazy @click.stop></el-image>
-              <div class="image-overlay">
+                lazy></el-image>
+              <div class="image-overlay" @click="toggleSelection(item)">
                 <div class="overlay-buttons">
                   <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
                   <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
@@ -518,21 +510,11 @@
                 console.log("result:", result);
                 console.log("previewUrl:", previewUrl);
                 if (result[0].src) {
-                  fetch(previewUrl, { method: 'GET', credentials: 'include' })
-                    .then(response => {
-                      console.log("response: ", response)
-                      if (!response.ok) { console.error(`无法获取文件: ${previewUrl}`); }
-                      else {
-                        console.log("result[0]: ", result[0]);
-                        console.log("previewUrl: ", previewUrl);
-                        this.tableData.unshift({
-                          name: result[0].src.replace(/^\/file\//, ''),
-                          selected: false,
-                          metadata: { TimeStamp: Date.now() }
-                        });
-                      }
-                    })
-                    .catch(error => { console.error(`获取文件时出错: ${previewUrl}`, error); });
+                  this.tableData.unshift({
+                    name: result[0].src.replace(/^\/file\//, ''),
+                    selected: false,
+                    metadata: { TimeStamp: Date.now() }
+                  });
                 }
               });
               // 刷新文件列表
