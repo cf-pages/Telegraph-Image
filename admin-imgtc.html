@@ -216,11 +216,11 @@
       background: rgba(0, 0, 0, 0.6);
       opacity: 0;
       transition: opacity 0.3s ease;
-      pointer-events: none;
     }
 
     .el-card:hover .image-overlay {
       opacity: 1;
+      pointer-events: auto;
     }
 
     .overlay-buttons {
@@ -260,11 +260,11 @@
     }
 
     .footer a:hover {
-      color: #000; /* 悬停时的链接颜色改为黑色 */
+      color: #333; /* 悬停时的链接颜色改为黑色 */
     }
 
     .footer i {
-      color: #000; /* 图标颜色改为黑色 */
+      color: #333; /* 图标颜色改为黑色 */
     }
 
     /* 适配移动端 */
@@ -353,9 +353,9 @@
           </el-pagination>
         </div>
         <el-footer class="footer">
-          <span>Powered By</span>
+          <div>Powered By</div>
           <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener noreferrer">
-             <i class="fa-brands fa-github"></i> Telegraph-Image
+             <div><i class="fa-brands fa-github"></i> Telegraph-Image</div>
           </a>
         </el-footer>
       </el-main>
@@ -621,8 +621,10 @@
       toggleCheckbox(index) {
         console.log("toggleCheckbox: ", index);
         const checkboxRef = this.$refs['checkbox-' + index];
-        if (checkboxRef && checkboxRef[0]) {
-          checkboxRef[0].$el.click(); // 手动触发 checkbox 元素的点击事件
+        if (checkboxRef) {
+          checkboxRef.$el.click(); // 手动触发 checkbox 元素的点击事件
+        } else {
+          console.error(`未找到 ref: checkbox-${index}`);
         }
       },
       updateStats() {
