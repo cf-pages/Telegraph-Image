@@ -517,9 +517,8 @@
                         console.log("previewUrl: ", previewUrl);
                         this.tableData.unshift({
                           name: result[0].name,
-                          previewUrl,
                           selected: false,
-                          metadata: result[0].metadata || { TimeStamp: Date.now() }
+                          metadata: { TimeStamp: Date.now() }
                         });
                       }
                     })
