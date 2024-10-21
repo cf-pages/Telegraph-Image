@@ -263,7 +263,6 @@
 
     .footer i {
       color: #000; /* 图标颜色改为黑色 */
-      margin-right: 5px;
     }
 
     /* 适配移动端 */
@@ -516,7 +515,7 @@
                       if (!response.ok) {
                         console.error(`无法获取文件: ${getURL}`);
                       } else {
-                        this.tableData.push({ name: result[0].name, previewUrl, selected: false });
+                        this.tableData.unshift({ name: result[0].name, previewUrl, selected: false });
                       }
                     })
                     .catch(error => {
@@ -549,7 +548,7 @@
           .then(result => {
             this.tableData = result.map(file => ({ ...file, selected: false }));
             this.updateStats();
-            this.sortData(this.tableData);
+            //this.sortData(this.tableData);
           })
           .catch(() => this.$message.error('刷新文件列表失败，请检查网络连接'));
       },
