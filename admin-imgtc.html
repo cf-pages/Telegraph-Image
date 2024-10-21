@@ -619,6 +619,7 @@
         this.currentPage = page;
       },
       toggleCheckbox(index) {
+        console.log("toggleCheckbox: ", index);
         const checkboxRef = this.$refs['checkbox-' + index];
         if (checkboxRef && checkboxRef[0]) {
           checkboxRef[0].$el.click(); // 手动触发 checkbox 元素的点击事件
