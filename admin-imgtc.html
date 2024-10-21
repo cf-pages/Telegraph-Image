@@ -325,14 +325,14 @@
       <el-main class="main-container">
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
-            <el-card @click="toggleSelection(item)">
+            <el-card>
               <el-checkbox v-model="item.selected"></el-checkbox>
               <el-image
                 :src="'/file/' + item.name"
                 :preview-src-list="['/file/' + item.name]"
                 fit="cover"
                 lazy></el-image>
-              <div class="image-overlay" @click="toggleSelection(item)">
+              <div class="image-overlay" v-model="item.selected" @click="toggleSelection(item)">
                 <div class="overlay-buttons">
                   <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
                   <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
@@ -501,22 +501,21 @@
 
           Promise.all(uploadPromises)
             .then(results => {
-              loadingMessage.close();
-              this.$message.success(`成功上传 ${results.length} 个文件!`);
-              console.log("results: ", results);
-              // 对每个上传的文件进行GET请求
-              results.forEach(result => {
-                const previewUrl = `${this.baseURL}${result[0].src}`;
-                console.log("result:", result);
-                console.log("previewUrl:", previewUrl);
-                if (result[0].src) {
+              fetch(previewUrl, { method: 'GET', credentials: 'include' })
+              .then(response => {
+                console.log("response: ", response)
+                if (!response.ok) { console.error(`无法获取文件: ${previewUrl}`); }
+                else {
+                  console.log("result[0]: ", result[0]);
+                  console.log("previewUrl: ", previewUrl);
                   this.tableData.unshift({
                     name: result[0].src.replace(/^\/file\//, ''),
                     selected: false,
                     metadata: { TimeStamp: Date.now() }
                   });
                 }
-              });
+              })
+              .catch(error => { console.error(`获取文件时出错: ${previewUrl}`, error); });
               // 刷新文件列表
               this.refreshFileList();
             })
