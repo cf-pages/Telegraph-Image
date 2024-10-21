@@ -325,14 +325,14 @@
       <el-main class="main-container">
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
-            <el-card>
+            <el-card @click="toggleSelection(item)">
               <el-checkbox v-model="item.selected"></el-checkbox>
               <el-image
                 :src="'/file/' + item.name"
                 :preview-src-list="['/file/' + item.name]"
                 fit="cover"
                 lazy></el-image>
-              <div class="image-overlay" v-model="item.selected" @click="toggleSelection(item)">
+              <div class="image-overlay">
                 <div class="overlay-buttons">
                   <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
                   <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
@@ -521,7 +521,8 @@
             })
             .catch(error => {
               loadingMessage.close();
-              this.$message.error('上传错误:', error);
+              this.$message.error(`上传错误: ${error.message}`);
+              console.error('上传错误详情:', error);
             });
         }).catch(() => {
           this.$message.info('已取消上传');
@@ -610,6 +611,7 @@
         this.currentPage = page;
       },
       toggleSelection(item) {
+        console.log("toggle item: ", item);
         item.selected = !item.selected;
       },
       updateStats() {
