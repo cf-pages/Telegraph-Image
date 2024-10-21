@@ -476,6 +476,9 @@
               console.log("results: ", results);
               // 对每个上传的文件进行GET请求
               results.forEach(result => {
+                console.log("result:", result);
+                console.log("getURL:", `${this.baseURL}${result.src}`);
+
                 if (result.src) {
                   fetch(`${this.baseURL}${result.src}`, {
                     method: 'GET', credentials: 'include'
