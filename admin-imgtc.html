@@ -335,10 +335,10 @@
       </el-main>
     </el-container>
     <el-footer class="footer">
-      <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank">
+      <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener noreferrer">
         <i class="fa-brands fa-github"></i>
       </a>
-      <a href="https://dash.cloudflare.com/" target="_blank">
+      <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener noreferrer">
         <i class="fa-brands fa-cloudflare"></i>
       </a>
     </el-footer>
@@ -460,6 +460,7 @@
             return fetch(this.baseURL + '/upload', {
               method: 'POST',
               body: formData,
+              credentials: 'include'
             }).then(response => {
               if (!response.ok) {
                 throw new Error(`上传失败: ${file.name}`);
@@ -476,7 +477,9 @@
               // 对每个上传的文件进行GET请求
               results.forEach(result => {
                 if (result.src) {
-                  fetch(`${this.baseURL}${result.src}`)
+                  fetch(`${this.baseURL}${result.src}`, {
+                    method: 'GET', credentials: 'include'
+                  })
                     .then(response => {
                       console.log("response: ", result.src)
                       if (!response.ok) {
