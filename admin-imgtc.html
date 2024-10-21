@@ -23,9 +23,8 @@
         left: 1%;
         right: 1%;
         z-index: 999;
-        height: clamp(50px, 8vh, 60px);
+        height: clamp(40px, 8vh, 60px);
         display: flex;
-        justify-content: space-between;
         align-items: center;
         padding: 10px 20px;
         background-color: rgba(255, 255, 255, 0.75);
@@ -101,7 +100,7 @@
       }
 
       .header-content .actions i {
-        font-size: 1.5em;
+        font-size: clamp(1.2em, 1.5vw, 1.6em);
         cursor: pointer;
         transition: color 0.3s, transform 0.3s;
         color: #333;
@@ -274,13 +273,10 @@
           grid-template-columns: 1fr; /* 单列布局 */
           gap: 10px;
         }
-        .el-card{
-          aspect-ratio: unset;  /*  取消卡片高宽比， */
-          min-height: 180px;
-        }
-        .search-card {
-          display: none;
-        }
+        .header-content{padding: 8px 12px;}
+        .stats, .actions i{margin: 0;}
+        .el-card{aspect-ratio: unset; min-height: 180px;}
+        .search-card {display: none;}
       }
     </style>
   </head>
@@ -435,7 +431,8 @@
         },
         handleUpload() {
           this.$refs.fileInput.click();
-        },uploadFiles(event) {
+        },
+        uploadFiles(event) {
           const files = event.target.files;
           if (files.length === 0) return;
 
