@@ -498,24 +498,32 @@
               return response.json();
             });
           });
-
           Promise.all(uploadPromises)
             .then(results => {
-              fetch(previewUrl, { method: 'GET', credentials: 'include' })
-              .then(response => {
-                console.log("response: ", response)
-                if (!response.ok) { console.error(`无法获取文件: ${previewUrl}`); }
-                else {
-                  console.log("result[0]: ", result[0]);
-                  console.log("previewUrl: ", previewUrl);
-                  this.tableData.unshift({
-                    name: result[0].src.replace(/^\/file\//, ''),
-                    selected: false,
-                    metadata: { TimeStamp: Date.now() }
-                  });
+              loadingMessage.close();
+              this.$message.success(`成功上传 ${results.length} 个文件!`);
+              console.log("results: ", results);
+              // 对每个上传的文件进行GET请求
+              results.forEach(result => {
+                const previewUrl = `${this.baseURL}${result[0].src}`;
+                console.log("result:", result, " previewUrl:", previewUrl);
+                if (result[0].src) {
+                  fetch(previewUrl, { method: 'GET', credentials: 'include' })
+                  .then(response => {
+                    console.log("response: ", response)
+                    if (!response.ok) { console.error(`无法获取文件: ${previewUrl}`); }
+                    else {
+                      console.log("result[0]: ", result[0]);
+                      console.log("previewUrl: ", previewUrl);
+                      this.tableData.unshift({
+                        name: result[0].src.replace(/^\/file\//, ''),
+                        selected: false,
+                        metadata: { TimeStamp: Date.now() }
+                      });
+                    }
+                  }).catch(error => { console.error(`获取文件时出错: ${previewUrl}`, error); });
                 }
-              })
-              .catch(error => { console.error(`获取文件时出错: ${previewUrl}`, error); });
+              });
               // 刷新文件列表
               this.refreshFileList();
             })
