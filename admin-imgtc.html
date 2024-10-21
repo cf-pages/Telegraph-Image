@@ -325,8 +325,8 @@
       <el-main class="main-container">
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
-            <el-card @click="toggleSelection(item)">
-              <el-checkbox v-model="item.selected"></el-checkbox>
+            <el-card @click="toggleSelection(index)">
+              <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
               <el-image
                 :src="'/file/' + item.name"
                 :preview-src-list="['/file/' + item.name]"
@@ -610,9 +610,11 @@
       handlePageChange(page) {
         this.currentPage = page;
       },
-      toggleSelection(item) {
-        console.log("toggle item: ", item);
-        item.selected = !item.selected;
+      toggleCheckbox(index) {
+        const checkboxRef = this.$refs['checkbox-' + index];
+        if (checkboxRef && checkboxRef[0]) {
+          checkboxRef[0].$el.click(); // 手动触发 checkbox 元素的点击事件
+        }
       },
       updateStats() {
         this.Number = this.tableData.length;
