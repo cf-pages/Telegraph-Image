@@ -232,7 +232,6 @@
       display: flex;
       justify-content: center;
       margin-top: 20px;
-      padding-bottom: 20px;
     }
 
     .el-checkbox {
@@ -244,7 +243,7 @@
     }
 
     .footer {
-      display: flex; justify-content: center; align-items: center;
+      display: flex; justify-content: center; align-items: center; gap: 10px;
     }
 
     /* 适配移动端 */
@@ -332,16 +331,16 @@
             :current-page.sync="currentPage">
           </el-pagination>
         </div>
+        <el-footer class="footer">
+          <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-github"></i>
+          </a>
+          <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-cloudflare"></i>
+          </a>
+        </el-footer>
       </el-main>
     </el-container>
-    <el-footer class="footer">
-      <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener noreferrer">
-        <i class="fa-brands fa-github"></i>
-      </a>
-      <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener noreferrer">
-        <i class="fa-brands fa-cloudflare"></i>
-      </a>
-    </el-footer>
   </div>
 </body>
 <!-- Import Vue before Element -->
@@ -394,7 +393,6 @@
       },
       calculatePageSize() {
         const minPageSize = 15;  // 最少卡片数量
-        const maxPageSize = 60;  // 最大卡片数量
         const cardMinWidth = 240; // 卡片最小宽度
         const cardAspectRatio = 3 / 4; // 卡片的高宽比
         const gap = 20; // 卡片间的间隙
@@ -409,7 +407,7 @@
         const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
         const rows = Math.floor(containerHeight / (cardHeight + gap));
 
-        this.pageSize = Math.max(Math.min(rows * columns, maxPageSize), minPageSize);
+        this.pageSize = Math.max(rows * columns, minPageSize);
       },
       updateWindowWidth() {
         this.windowWidth = window.innerWidth;
@@ -489,25 +487,27 @@
               console.log("results: ", results);
               // 对每个上传的文件进行GET请求
               results.forEach(result => {
-                const getURL = `${this.baseURL}${result[0].src}`
+                const previewUrl = `${this.baseURL}${result[0].src}`;
                 console.log("result:", result[0]);
-                console.log("getURL:", getURL);
-
                 if (result[0].src) {
-                  fetch(getURL, {
+                  fetch(previewUrl, {
                     method: 'GET', credentials: 'include'
                   })
                     .then(response => {
-                      console.log("response: ", result[0].src)
+                      console.log("response: ", response)
                       if (!response.ok) {
-                        console.error(`无法获取文件: ${result[0].src}`);
+                        console.error(`无法获取文件: ${getURL}`);
+                      } else {
+                        this.tableData.push({ name: result[0].name, previewUrl, selected: false });
                       }
                     })
                     .catch(error => {
-                      console.error(`获取文件时出错: ${result[0].src}`, error);
+                      console.error(`获取文件时出错: ${getURL}`, error);
                     });
                 }
               });
+
+
 
               // 刷新文件列表
               this.refreshFileList();
@@ -545,7 +545,7 @@
             .then(response => response.ok ? this.tableData.splice(index, 1) : Promise.reject())
             .then(() => {
               this.updateStats();
-              this.$message.success('删除成功!');
+              this.$message.success('删除成功！');
             })
             .catch(() => this.$message.error('删除失败，请检查网络连接'));
         }).catch(() => this.$message.info('已取消删除'));
