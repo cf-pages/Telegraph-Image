@@ -504,8 +504,9 @@
               console.log("results: ", results);
               // 对每个上传的文件进行GET请求
               results.forEach(result => {
-                const previewUrl = `${this.baseURL}${result.src}`;
-                console.log("result:", result[0]);
+                const previewUrl = `${this.baseURL}${result[0].src}`;
+                console.log("result:", result);
+                console.log("previewUrl:", previewUrl);
                 if (result[0].src) {
                   fetch(previewUrl, { method: 'GET', credentials: 'include' })
                     .then(response => {
