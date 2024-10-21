@@ -622,6 +622,8 @@
         console.log("toggleCheckbox: ", index);
         const checkboxRef = this.$refs['checkbox-' + index];
         if (checkboxRef) {
+          console.log("checkboxRef: ", checkboxRef);
+          console.log("checkboxRef.$el: ", checkboxRef.$el);
           checkboxRef.$el.click(); // 手动触发 checkbox 元素的点击事件
         } else {
           console.error(`未找到 ref: checkbox-${index}`);
