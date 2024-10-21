@@ -516,7 +516,7 @@
                         console.log("result[0]: ", result[0]);
                         console.log("previewUrl: ", previewUrl);
                         this.tableData.unshift({
-                          name: result[0].name,
+                          name: result[0].src.replace(/^\/file/, ''),
                           selected: false,
                           metadata: { TimeStamp: Date.now() }
                         });
