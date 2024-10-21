@@ -435,8 +435,7 @@
         },
         handleUpload() {
           this.$refs.fileInput.click();
-        },
-        uploadFiles(event) {
+        },uploadFiles(event) {
           const files = event.target.files;
           if (files.length === 0) return;
 
@@ -491,6 +490,7 @@
 
             const uploadNext = () => {
               if (current >= validFiles.length) {
+                // 检查是否所有文件都已处理
                 if (successCount + failedUploads.length === validFiles.length) {
                   loadingMessage.close();
                   if (successCount > 0) {
@@ -521,7 +521,18 @@
                 }
                 return response.json();
               }).then(result => {
+                if (Array.isArray(result) && result.length > 0 && result[0].error) {
+                  // 响应内容中包含错误
+                  throw new Error(result[0].error || `上传失败: ${file.name}`);
+                }
+
+                // 确保 result[0].src 存在
+                if (!result[0].src) {
+                  throw new Error(`上传成功但未返回文件路径: ${file.name}`);
+                }
+
                 successCount++;
+
                 // 处理成功上传的文件
                 const previewUrl = `${this.baseURL}${result[0].src}`;
                 if (result[0].src) {
@@ -541,7 +552,7 @@
                     });
                 }
               }).catch(error => {
-                failedUploads.push(error.message);
+                failedUploads.push(file.name); // 记录失败的文件名称
                 console.error(error.message);
               }).finally(() => {
                 uploadNext(); // 继续上传下一个文件
