@@ -423,17 +423,30 @@
         if (files.length === 0) return;
 
         // 过滤文件类型和大小
-        const validFiles = Array.from(files).filter(file => {
+        const validFiles = [];
+        const invalidTypeFiles = [];
+        const oversizedFiles = [];
+
+        Array.from(files).forEach(file => {
           const isValidType = file.type.startsWith('image/') || file.type.startsWith('video/');
           const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+
           if (!isValidType) {
-            this.$message.error(`文件类型不支持: ${file.name}`);
+            invalidTypeFiles.push(file.name);
+          } else if (!isValidSize) {
+            oversizedFiles.push(file.name);
+          } else {
+            validFiles.push(file);
           }
-          if (!isValidSize) {
-            this.$message.error(`文件过大: ${file.name}`);
-          }
-          return isValidType && isValidSize;
         });
+
+        // 显示错误消息
+        if (invalidTypeFiles.length > 0) {
+          this.$message.error(`以下文件类型不支持: ${invalidTypeFiles.join(', ')}`);
+        }
+        if (oversizedFiles.length > 0) {
+          this.$message.error(`以下文件过大: ${oversizedFiles.join(', ')}`);
+        }
 
         if (validFiles.length === 0) {
           this.$message.info('没有符合条件的文件');
@@ -476,21 +489,22 @@
               console.log("results: ", results);
               // 对每个上传的文件进行GET请求
               results.forEach(result => {
-                console.log("result:", result);
-                console.log("getURL:", `${this.baseURL}${result.src}`);
+                const getURL = `${this.baseURL}${result[0].src}`
+                console.log("result:", result[0]);
+                console.log("getURL:", getURL);
 
-                if (result.src) {
-                  fetch(`${this.baseURL}${result.src}`, {
+                if (result[0].src) {
+                  fetch(getURL, {
                     method: 'GET', credentials: 'include'
                   })
                     .then(response => {
-                      console.log("response: ", result.src)
+                      console.log("response: ", result[0].src)
                       if (!response.ok) {
-                        console.error(`无法获取文件: ${result.src}`);
+                        console.error(`无法获取文件: ${result[0].src}`);
                       }
                     })
                     .catch(error => {
-                      console.error(`获取文件时出错: ${result.src}`, error);
+                      console.error(`获取文件时出错: ${result[0].src}`, error);
                     });
                 }
               });
