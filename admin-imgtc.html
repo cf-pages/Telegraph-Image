@@ -67,7 +67,7 @@
       font-size: clamp(0.9em, 1.5vw, 1.2em);
       margin: 0 16px 0 10px;
       background: rgba(255, 255, 255, 0.9);
-      padding: 6px 12px;
+      padding: 2px 8px;
       border-radius: 12px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
       transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
@@ -243,6 +243,10 @@
       z-index: 10;
     }
 
+    .footer {
+      display: flex; justify-content: center; align-items: center;
+    }
+
     /* 适配移动端 */
     @media (max-width: 768px) {
       .content {
@@ -330,6 +334,11 @@
         </div>
       </el-main>
     </el-container>
+    <el-footer class="footer">
+      <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank">
+        <i class="fa-brands fa-github"></i>
+      </a>
+    </el-footer>
   </div>
 </body>
 <!-- Import Vue before Element -->
@@ -362,7 +371,7 @@
         return sortedData.slice(start, end);
       },
       sortIcon() {
-        return this.sortOption === 'dateDesc' ? 'fas fa-sort-amount-down' : 'fas fa-sort-alpha-up';
+        return this.sortOption === 'dateDesc' ? 'fas  fa-sort-amount-down' : 'fas fa-sort-alpha-up';
       }
     },
     watch: {
@@ -410,57 +419,81 @@
         const files = event.target.files;
         if (files.length === 0) return;
 
-        const formData = new FormData();
-        for (let i = 0; i < files.length; i++) {
-          formData.append('file', files[i]);
-        }
-
-        // 显示上传进度
-        this.$message({
-          message: '正在上传文件...',
-          duration: 0,
-          showClose: false,
+        // 过滤文件类型和大小
+        const validFiles = Array.from(files).filter(file => {
+          const isValidType = file.type.startsWith('image/') || file.type.startsWith('video/');
+          const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+          if (!isValidType) {
+            this.$message.error(`文件类型不支持: ${file.name}`);
+          }
+          if (!isValidSize) {
+            this.$message.error(`文件过大: ${file.name}`);
+          }
+          return isValidType && isValidSize;
         });
 
-        console.log(formData);
-        console.log("uploadURL: ", this.baseURL + '/upload');
-        // 发送POST请求上传文件
-        fetch(this.baseURL + '/upload', {
-          method: 'POST',
-          body: formData,
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('上传失败');
-          }
-          return response.json();
-        })
-        .then(result => {
-          console.log("result: ", result);
-          this.$message.closeAll();
-          this.$message.success('上传成功!');
-          // 对每个上传的文件进行GET请求
-          if (Array.isArray(result)) {
-            result.forEach(file => {
-              fetch(`${this.baseURL}${file.src}`)
-                .then(response => {
-                  console.log("response: ", response);
-                  if (!response.ok) {
-                    console.error(`无法获取文件: ${file.src}`);
-                  }
-                })
-                .catch(error => {
-                  console.error(`获取文件时出错: ${file.src}`, error);
-                });
+        if (validFiles.length === 0) {
+          this.$message.info('没有符合条件的文件');
+          return;
+        }
+
+        this.$confirm(`确定要上传这 ${validFiles.length} 个文件吗?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          // 显示上传进度
+          const loadingMessage = this.$message({
+            message: '正在上传文件...',
+            duration: 0,
+            showClose: false,
+          });
+
+          const uploadPromises = validFiles.map(file => {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            return fetch(this.baseURL + '/upload', {
+              method: 'POST',
+              body: formData,
+            }).then(response => {
+              if (!response.ok) {
+                throw new Error(`上传失败: ${file.name}`);
+              }
+              return response.json();
             });
-          }
-          // 刷新文件列表
-          this.refreshFileList();
-        })
-        .catch(error => {
-          this.$message.closeAll();
-          this.$message.error('上传失败，请检查网络连接');
-          console.error('上传错误:', error);
+          });
+
+          Promise.all(uploadPromises)
+            .then(results => {
+              loadingMessage.close();
+              this.$message.success(`成功上传 ${results.length} 个文件!`);
+
+              // 对每个上传的文件进行GET请求
+              results.forEach(result => {
+                if (result.src) {
+                  fetch(`${this.baseURL}${result.src}`)
+                    .then(response => {
+                      if (!response.ok) {
+                        console.error(`无法获取文件: ${result.src}`);
+                      }
+                    })
+                    .catch(error => {
+                      console.error(`获取文件时出错: ${result.src}`, error);
+                    });
+                }
+              });
+
+              // 刷新文件列表
+              this.refreshFileList();
+            })
+            .catch(error => {
+              loadingMessage.close();
+              this.$message.error('上传过程中出现错误，请检查网络连接');
+              console.error('上传错误:', error);
+            });
+        }).catch(() => {
+          this.$message.info('已取消上传');
         });
 
         // 清空文件输入，以便可以重复选择相同的文件
