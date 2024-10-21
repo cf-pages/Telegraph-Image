@@ -325,7 +325,7 @@
       <el-main class="main-container">
         <div class="content">
           <template v-for="(item, index) in paginatedTableData" :key="index">
-            <el-card @click="toggleSelection(index)">
+            <el-card @click="toggleCheckbox(index)">
               <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
               <el-image
                 :src="'/file/' + item.name"
