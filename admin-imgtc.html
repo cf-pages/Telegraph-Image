@@ -476,7 +476,7 @@
         }).then(() => {
           // 显示上传进度
           const loadingMessage = this.$message({
-            message: '正在上传文件...',
+            message: '上传中...',
             duration: 0,
             showClose: false,
           });
@@ -504,43 +504,33 @@
               console.log("results: ", results);
               // 对每个上传的文件进行GET请求
               /*results.forEach(result => {
-                const previewUrl = `${this.baseURL}${result[0].src}`;
+                const getURL = `${this.baseURL}${result[0].src}`;
                 console.log("result:", result[0]);
                 if (result[0].src) {
-                  fetch(previewUrl, {
-                    method: 'GET', credentials: 'include'
-                  })
+                  fetch(getURL, { method: 'GET', credentials: 'include' })
                     .then(response => {
                       console.log("response: ", response)
-                      if (!response.ok) {
-                        console.error(`无法获取文件: ${getURL}`);
-                      } else {
-                        this.tableData.unshift({ name: result[0].name, previewUrl, selected: false });
-                      }
+                      if (!response.ok) { console.error(`无法获取文件: ${getURL}`); }
                     })
-                    .catch(error => {
-                      console.error(`获取文件时出错: ${getURL}`, error);
+                    .catch(error => { console.error(`获取文件时出错: ${getURL}`, error); });
+                }*/
+                results.forEach(result => {
+                  if (result[0] && result[0].src) {
+                    const previewUrl = `${this.baseURL}${result[0].src}`;
+                    this.tableData.unshift({
+                      name: result[0].name,
+                      previewUrl,
+                      selected: false,
+                      metadata: result[0].metadata || { TimeStamp: Date.now() }
                     });
-                }
-                    */
-                  results.forEach(result => {
-                    if (result[0] && result[0].src) {
-                      const previewUrl = `${this.baseURL}${result[0].src}`;
-                      this.tableData.unshift({
-                        name: result[0].name,
-                        previewUrl,
-                        selected: false,
-                        metadata:{TimeStamp: new Date().getTime() }
-                      });
-                    }
+                  }
               });
               // 刷新文件列表
               this.refreshFileList();
             })
             .catch(error => {
               loadingMessage.close();
-              this.$message.error('上传过程中出现错误，请检查网络连接');
-              console.error('上传错误:', error);
+              this.$message.error('上传错误:', error);
             });
         }).catch(() => {
           this.$message.info('已取消上传');
