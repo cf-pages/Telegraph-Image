@@ -503,7 +503,7 @@
               this.$message.success(`成功上传 ${results.length} 个文件!`);
               console.log("results: ", results);
               // 对每个上传的文件进行GET请求
-              results.forEach(result => {
+              /*results.forEach(result => {
                 const previewUrl = `${this.baseURL}${result[0].src}`;
                 console.log("result:", result[0]);
                 if (result[0].src) {
@@ -522,10 +522,18 @@
                       console.error(`获取文件时出错: ${getURL}`, error);
                     });
                 }
+                    */
+                  results.forEach(result => {
+                    if (result[0] && result[0].src) {
+                      const previewUrl = `${this.baseURL}${result[0].src}`;
+                      this.tableData.unshift({
+                        name: result[0].name,
+                        previewUrl,
+                        selected: false,
+                        metadata:{TimeStamp: new Date().getTime() }
+                      });
+                    }
               });
-
-
-
               // 刷新文件列表
               this.refreshFileList();
             })
@@ -548,7 +556,7 @@
           .then(result => {
             this.tableData = result.map(file => ({ ...file, selected: false }));
             this.updateStats();
-            //this.sortData(this.tableData);
+            this.sortData(this.tableData);
           })
           .catch(() => this.$message.error('刷新文件列表失败，请检查网络连接'));
       },
