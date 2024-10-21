@@ -333,7 +333,7 @@
                   :preview-src-list="['/file/' + item.name]"
                   fit="cover"
                   lazy></el-image>
-                <div class="image-overlay" @click="toggleCheckbox(index)">
+                <div class="image-overlay">
                   <div class="overlay-buttons">
                     <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
                     <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
@@ -618,16 +618,6 @@
         },
         handlePageChange(page) {
           this.currentPage = page;
-        },
-        toggleCheckbox(index) {
-          console.log("toggleCheckbox: ", index);
-          const checkboxRef = this.$refs['checkbox-' + index];
-          if (checkboxRef && checkboxRef[0]) {
-            console.log("checkboxRef.$el: ", checkboxRef[0]);
-            checkboxRef[0].$el.click(); // 手动触发 checkbox 元素的点击事件
-          } else {
-            console.error(`未找到 ref: checkbox-${index}`);
-          }
         },
         updateStats() {
           this.Number = this.tableData.length;
