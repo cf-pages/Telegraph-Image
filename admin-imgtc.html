@@ -338,10 +338,11 @@
               <el-card
               @mousedown="startLongPress(index, item.name)"
               @mouseup="cancelLongPress"
-              @mouseleave="cancelLongPress">
-              <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
-                <i :class="item.metadata.liked ? 'fa-solid fa-heart liked' : 'fa-regular fa-heart not-liked'"></i>
-              </span>
+              @mouseleave="cancelLongPress"
+              @click.stop>
+                <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
+                  <i :class="item.metadata.liked ? 'fa-solid fa-heart liked' : 'fa-regular fa-heart not-liked'"></i>
+                </span>
                 <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
                 <el-image
                   :src="'/file/' + item.name"
@@ -391,7 +392,7 @@
         tableData: [],
         search: '',
         currentPage: 1,
-        minPageSize: 15,
+        minPageSize: 18,
         selectedFiles: [],
         sortOption: 'dateDesc',
         longPressTimer: null,
