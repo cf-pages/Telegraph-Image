@@ -245,7 +245,13 @@
       }
       .collect-icon:hover {transform: scale(1.2);}
       .liked {color: #ff8c8c;}
-      .not-liked {color: #aaa;}
+      .not-liked {color: #eee;}
+      .long-pressing {
+        transform: scale(1.05);
+        transition: transform 0.5s ease;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      }
+
 
       .el-checkbox {
         position: absolute;
@@ -338,6 +344,7 @@
               @mousedown="startLongPress(index, item.name)"
               @mouseup="cancelLongPress"
               @mouseleave="cancelLongPress"
+              :class="{ 'long-pressing': isLongPressing }"
               >
                 <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
                   <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
@@ -391,10 +398,11 @@
         tableData: [],
         search: '',
         currentPage: 1,
-        minPageSize: 18,
+        pageSize: 18,
         selectedFiles: [],
         sortOption: 'dateDesc',
         longPressTimer: null,
+        isLongPressing: false,
       },
       computed: {
         filteredTableData() {
@@ -666,11 +674,16 @@
         },
         // 处理收藏事件
         startLongPress(index, key) {
+          console.log("startLongPress: ", index, key);
+          this.isLongPressing = true;
           this.longPressTimer = setTimeout(() => {
             this.toggleLike(index, key);
+            this.isLongPressing = false;
           }, 800); // 800 毫秒触发长按
         },
         cancelLongPress() {
+          console.log("cancelLongPress");
+          this.isLongPressing = false;
           if (this.longPressTimer) {
             clearTimeout(this.longPressTimer);
             this.longPressTimer = null;
@@ -703,7 +716,7 @@
                   type: 'error'
                 });
               } else {
-                console.log("服务器更新成功");
+                this.$message.success('更新收藏状态成功');
               }
             })
             .catch(error => {
@@ -729,6 +742,7 @@
       },
       mounted() {
         window.addEventListener('resize', this.calculatePageSize);
+        this.updateWindowWidth();
         fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
           .then(response => response.text())
           .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
@@ -747,7 +761,6 @@
               }
             }));
             this.updateStats();
-            this.updateWindowWidth();
             const savedSortOption = localStorage.getItem('sortOption');
             if (savedSortOption) {
               this.sortOption = savedSortOption;
