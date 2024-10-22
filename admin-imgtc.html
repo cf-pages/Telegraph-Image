@@ -216,7 +216,6 @@
         background: rgba(0, 0, 0, 0.6);
         opacity: 0;
         transition: opacity 0.3s ease;
-        pointer-events: none;
       }
 
       .el-card:hover .image-overlay {
@@ -237,16 +236,16 @@
 
       .collect-icon {
         position: absolute;
-        top: 10px;
+        top: 0px;
         left: 10px;
         cursor: pointer;
-        font-size: 1.2em;
+        font-size: 1.5em;
         z-index: 10;
         transition: color 0.3s ease, transform 0.3s ease;
       }
       .collect-icon:hover {transform: scale(1.2);}
       .liked {color: #ff8c8c;}
-      .not-liked {color: #ccc;}
+      .not-liked {color: #aaa;}
 
       .el-checkbox {
         position: absolute;
@@ -339,9 +338,9 @@
               @mousedown="startLongPress(index, item.name)"
               @mouseup="cancelLongPress"
               @mouseleave="cancelLongPress"
-              @click.stop>
+              >
                 <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
-                  <i :class="item.metadata.liked ? 'fa-solid fa-heart liked' : 'fa-regular fa-heart not-liked'"></i>
+                  <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
                 </span>
                 <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
                 <el-image
@@ -679,29 +678,42 @@
         },
         toggleLike(index, key) {
           console.log(`Toggling like for image: ${key}`);
+
+          // 乐观更新收藏状态
+          if (this.tableData[index].metadata.liked === undefined) {
+            this.tableData[index].metadata.liked = false;
+          }
+          this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
+
+          // 发送请求更新服务器数据
           var requestOptions = {
             method: 'GET',
             redirect: 'follow',
             credentials: 'include'
           };
+
           fetch(`./api/manage/toggleLike/${key}`, requestOptions)
             .then(response => response.json())
             .then(result => {
-              if (result.success) {
-                console.log("tableData[index]: ", this.tableData[index]);
-                if (this.tableData[index].metadata.liked === undefined) {
-                  this.tableData[index].metadata.liked = false;
-                }
-                this.tableData[index].metadata.liked = result.liked;
+              if (!result.success) {
+                // 如果服务器更新失败，将状态还原
+                this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
                 this.$message({
-                  message: result.liked ? '已收藏' : '已取消收藏',
-                  type: result.liked ? 'success' : 'info'
+                  message: '更新收藏状态失败，请稍后重试',
+                  type: 'error'
                 });
+              } else {
+                console.log("服务器更新成功");
               }
             })
             .catch(error => {
               console.error("An error occurred while synchronizing data with the server", error);
-              alert("An error occurred while synchronizing data with the server, please check the network connection");
+              // 如果服务器响应错误，将状态还原
+              this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
+              this.$message({
+                message: '同步服务器失败，请检查网络连接',
+                type: 'error'
+              });
             });
         },
         updateStats() {
@@ -717,7 +729,6 @@
       },
       mounted() {
         window.addEventListener('resize', this.calculatePageSize);
-        this.updateWindowWidth();
         fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
           .then(response => response.text())
           .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
@@ -736,6 +747,7 @@
               }
             }));
             this.updateStats();
+            this.updateWindowWidth();
             const savedSortOption = localStorage.getItem('sortOption');
             if (savedSortOption) {
               this.sortOption = savedSortOption;
