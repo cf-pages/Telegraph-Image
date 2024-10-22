@@ -235,6 +235,20 @@
         margin-top: 16px;
       }
 
+      .collect-icon {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        cursor: pointer;
+        font-size: 1.5em;
+        color: #ccc;
+        z-index: 10;
+        transition: color 0.3s ease, transform 0.3s ease;
+      }
+      .collect-icon:hover {transform: scale(1.2);}
+      .liked {color: #ff6b81;}
+      .not-liked {color: #ccc;}
+
       .el-checkbox {
         position: absolute;
         top: 10px;
@@ -322,7 +336,13 @@
         <el-main class="main-container">
           <div class="content">
             <template v-for="(item, index) in paginatedTableData" :key="index">
-              <el-card>
+              <el-card
+              @mousedown="startLongPress(index, item.name)"
+              @mouseup="cancelLongPress"
+              @mouseleave="cancelLongPress">
+              <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
+                <i :class="item.metadata.liked ? 'fa-solid fa-heart liked' : 'fa-regular fa-heart not-liked'"></i>
+              </span>
                 <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
                 <el-image
                   :src="'/file/' + item.name"
@@ -369,14 +389,13 @@
       data: {
         baseURL: document.location.origin,
         Number: 0,
-        showLogoutButton: false,
         tableData: [],
         search: '',
         currentPage: 1,
-        pageSize: 15,
+        minPageSize: 15,
         selectedFiles: [],
         sortOption: 'dateDesc',
-        isUploading: false
+        longPressTimer: null,
       },
       computed: {
         filteredTableData() {
@@ -408,7 +427,6 @@
           location.reload();
         },
         calculatePageSize() {
-          const minPageSize = 15;  // 最少卡片数量
           const cardMinWidth = 240; // 卡片最小宽度
           const cardAspectRatio = 3 / 4; // 卡片的高宽比
           const gap = 20; // 卡片间的间隙
@@ -423,7 +441,7 @@
           const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
           const rows = Math.floor(containerHeight / (cardHeight + gap));
 
-          this.pageSize = Math.max(rows * columns, minPageSize);
+          this.pageSize = Math.max(rows * columns, this.minPageSize);
         },
         updateWindowWidth() {
           this.windowWidth = window.innerWidth;
@@ -646,6 +664,42 @@
         },
         handlePageChange(page) {
           this.currentPage = page;
+        },
+        // 处理收藏事件
+        startLongPress(index, key) {
+          this.longPressTimer = setTimeout(() => {
+            this.toggleLike(index, key);
+          }, 800); // 800 毫秒触发长按
+        },
+        cancelLongPress() {
+          if (this.longPressTimer) {
+            clearTimeout(this.longPressTimer);
+            this.longPressTimer = null;
+          }
+        },
+        toggleLike(index, key) {
+          console.log(`Toggling like for image: ${key}`);
+          var requestOptions = {
+            method: 'GET',
+            redirect: 'follow',
+            credentials: 'include'
+          };
+          fetch(`./api/manage/like/${key}`, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+              if (result.success) {
+                // 更新本地的收藏状态，UI 上可以体现出来
+                this.tableData[index].metadata.liked = result.liked;
+                this.$message({
+                  message: result.liked ? '已收藏' : '已取消收藏',
+                  type: result.liked ? 'success' : 'info'
+                });
+              }
+            })
+            .catch(error => {
+              console.error("An error occurred while synchronizing data with the server", error);
+              alert("An error occurred while synchronizing data with the server, please check the network connection");
+            });
         },
         updateStats() {
           this.Number = this.tableData.length;

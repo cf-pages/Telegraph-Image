@@ -1,15 +1,15 @@
-export async function onRequest(context) {  // Contents of context object  
+export async function onRequest(context) {  // Contents of context object
     const {
-        request, // same as existing Worker API    
-        env, // same as existing Worker API    
-        params, // if filename includes [id] or [[path]]   
-        waitUntil, // same as ctx.waitUntil in existing Worker API    
-        next, // used for middleware or to fetch assets    
-        data, // arbitrary space for passing data between middlewares 
+        request, // same as existing Worker API
+        env, // same as existing Worker API
+        params, // if filename includes [id] or [[path]]
+        waitUntil, // same as ctx.waitUntil in existing Worker API
+        next, // used for middleware or to fetch assets
+        data, // arbitrary space for passing data between middlewares
     } = context;
 
     const url = new URL(request.url);
-    
+
     const response = fetch('https://telegra.ph/' + url.pathname + url.search, {
         method: request.method,
         headers: request.headers,
@@ -33,7 +33,6 @@ export async function onRequest(context) {  // Contents of context object
                 if (record.metadata === null) {
 
                 } else {
-
                     //if the record is not null, redirect to the image
                     if (record.metadata.ListType == "White") {
                         return response;
@@ -79,7 +78,7 @@ export async function onRequest(context) {  // Contents of context object
                 } else {
                     //add image to kv
                     await env.img_url.put(params.id, "", {
-                        metadata: { ListType: "None", Label: "None", TimeStamp: time },
+                        metadata: { ListType: "None", Label: "None", TimeStamp: time, liked: false },
                     });
 
                 }
@@ -93,7 +92,7 @@ export async function onRequest(context) {  // Contents of context object
                         if (typeof env.img_url == "undefined" || env.img_url == null || env.img_url == "") { } else {
                             //add image to kv
                             await env.img_url.put(params.id, "", {
-                                metadata: { ListType: "None", Label: moderate_data.rating_label, TimeStamp: time },
+                                metadata: { ListType: "None", Label: moderate_data.rating_label, TimeStamp: time, liked: false },
                             });
                         }
                         if (moderate_data.rating_label == "adult") {
