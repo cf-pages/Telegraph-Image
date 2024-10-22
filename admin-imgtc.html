@@ -237,7 +237,7 @@
 
       .collect-icon {
         position: absolute;
-        top: 0px;
+        top: -2px;
         left: 10px;
         cursor: pointer;
         font-size: 1.5em;
@@ -246,7 +246,7 @@
       }
       .collect-icon:hover {transform: scale(1.2);}
       .liked {color: #ff8c8c;}
-      .not-liked {color: #eee;}
+      .not-liked {color: #B39DDB;}
       .long-pressing {
         transform: scale(1.05);
         transition: transform 0.5s ease;
@@ -435,6 +435,7 @@
           location.reload();
         },
         calculatePageSize() {
+          const minPageSize = 18;
           const cardMinWidth = 240; // 卡片最小宽度
           const cardAspectRatio = 3 / 4; // 卡片的高宽比
           const gap = 20; // 卡片间的间隙
@@ -449,7 +450,7 @@
           const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
           const rows = Math.floor(containerHeight / (cardHeight + gap));
 
-          this.pageSize = Math.max(rows * columns, this.pageSize);
+          this.pageSize = Math.max(rows * columns, minPageSize);
         },
         updateWindowWidth() {
           this.windowWidth = window.innerWidth;
