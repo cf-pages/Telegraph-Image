@@ -236,7 +236,7 @@
 
       .collect-icon {
         position: absolute;
-        top: -2px;
+        top: -1.3px;
         left: 10px;
         cursor: pointer;
         font-size: 1.5em;
@@ -244,8 +244,8 @@
         transition: color 0.3s ease, transform 0.3s ease;
       }
       .collect-icon:hover {transform: scale(1.2);}
-      .liked {color: #ff8c8c;}
-      .not-liked {color: #B39DDB;}
+      .liked {color: #FFD7E4;}
+      .not-liked {color: #b39edb80;}
 
       .el-checkbox {
         position: absolute;
@@ -288,6 +288,7 @@
         .header-content{padding: 8px 12px;}
         .stats, .actions i{margin: 0;}
         .el-card{aspect-ratio: unset; min-height: 180px;}
+        .el-card__body{padding: 0;}
         .search-card {display: none;}
       }
     </style>
@@ -387,7 +388,7 @@
         tableData: [],
         search: '',
         currentPage: 1,
-        pageSize: 18,
+        pageSize: 15,
         selectedFiles: [],
         sortOption: 'dateDesc',
       },
@@ -421,7 +422,7 @@
           location.reload();
         },
         calculatePageSize() {
-          const minPageSize = 18;
+          const minPageSize = 15;
           const cardMinWidth = 240; // 卡片最小宽度
           const cardAspectRatio = 3 / 4; // 卡片的高宽比
           const gap = 20; // 卡片间的间隙
