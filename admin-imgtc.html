@@ -216,7 +216,6 @@
         background: rgba(0, 0, 0, 0.6);
         opacity: 0;
         transition: opacity 0.3s ease;
-        pointer-events: auto;
       }
 
       .el-card:hover .image-overlay {
@@ -247,12 +246,6 @@
       .collect-icon:hover {transform: scale(1.2);}
       .liked {color: #ff8c8c;}
       .not-liked {color: #B39DDB;}
-      .long-pressing {
-        transform: scale(1.05);
-        transition: transform 0.5s ease;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      }
-
 
       .el-checkbox {
         position: absolute;
@@ -341,12 +334,7 @@
         <el-main class="main-container">
           <div class="content">
             <template v-for="(item, index) in paginatedTableData" :key="index">
-              <el-card
-              @mousedown="startLongPress(index, item.name)"
-              @mouseup="cancelLongPress"
-              @mouseleave="cancelLongPress"
-              :class="{ 'long-pressing': isLongPressing }"
-              >
+              <el-card>
                 <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
                   <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
                 </span>
@@ -402,8 +390,6 @@
         pageSize: 18,
         selectedFiles: [],
         sortOption: 'dateDesc',
-        longPressTimer: null,
-        isLongPressing: false,
       },
       computed: {
         filteredTableData() {
@@ -675,22 +661,6 @@
           this.currentPage = page;
         },
         // 处理收藏事件
-        startLongPress(index, key) {
-          console.log("startLongPress: ", index, key);
-          this.isLongPressing = true;
-          this.longPressTimer = setTimeout(() => {
-            this.toggleLike(index, key);
-            this.isLongPressing = false;
-          }, 800); // 800 毫秒触发长按
-        },
-        cancelLongPress() {
-          console.log("cancelLongPress");
-          this.isLongPressing = false;
-          if (this.longPressTimer) {
-            clearTimeout(this.longPressTimer);
-            this.longPressTimer = null;
-          }
-        },
         toggleLike(index, key) {
           console.log(`Toggling like for image: ${key}`);
 
