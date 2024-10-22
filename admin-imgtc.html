@@ -238,16 +238,15 @@
       .collect-icon {
         position: absolute;
         top: 10px;
-        right: 10px;
+        left: 10px;
         cursor: pointer;
         font-size: 1.5em;
-        color: #ccc;
         z-index: 10;
         transition: color 0.3s ease, transform 0.3s ease;
       }
       .collect-icon:hover {transform: scale(1.2);}
       .liked {color: #ff6b81;}
-      .not-liked {color: #ccc;}
+      .not-liked {color: #eee;}
 
       .el-checkbox {
         position: absolute;
@@ -684,11 +683,14 @@
             redirect: 'follow',
             credentials: 'include'
           };
-          fetch(`./api/manage/like/${key}`, requestOptions)
+          fetch(`./api/manage/toggleLike/${key}`, requestOptions)
             .then(response => response.json())
             .then(result => {
               if (result.success) {
-                // 更新本地的收藏状态，UI 上可以体现出来
+                console.log("tableData[index]: ", this.tableData[index]);
+                if (this.tableData[index].metadata.liked === undefined) {
+                  this.tableData[index].metadata.liked = false;
+                }
                 this.tableData[index].metadata.liked = result.liked;
                 this.$message({
                   message: result.liked ? '已收藏' : '已取消收藏',
@@ -724,7 +726,14 @@
           .then(response => response.json())
           .then(result => {
             console.log("result: ", result);
-            this.tableData = result.map(file => ({ ...file, selected: false }));
+            this.tableData = result.map(file => ({
+              ...file,
+              selected: false,
+              metadata: {
+                ...file.metadata,
+                liked: file.metadata.liked !== undefined ? file.metadata.liked : false
+              }
+            }));
             this.updateStats();
             const savedSortOption = localStorage.getItem('sortOption');
             if (savedSortOption) {
