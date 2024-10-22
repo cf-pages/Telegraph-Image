@@ -449,7 +449,7 @@
           const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
           const rows = Math.floor(containerHeight / (cardHeight + gap));
 
-          this.pageSize = Math.max(rows * columns, this.minPageSize);
+          this.pageSize = Math.max(rows * columns, this.pageSize);
         },
         updateWindowWidth() {
           this.windowWidth = window.innerWidth;
