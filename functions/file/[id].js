@@ -1,31 +1,30 @@
-export async function onRequest(context) {  // Contents of context object  
-    const {
-        request, // same as existing Worker API    
-        env, // same as existing Worker API    
-        params, // if filename includes [id] or [[path]]   
-        waitUntil, // same as ctx.waitUntil in existing Worker API    
-        next, // used for middleware or to fetch assets    
-        data, // arbitrary space for passing data between middlewares 
-    } = context;
-
+export async function onRequest(context) {
+    const { request, env, params } = context;
     const url = new URL(request.url);
-    let fileUrl = 'https://telegra.ph/' + url.pathname + url.search
-    if (url.pathname.length > 39) {
-        const formdata = new FormData();
-        formdata.append("file_id", url.pathname);
 
-        const requestOptions = {
-            method: "POST",
-            body: formdata,
-            redirect: "follow"
-        };
-        // /file/AgACAgEAAxkDAAMDZt1Gzs4W8dQPWiQJxO5YSH5X-gsAAt-sMRuWNelGOSaEM_9lHHgBAAMCAANtAAM2BA.png
-        //get the AgACAgEAAxkDAAMDZt1Gzs4W8dQPWiQJxO5YSH5X-gsAAt-sMRuWNelGOSaEM_9lHHgBAAMCAANtAAM2BA
-        console.log(url.pathname.split(".")[0].split("/")[2])
-        const filePath = await getFilePath(env, url.pathname.split(".")[0].split("/")[2]);
-        console.log(filePath)
-        fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;  
-
+    // 根据环境变量决定获取模式
+    if (env.UPLOAD_MODE === 'R2') {
+        // 直接从 R2 获取文件
+        const file = await env.BUCKET.get(params.id);
+        if (file === null) {
+            return new Response('File not found', { status: 404 });
+        }
+        
+        const headers = new Headers();
+        headers.set('Content-Type', file.httpMetadata.contentType || 'application/octet-stream');
+        headers.set('Cache-Control', 'public, max-age=31536000'); // 可选：添加缓存控制
+        
+        return new Response(file.body, {
+            headers
+        });
+    } else {
+        // Telegram 模式
+        let fileUrl = 'https://telegra.ph/' + url.pathname + url.search;
+        if (url.pathname.length > 39) {
+            const fileId = url.pathname.split(".")[0].split("/")[2];
+            const filePath = await getFilePath(env, fileId);
+            fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;
+        }
     }
 
     const response = await fetch(fileUrl, {

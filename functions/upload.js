@@ -4,7 +4,6 @@ export async function onRequestPost(context) {
     const { request, env } = context;
 
     try {
-
         const clonedRequest = request.clone();
         const formData = await clonedRequest.formData();
 
@@ -16,55 +15,13 @@ export async function onRequestPost(context) {
             throw new Error('No file uploaded');
         }
 
-        const fileName = uploadFile.name;
-        const fileExtension = fileName.split('.').pop().toLowerCase();
-
-        const telegramFormData = new FormData();
-        telegramFormData.append("chat_id", env.TG_Chat_ID);
-
-        // 根据文件类型选择合适的上传方式
-        let apiEndpoint;
-        if (uploadFile.type.startsWith('image/')) {
-            telegramFormData.append("photo", uploadFile);
-            apiEndpoint = 'sendPhoto';
+        // 根据环境变量决定上传模式
+        if (env.UPLOAD_MODE === 'R2') {
+            return await handleR2Upload(uploadFile, env);
         } else {
-            telegramFormData.append("document", uploadFile);
-            apiEndpoint = 'sendDocument';
+            return await handleTelegramUpload(uploadFile, env);
         }
 
-        const apiUrl = `https://api.telegram.org/bot${env.TG_Bot_Token}/${apiEndpoint}`;
-        console.log('Sending request to:', apiUrl);
-
-        const response = await fetch(
-            apiUrl,
-            {
-                method: "POST",
-                body: telegramFormData
-            }
-        );
-
-        console.log('Response status:', response.status);
-
-        const responseData = await response.json();
-
-        if (!response.ok) {
-            console.error('Error response from Telegram API:', responseData);
-            throw new Error(responseData.description || 'Upload to Telegram failed');
-        }
-
-        const fileId = getFileId(responseData);
-
-        if (!fileId) {
-            throw new Error('Failed to get file ID');
-        }
-
-        return new Response(
-            JSON.stringify([{ 'src': `/file/${fileId}.${fileExtension}` }]),
-            {
-                status: 200,
-                headers: { 'Content-Type': 'application/json' }
-            }
-        );
     } catch (error) {
         console.error('Upload error:', error);
         return new Response(
@@ -75,6 +32,75 @@ export async function onRequestPost(context) {
             }
         );
     }
+}
+
+async function handleR2Upload(file, env) {
+    const fileName = crypto.randomUUID() + '.' + file.name.split('.').pop().toLowerCase();
+    
+    // 将文件上传到 R2
+    await env.BUCKET.put(fileName, file, {
+        httpMetadata: {
+            contentType: file.type,
+        }
+    });
+
+    // 返回文件访问路径
+    return new Response(
+        JSON.stringify([{ 'src': `/${fileName}` }]),
+        {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        }
+    );
+}
+
+async function handleTelegramUpload(uploadFile, env) {
+    const fileName = uploadFile.name;
+    const fileExtension = fileName.split('.').pop().toLowerCase();
+    const telegramFormData = new FormData();
+    telegramFormData.append("chat_id", env.TG_Chat_ID);
+
+    let apiEndpoint;
+    if (uploadFile.type.startsWith('image/')) {
+        telegramFormData.append("photo", uploadFile);
+        apiEndpoint = 'sendPhoto';
+    } else {
+        telegramFormData.append("document", uploadFile);
+        apiEndpoint = 'sendDocument';
+    }
+
+    const apiUrl = `https://api.telegram.org/bot${env.TG_Bot_Token}/${apiEndpoint}`;
+    console.log('Sending request to:', apiUrl);
+
+    const response = await fetch(
+        apiUrl,
+        {
+            method: "POST",
+            body: telegramFormData
+        }
+    );
+
+    console.log('Response status:', response.status);
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+        console.error('Error response from Telegram API:', responseData);
+        throw new Error(responseData.description || 'Upload to Telegram failed');
+    }
+
+    const fileId = getFileId(responseData);
+    if (!fileId) {
+        throw new Error('Failed to get file ID');
+    }
+
+    return new Response(
+        JSON.stringify([{ 'src': `/file/${fileId}.${fileExtension}` }]),
+        {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        }
+    );
 }
 
 function getFileId(response) {
