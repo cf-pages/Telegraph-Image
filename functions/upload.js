@@ -46,7 +46,7 @@ async function handleR2Upload(file, env) {
 
     // 返回文件访问路径
     return new Response(
-        JSON.stringify([{ 'src': `/${fileName}` }]),
+        JSON.stringify([{ 'src': `/file/${fileName}` }]),
         {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
