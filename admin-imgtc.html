@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -45,7 +46,8 @@
     }
 
     .title:hover {
-      color: #B39DDB; /* 使用柔和的淡紫色 */
+      color: #B39DDB;
+      /* 使用柔和的淡紫色 */
     }
 
     .search-card {
@@ -74,13 +76,16 @@
     }
 
     .stats:hover {
-      background-color: #f0eaf8; /* 使用柔和的淡紫色 */
+      background-color: #f0eaf8;
+      /* 使用柔和的淡紫色 */
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-      color: #B39DDB; /* 使用柔和的淡紫色 */
+      color: #B39DDB;
+      /* 使用柔和的淡紫色 */
     }
 
     .stats:hover .fa-database {
-      color: #B39DDB; /* 使用柔和的淡紫色 */
+      color: #B39DDB;
+      /* 使用柔和的淡紫色 */
     }
 
     .header-content .actions {
@@ -97,7 +102,8 @@
     }
 
     .header-content .actions i:hover {
-      color: #B39DDB; /* 使用柔和的淡紫色 */
+      color: #B39DDB;
+      /* 使用柔和的淡紫色 */
       transform: scale(1.2);
     }
 
@@ -106,7 +112,8 @@
     }
 
     .header-content .actions .el-dropdown-link i:hover {
-      color: #B39DDB; /* 使用柔和的淡紫色 */
+      color: #B39DDB;
+      /* 使用柔和的淡紫色 */
     }
 
     .header-content .actions .disabled {
@@ -115,7 +122,8 @@
     }
 
     .header-content .actions .enabled {
-      color: #B39DDB; /* 使用柔和的淡紫色 */
+      color: #B39DDB;
+      /* 使用柔和的淡紫色 */
     }
 
     .search-card .el-input__inner {
@@ -229,6 +237,7 @@
     }
   </style>
 </head>
+
 <body>
   <div id="app">
     <el-container>
@@ -248,8 +257,10 @@
                   <i :class="sortIcon"></i>
                 </span>
                 <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
-                  <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
+                  <el-dropdown-item command="dateDesc"
+                    :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
+                  <el-dropdown-item command="nameAsc"
+                    :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
@@ -257,7 +268,8 @@
               <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
             </el-tooltip>
             <el-tooltip content="批量删除" placement="bottom">
-              <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
+              <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }"
+                @click="handleBatchDelete"></i>
             </el-tooltip>
             <el-tooltip content="退出登录" placement="bottom">
               <i class="fas fa-home" @click="handleLogout"></i>
@@ -270,10 +282,7 @@
           <template v-for="(item, index) in paginatedTableData" :key="index">
             <el-card>
               <el-checkbox v-model="item.selected"></el-checkbox>
-              <el-image
-                :src="'/file/' + item.name"
-                :preview-src-list="['/file/' + item.name]"
-                fit="cover"
+              <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover"
                 lazy></el-image>
               <div class="image-overlay">
                 <div class="overlay-buttons">
@@ -286,13 +295,8 @@
           </template>
         </div>
         <div class="pagination-container">
-          <el-pagination
-            background
-            layout="prev, pager, next"
-            :total="filteredTableData.length"
-            :page-size="pageSize"
-            @current-change="handlePageChange"
-            :current-page.sync="currentPage">
+          <el-pagination background layout="prev, pager, next" :total="filteredTableData.length" :page-size="pageSize"
+            @current-change="handlePageChange" :current-page.sync="currentPage">
           </el-pagination>
         </div>
       </el-main>
@@ -428,7 +432,15 @@
       mounted() {
         fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
           .then(response => response.text())
-          .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
+          .then(result => {
+            if (result == "true") {
+              this.showLogoutButton = true;
+            } else if (result == "Not using basic auth.") {
+              // Do nothing
+            } else {
+              window.location.href = "./api/manage/login";
+            }
+          })
           .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
         fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
@@ -447,4 +459,5 @@
     });
   </script>
 </body>
+
 </html>

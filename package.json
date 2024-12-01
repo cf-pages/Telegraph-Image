@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "ci-test": "concurrently --kill-others \"npm start\" \"wait-on http://localhost:8080 && mocha\"",
+    "ci-test": "concurrently --kill-others --success first \"npm start\" \"wait-on http://localhost:8080 && mocha --exit\"",
     "test": "mocha",
     "start": "npx wrangler pages dev ./ --kv \"img_url\" --port 8080 --binding BASIC_USER=admin --binding BASIC_PASS=123 --persist-to ./data"
   },
