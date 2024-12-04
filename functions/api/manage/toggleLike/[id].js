@@ -8,7 +8,7 @@ export async function onRequest(context) {
     console.log("Current metadata:", value);
 
     // 如果记录不存在
-    if (!value.metadata) return new Response("Image metadata not found", { status: 404 });
+    if (!value.metadata) return new Response(`Image metadata not found for ID: ${params.id}`, { status: 404 });
 
     // 切换 liked 状态并更新
     value.metadata.liked = !value.metadata.liked;
