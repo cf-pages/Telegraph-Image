@@ -1,308 +1,381 @@
-<!DOCTYPE html>
-<html lang="zh">
-
+  <!DOCTYPE html>
+  <html lang="zh">
+  
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ImgTC | Admin</title>
-  <!-- Import CSS -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
-  <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
-  <style>
-    body {
-      background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
-      font-family: 'Arial', sans-serif;
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ImgTC | Admin</title>
+    <!-- Import CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
+    <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
+    <style>
+      body {
+        background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
+        font-family: 'Arial', sans-serif;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
 
-    .header-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-      background-color: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.5s ease, box-shadow 0.5s ease;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;
-    }
+      .header-content {
+        position: fixed;
+        top: 0;
+        left: 1%;
+        right: 1%;
+        z-index: 999;
+        height: clamp(40px, 8vh, 60px);
+        display: flex;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: rgba(255, 255, 255, 0.75);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.5s ease, box-shadow 0.5s ease;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+      }
 
-    .header-content:hover {
-      background-color: rgba(255, 255, 255, 0.85);
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
-    }
+      .header-content:hover {
+        background-color: rgba(255, 255, 255, 0.85);
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+      }
 
-    .title {
-      font-size: 1.8em;
-      font-weight: bold;
-      cursor: pointer;
-      transition: color 0.3s ease;
-      color: #333;
-    }
+      .title {
+        font-size: clamp(1.2em, 2vw, 1.8em);
+        font-weight: bold;
+        cursor: pointer;
+        transition: color 0.3s ease;
+        margin-right: 4px;
+        color: #333;
+      }
 
-    .title:hover {
-      color: #B39DDB;
-      /* 使用柔和的淡紫色 */
-    }
+      .title:hover {
+        color: #B39DDB; /* 使用柔和的淡紫色 */
+      }
 
-    .search-card {
-      margin-left: auto;
-      margin-right: 20px;
-    }
+      .search-card {
+        margin-left: auto;
+        margin-right: 16px;
+      }
 
-    .stats {
-      font-size: 1.2em;
-      margin-right: 20px;
-      display: flex;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 5px 10px;
-      border-radius: 10px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
-      color: #333;
-    }
+      .stats {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-size: clamp(0.9em, 1.5vw, 1.2em);
+        background: rgba(255, 255, 255, 0.9);
+        margin-right: 8px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+        color: #333;
+      }
 
-    .stats .fa-database {
-      margin-right: 10px;
-      font-size: 1.5em;
-      transition: color 0.3s ease;
-      color: inherit;
-    }
+      .stats:hover {
+        background-color: #f0eaf8; /* 柔和的淡紫色 */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transform: scale(1.02);
+        color: #B39DDB;
+      }
 
-    .stats:hover {
-      background-color: #f0eaf8;
-      /* 使用柔和的淡紫色 */
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-      color: #B39DDB;
-      /* 使用柔和的淡紫色 */
-    }
+      /* 上传图标样式优化 */
+      .upload-icon {
+        margin-right: 10px;
+        font-size: clamp(1.2em, 1.5vw, 1.6em);
+        transition: color 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
+        color: inherit;
+        cursor: pointer;
+        border-radius: 50%;
+        padding: 8px;
+        background-color: rgba(179, 157, 219, 0.15); /* 淡紫色的背景，与整体风格一致 */
+        border: 1px solid transparent;
+      }
 
-    .stats:hover .fa-database {
-      color: #B39DDB;
-      /* 使用柔和的淡紫色 */
-    }
+      .header-content .actions {
+        display: flex;
+        align-items: center;
+      }
 
-    .header-content .actions {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
+      .header-content .actions i {
+        font-size: clamp(1.2em, 1.5vw, 1.6em);
+        cursor: pointer;
+        transition: color 0.3s, transform 0.3s;
+        color: #333;
+        margin: 0 8px;
+      }
 
-    .header-content .actions i {
-      font-size: 1.5em;
-      cursor: pointer;
-      transition: color 0.3s, transform 0.3s;
-      color: #333;
-    }
+      .header-content .actions i:hover {
+        color: #B39DDB; /* 使用柔和的淡紫色 */
+        transform: scale(1.1);
+      }
 
-    .header-content .actions i:hover {
-      color: #B39DDB;
-      /* 使用柔和的淡紫色 */
-      transform: scale(1.2);
-    }
+      .header-content .actions .el-dropdown-link i {
+        color: #333;
+      }
 
-    .header-content .actions .el-dropdown-link i {
-      color: #333;
-    }
+      .header-content .actions .el-dropdown-link i:hover {
+        color: #B39DDB; /* 使用柔和的淡紫色 */
+      }
 
-    .header-content .actions .el-dropdown-link i:hover {
-      color: #B39DDB;
-      /* 使用柔和的淡紫色 */
-    }
+      .header-content .actions .disabled {
+        color: #bbb;
+        pointer-events: none;
+      }
 
-    .header-content .actions .disabled {
-      color: #bbb;
-      pointer-events: none;
-    }
+      .header-content .actions .enabled {
+        color: #B39DDB; /* 使用柔和的淡紫色 */
+      }
 
-    .header-content .actions .enabled {
-      color: #B39DDB;
-      /* 使用柔和的淡紫色 */
-    }
+      .search-card .el-input__inner {
+        border-radius: 20px;
+        width: clamp(200px, 25vw, 300px);
+        height: clamp(30px, 5vh, 40px);
+        font-size: 1.2em;
+        border: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        transition: width 0.3s;
+      }
 
-    .search-card .el-input__inner {
-      border-radius: 20px;
-      width: 300px;
-      height: 40px;
-      font-size: 1.2em;
-      border: none;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      transition: width 0.3s;
-    }
+      .search-card .el-input__inner:focus {
+        width: clamp(250px, 30vw, 400px);
+      }
 
-    .search-card .el-input__inner:focus {
-      width: 400px;
-    }
+      .main-container {
+        display: flex;
+        flex-direction: column;
+        margin-top: 20px;
+        padding: 20px;
+        min-height: calc(100vh - 80px);
+      }
 
-    .main-container {
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-      min-height: calc(100vh - 80px);
-    }
+      .content {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        padding: 10px;
+        flex-grow: 1;
+      }
 
-    .content {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      grid-template-rows: repeat(3, 1fr);
-      gap: 20px;
-      padding: 10px;
-      flex-grow: 1;
-    }
+      .el-card {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        background: rgba(255, 255, 255, 0.6);
+        border-radius: 8px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        position: relative;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        border: none;
+      }
 
-    .el-card {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.6);
-      border-radius: 8px;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      position: relative;
-      transition: transform 0.3s ease;
-    }
+      .el-card:hover {
+        transform: scale(1.02);
+        cursor: pointer;
+      }
 
-    .el-card:hover {
-      transform: scale(1.05);
-    }
+      .el-image {
+        object-fit: cover;
+        transition: opacity 0.3s ease;
+      }
 
-    .el-image {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      transition: opacity 0.3s ease;
-    }
+      .el-image:hover {
+        opacity: 0.8;
+      }
 
-    .el-image:hover {
-      opacity: 0.8;
-    }
+      .file-info {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.6);
+        color: white;
+        text-align: center;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        box-sizing: border-box;
+      }
 
-    .file-info {
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      text-align: center;
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      box-sizing: border-box;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+      .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.6);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
 
-    .image-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0, 0, 0, 0.6);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      pointer-events: none;
-    }
+      .el-card:hover .image-overlay {
+        opacity: 1;
+      }
 
-    .el-card:hover .image-overlay {
-      opacity: 1;
-    }
+      .overlay-buttons {
+        display: flex;
+        gap: 10px;
+        pointer-events: auto;
+      }
 
-    .overlay-buttons {
-      display: flex;
-      gap: 10px;
-      pointer-events: auto;
-    }
+      .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 16px;
+      }
 
-    .pagination-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
-      padding-bottom: 20px;
-    }
+      .collect-icon {
+        position: absolute;
+        top: -1.3px;
+        left: 10px;
+        cursor: pointer;
+        font-size: 1.5em;
+        z-index: 10;
+        transition: color 0.3s ease, transform 0.3s ease;
+      }
+      .collect-icon:hover {transform: scale(1.2);}
+      .liked {color: #FFD7E4;}
+      .not-liked {color: #b39edb80;}
 
-    .el-checkbox {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      transform: scale(1.5);
-      z-index: 10;
-    }
-  </style>
-</head>
+      .el-checkbox {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        transform: scale(1.5);
+        z-index: 10;
+      }
 
-<body>
-  <div id="app">
-    <el-container>
-      <el-header>
-        <div class="header-content">
-          <span class="title" @click="refreshDashboard">Dashboard</span>
-          <div class="search-card">
-            <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
-          </div>
-          <span class="stats">
-            <i class="fas fa-database"></i> 记录总数量: {{ Number }}
-          </span>
-          <div class="actions">
-            <el-tooltip content="排序" placement="bottom">
-              <el-dropdown @command="sort" :hide-on-click="false">
-                <span class="el-dropdown-link">
-                  <i :class="sortIcon"></i>
+      .footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        margin-top: 20px;
+        font-size: 0.9em;
+        color: #555; /* 字体颜色改为黑色 */
+      }
+
+      .footer a {
+        color: #555; /* 链接颜色 */
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .footer a:hover {
+        color: #333; /* 悬停时的链接颜色改为黑色 */
+      }
+
+      .footer i {
+        color: #333; /* 图标颜色改为黑色 */
+      }
+
+      /* 适配移动端 */
+      @media (max-width: 768px) {
+        .content {
+          grid-template-columns: 1fr; /* 单列布局 */
+          gap: 10px;
+        }
+        .header-content{padding: 8px 12px;}
+        .stats, .actions i{margin: 0;}
+        .el-card{aspect-ratio: unset; min-height: 180px;}
+        .el-card__body{padding: 0;}
+        .search-card {display: none;}
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <el-container>
+        <el-header>
+          <div class="header-content">
+            <span class="title" @click="refreshDashboard">Dashboard</span>
+            <div class="search-card">
+              <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
+            </div>
+            <el-tooltip content="批量上传" placement="bottom">
+                <span class="stats" @click="handleUpload">
+                  <i class="fas fa-upload upload-icon"></i>记录数: {{ Number }}
                 </span>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item command="dateDesc"
-                    :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
-                  <el-dropdown-item command="nameAsc"
-                    :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
             </el-tooltip>
-            <el-tooltip content="批量复制" placement="bottom">
-              <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
-            </el-tooltip>
-            <el-tooltip content="批量删除" placement="bottom">
-              <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }"
-                @click="handleBatchDelete"></i>
-            </el-tooltip>
-            <el-tooltip content="退出登录" placement="bottom">
-              <i class="fas fa-home" @click="handleLogout"></i>
-            </el-tooltip>
+            <input type="file" ref="fileInput" style="display: none;" multiple @change="uploadFiles">
+            <div class="actions">
+              <el-tooltip content="排序" placement="bottom">
+                <el-dropdown @command="sort" :hide-on-click="false">
+                  <span class="el-dropdown-link">
+                    <i :class="sortIcon"></i>
+                  </span>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
+                    <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+              </el-tooltip>
+              <el-tooltip content="批量复制" placement="bottom">
+                <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
+              </el-tooltip>
+              <el-tooltip content="批量删除" placement="bottom">
+                <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
+              </el-tooltip>
+              <el-tooltip content="退出登录" placement="bottom">
+                <i class="fas fa-home" @click="handleLogout"></i>
+              </el-tooltip>
+            </div>
           </div>
-        </div>
-      </el-header>
-      <el-main class="main-container">
-        <div class="content">
-          <template v-for="(item, index) in paginatedTableData" :key="index">
-            <el-card>
-              <el-checkbox v-model="item.selected"></el-checkbox>
-              <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover"
-                lazy></el-image>
-              <div class="image-overlay">
-                <div class="overlay-buttons">
-                  <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
-                  <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+        </el-header>
+        <el-main class="main-container">
+          <div class="content">
+            <template v-for="(item, index) in paginatedTableData" :key="index">
+              <el-card>
+                <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
+                  <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
+                </span>
+                <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
+                <el-image
+                  :src="'/file/' + item.name"
+                  :preview-src-list="['/file/' + item.name]"
+                  fit="cover"
+                  lazy></el-image>
+                <div class="image-overlay">
+                  <div class="overlay-buttons">
+                    <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
+                    <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+                  </div>
                 </div>
-              </div>
-              <div class="file-info">{{ item.name }}</div>
-            </el-card>
-          </template>
-        </div>
-        <div class="pagination-container">
-          <el-pagination background layout="prev, pager, next" :total="filteredTableData.length" :page-size="pageSize"
-            @current-change="handlePageChange" :current-page.sync="currentPage">
-          </el-pagination>
-        </div>
-      </el-main>
-    </el-container>
-  </div>
-
+                <div class="file-info">{{ item.name }}</div>
+              </el-card>
+            </template>
+          </div>
+          <div class="pagination-container">
+            <el-pagination
+              background
+              layout="prev, pager, next"
+              :total="filteredTableData.length"
+              :page-size="pageSize"
+              @current-change="handlePageChange"
+              :current-page.sync="currentPage">
+            </el-pagination>
+          </div>
+          <el-footer class="footer">
+            <div>Powered By</div>
+            <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener noreferrer">
+              <div><i class="fa-brands fa-github"></i> Telegraph-Image</div>
+            </a>
+          </el-footer>
+        </el-main>
+      </el-container>
+    </div>
+  </body>
   <!-- Import Vue before Element -->
   <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
   <!-- Import JavaScript -->
@@ -311,15 +384,14 @@
     new Vue({
       el: '#app',
       data: {
+        baseURL: document.location.origin,
         Number: 0,
-        showLogoutButton: false,
         tableData: [],
         search: '',
         currentPage: 1,
         pageSize: 15,
         selectedFiles: [],
         sortOption: 'dateDesc',
-        isUploading: false
       },
       computed: {
         filteredTableData() {
@@ -332,7 +404,7 @@
           return sortedData.slice(start, end);
         },
         sortIcon() {
-          return this.sortOption === 'dateDesc' ? 'fas fa-sort-amount-down' : 'fas fa-sort-alpha-up';
+          return this.sortOption === 'dateDesc' ? 'fas  fa-sort-amount-down' : 'fas fa-sort-alpha-up';
         }
       },
       watch: {
@@ -350,6 +422,178 @@
         refreshDashboard() {
           location.reload();
         },
+        calculatePageSize() {
+          const minPageSize = 15;
+          const cardMinWidth = 240; // 卡片最小宽度
+          const cardAspectRatio = 3 / 4; // 卡片的高宽比
+          const gap = 20; // 卡片间的间隙
+
+          const contentElement = document.querySelector('.content');
+          const containerWidth = contentElement ? contentElement.clientWidth : 800;
+          const columns = Math.floor(containerWidth / (cardMinWidth + gap));
+
+          const headerElement = document.querySelector('.header-content');
+          const headerHeight = headerElement ? headerElement.offsetHeight : 60; // 使用默认值60px
+          const containerHeight = window.innerHeight - headerHeight;
+          const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
+          const rows = Math.floor(containerHeight / (cardHeight + gap));
+
+          this.pageSize = Math.max(rows * columns, minPageSize);
+        },
+        updateWindowWidth() {
+          this.windowWidth = window.innerWidth;
+          this.calculatePageSize();
+        },
+        handleUpload() {
+          this.$refs.fileInput.click();
+        },
+        uploadFiles(event) {
+          const files = event.target.files;
+          if (files.length === 0) return;
+
+          // 过滤文件类型和大小
+          const validFiles = [];
+          const invalidTypeFiles = [];
+          const oversizedFiles = [];
+
+          Array.from(files).forEach(file => {
+            const isValidType = file.type.startsWith('image/') || file.type.startsWith('video/');
+            const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
+
+            if (!isValidType) {
+              invalidTypeFiles.push(file.name);
+            } else if (!isValidSize) {
+              oversizedFiles.push(file.name);
+            } else {
+              validFiles.push(file);
+            }
+          });
+
+          // 显示错误消息
+          if (invalidTypeFiles.length > 0) {
+            this.$message.error(`以下文件类型不支持: ${invalidTypeFiles.join(', ')}`);
+          }
+          if (oversizedFiles.length > 0) {
+            this.$message.error(`以下文件超过5MB: ${oversizedFiles.join(', ')}`);
+          }
+
+          if (validFiles.length === 0) {
+            this.$message.info('没有符合条件的文件');
+            return;
+          }
+
+          console.log("ValidFiles: ", validFiles);
+          this.$confirm(`确定要上传这 ${validFiles.length} 个文件吗?`, '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            // 显示上传进度
+            const loadingMessage = this.$message({
+              message: '上传中...',
+              duration: 0,
+              showClose: false,
+            });
+
+            const maxConcurrent = 3; // 最大并发数
+            let current = 0;
+            let successCount = 0;
+            let failedUploads = [];
+
+            const uploadNext = () => {
+              if (current >= validFiles.length) {
+                // 检查是否所有文件都已处理
+                if (successCount + failedUploads.length === validFiles.length) {
+                  loadingMessage.close();
+                  if (successCount > 0) {
+                    this.$message.success(`成功上传 ${successCount} 个文件!`);
+                  }
+                  if (failedUploads.length > 0) {
+                    this.$message.error(`上传失败: ${failedUploads.join(', ')}`);
+                  }
+                  // 刷新文件列表
+                  this.refreshFileList();
+                }
+                return;
+              }
+
+              const file = validFiles[current];
+              current++;
+
+              const formData = new FormData();
+              formData.append('file', file);
+
+              fetch(this.baseURL + '/upload', {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+              }).then(response => {
+                if (!response.ok) {
+                  throw new Error(`上传失败: ${file.name}`);
+                }
+                return response.json();
+              }).then(result => {
+                if (Array.isArray(result) && result.length > 0 && result[0].error) {
+                  // 响应内容中包含错误
+                  throw new Error(result[0].error || `上传失败: ${file.name}`);
+                }
+
+                // 确保 result[0].src 存在
+                if (!result[0].src) {
+                  throw new Error(`上传成功但未返回文件路径: ${file.name}`);
+                }
+
+                successCount++;
+
+                // 处理成功上传的文件
+                const previewUrl = `${this.baseURL}${result[0].src}`;
+                if (result[0].src) {
+                  fetch(previewUrl, { method: 'GET', credentials: 'include' })
+                    .then(response => {
+                      if (!response.ok) {
+                        console.error(`无法获取文件: ${previewUrl}`);
+                      } else {
+                        this.tableData.unshift({
+                          name: result[0].src.replace(/^\/file\//, ''),
+                          selected: false,
+                          metadata: { TimeStamp: Date.now() }
+                        });
+                      }
+                    }).catch(error => {
+                      console.error(`获取文件时出错: ${previewUrl}`, error);
+                    });
+                }
+              }).catch(error => {
+                failedUploads.push(file.name); // 记录失败的文件名称
+                console.error(error.message);
+              }).finally(() => {
+                uploadNext(); // 继续上传下一个文件
+              });
+            };
+
+            // 启动初始的并发上传任务
+            for (let i = 0; i < maxConcurrent && i < validFiles.length; i++) {
+              uploadNext();
+            }
+
+          }).catch(() => {
+            this.$message.info('已取消上传');
+          });
+
+          // 清空文件输入，以便可以重复选择相同的文件
+          event.target.value = '';
+        },
+        refreshFileList() {
+          // 重新获取文件列表
+          fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
+            .then(response => response.json())
+            .then(result => {
+              this.tableData = result.map(file => ({ ...file, selected: false }));
+              this.updateStats();
+              this.sortData(this.tableData);
+            })
+            .catch(() => this.$message.error('刷新文件列表失败，请检查网络连接'));
+        },
         handleDelete(index, key) {
           this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
             confirmButtonText: '确定',
@@ -360,7 +604,7 @@
               .then(response => response.ok ? this.tableData.splice(index, 1) : Promise.reject())
               .then(() => {
                 this.updateStats();
-                this.$message.success('删除成功!');
+                this.$message.success('删除成功！');
               })
               .catch(() => this.$message.error('删除失败，请检查网络连接'));
           }).catch(() => this.$message.info('已取消删除'));
@@ -411,12 +655,53 @@
           window.location.href = '/';
         },
         handleCopy(index, key) {
-          const text = `${document.location.origin}/file/${key}`;
+          const text = `${this.baseURL}/file/${key}`;
           navigator.clipboard ? navigator.clipboard.writeText(text).then(() => this.$message.success('复制文件链接成功~')) :
             this.copyToClipboardFallback(text);
         },
         handlePageChange(page) {
           this.currentPage = page;
+        },
+        // 处理收藏事件
+        toggleLike(index, key) {
+          console.log(`Toggling like for image: ${key}`);
+
+          // 乐观更新收藏状态
+          if (this.tableData[index].metadata.liked === undefined) {
+            this.tableData[index].metadata.liked = false;
+          }
+          this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
+
+          // 发送请求更新服务器数据
+          var requestOptions = {
+            method: 'GET',
+            redirect: 'follow',
+            credentials: 'include'
+          };
+
+          fetch(`./api/manage/toggleLike/${key}`, requestOptions)
+            .then(response => response.json())
+            .then(result => {
+              if (!result.success) {
+                // 如果服务器更新失败，将状态还原
+                this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
+                this.$message({
+                  message: '更新收藏状态失败，请稍后重试',
+                  type: 'error'
+                });
+              } else {
+                this.$message.success('更新收藏状态成功');
+              }
+            })
+            .catch(error => {
+              console.error("An error occurred while synchronizing data with the server", error);
+              // 如果服务器响应错误，将状态还原
+              this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
+              this.$message({
+                message: '同步服务器失败，请检查网络连接',
+                type: 'error'
+              });
+            });
         },
         updateStats() {
           this.Number = this.tableData.length;
@@ -430,6 +715,8 @@
         }
       },
       mounted() {
+        window.addEventListener('resize', this.calculatePageSize);
+        this.updateWindowWidth();
         fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
           .then(response => response.text())
           .then(result => {
@@ -446,7 +733,15 @@
         fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
           .then(response => response.json())
           .then(result => {
-            this.tableData = result.map(file => ({ ...file, selected: false }));
+            console.log("result: ", result);
+            this.tableData = result.map(file => ({
+              ...file,
+              selected: false,
+              metadata: {
+                ...file.metadata,
+                liked: file.metadata.liked !== undefined ? file.metadata.liked : false
+              }
+            }));
             this.updateStats();
             const savedSortOption = localStorage.getItem('sortOption');
             if (savedSortOption) {
@@ -455,9 +750,10 @@
             this.sortData(this.tableData);
           })
           .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+      },
+      beforeDestroy() {
+        window.removeEventListener('resize', this.calculatePageSize);
       }
     });
   </script>
-</body>
-
-</html>
+  </html>
