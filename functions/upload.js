@@ -10,7 +10,7 @@ export async function onRequestPost(context) {
 
         await errorHandling(context);
         telemetryData(context);
-        
+
         const uploadFile = formData.get('file');
         if (!uploadFile) {
             throw new Error('No file uploaded');
@@ -27,6 +27,9 @@ export async function onRequestPost(context) {
         if (uploadFile.type.startsWith('image/')) {
             telegramFormData.append("photo", uploadFile);
             apiEndpoint = 'sendPhoto';
+        } else if (uploadFile.type.startsWith('audio/')) {
+            telegramFormData.append("audio", uploadFile);
+            apiEndpoint = 'sendAudio';
         } else {
             telegramFormData.append("document", uploadFile);
             apiEndpoint = 'sendDocument';
@@ -88,6 +91,7 @@ function getFileId(response) {
     }
     if (result.document) return result.document.file_id;
     if (result.video) return result.video.file_id;
+    if (result.audio) return result.audio.file_id;
 
     return null;
 }
