@@ -691,11 +691,6 @@
               图标需在 <a href="https://fontawesome.com/v6/search?m=free" target="_blank" style="color: #409EFF; text-decoration: underline">Font Awesome</a> 中选择
             </div>
           `,
-          inputStyle: {
-            minHeight: '200px',
-            width: '100%',
-            fontFamily: 'monospace'
-          },
           inputValidator: (value) => {
             const lines = value.split('\n');
             if (lines.length > 10) return '不能超过10行';

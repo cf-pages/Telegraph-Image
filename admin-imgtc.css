@@ -437,3 +437,7 @@ body {
     gap: 16px;
   }
 }
+
+.website-edit-dialog .el-textarea__inner {
+  height: 240px;
+}
