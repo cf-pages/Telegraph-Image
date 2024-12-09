@@ -299,15 +299,11 @@ body {
   position: relative;
   justify-content: center;
   align-items: center;
-  max-height: 256px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
 .video-card{
-  height: 100%;
-  display: flex;
-  flex-direction: column;
   background: linear-gradient(135deg, rgba(178, 107, 255, 0.85) 0%, rgba(138, 180, 255, 0.85) 100%);
 }
 
@@ -327,24 +323,9 @@ body {
   padding: 12px;
   color: white;
   width: 100%;
-  height: 100%;
   box-sizing: border-box;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.video-content{
-  display: flex;
-  flex-direction: column;
-}
-
-.video-content video {
-  flex: 1;
-  width: 100%;
-  height: calc(100% - 60px);
-  object-fit: cover;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.1);
 }
 
 .audio-header {
