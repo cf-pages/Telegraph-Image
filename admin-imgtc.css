@@ -425,6 +425,10 @@ body {
   transform: scale(1.05);
 }
 
+.custom-popover{
+  cursor: default;
+}
+
 /* 移动端适配 */
 @media (max-width: 768px) {
   .audio-card { max-height: none; }
