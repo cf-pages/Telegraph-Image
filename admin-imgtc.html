@@ -63,12 +63,25 @@
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
+            <el-tooltip content="快捷方式" placement="bottom">
+              <el-dropdown @command="handleWebsite">
+                <span class="el-dropdown-link"><i class="fas fa-link"></i></span>
+                <el-dropdown-menu slot="dropdown">
+                  <template v-for="site in quickWebsites">
+                    <el-dropdown-item :command="site.url">
+                      <i :class="site.icon"></i> {{ site.name }}
+                    </el-dropdown-item>
+                  </template>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-tooltip>
             <el-tooltip content="工具箱" placement="bottom">
               <el-dropdown @command="handleToolkit" :hide-on-click="false">
                 <span class="el-dropdown-link"><i class="fas fa-toolbox"></i></span>
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item command="selectAllInPage"><i class="fas fa-check-square"></i> 全选当前页</el-dropdown-item>
                   <el-dropdown-item command="checkBrokenFiles"><i class="fas fa-wrench"></i> 检测失效文件</el-dropdown-item>
+                  <el-dropdown-item command="editWebsites"><i class="fas fa-edit"></i> 编辑快捷方式</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
@@ -186,7 +199,7 @@
                       <i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i>
                     </button>
                     <button class="control-btn" @click.stop="handleCopy(index, item.name)">
-                      <i class="fas fa-link"></i>
+                      <i class="fas fa-copy"></i>
                     </button>
                     <button class="control-btn" @click.stop="handleDelete(index, item.name)">
                       <i class="fas fa-trash-alt"></i>
@@ -236,6 +249,11 @@
         video: '视频',
         audio: '音频'
       },
+      uploadConfig: {
+        maxSize: 20 * 1024 * 1024,  // 最大上传20MB
+        validTypes: ['image/', 'video/', 'audio/'],
+        maxConcurrent: 3
+      },
       tableData: [],
       search: '',
       currentPage: 1,
@@ -244,6 +262,15 @@
       sortOption: 'dateDesc',
       filterOption: 'all',
       fileType: 'image',
+
+      quickWebsites: [
+        { name: '原版后台', url: './admin.html', icon: 'fas fa-suitcase' },
+        { name: '瀑布流', url: './admin-waterfall.html', icon: 'fas fa-wind' },
+        { name: 'Movavi', url: 'https://www.movavi.com/zh/movavi-video-converter.html', icon: 'fas fa-file-video' },
+        { name: 'FreeConvert', url: 'https://www.freeconvert.com/zh/video-compressor', icon: 'fas fa-file' },
+        { name: 'YouCompress', url: 'https://www.youcompress.com/zh-cn/', icon: 'fas fa-file-zipper' },
+        { name: 'Cloudinary', url: 'https://console.cloudinary.com/', icon: 'fas fa-cloud' },
+      ],
     },
     computed: {
       filteredTableData() {
@@ -364,11 +391,7 @@
         // 文件验证配置
         // telegram-bot可分发的最大文件大小（20MB）
         // 大于20MB虽然能够成功上传，但无法获取文件链接
-        const config = {
-          maxSize: 20 * 1024 * 1024,
-          validTypes: ['image/', 'video/', 'audio/'],
-          maxConcurrent: 3
-        };
+        const config = this.uploadConfig;
         // 文件分类
         const { valid, errors } = files.reduce((acc, file) => {
           const isValidType = config.validTypes.some(type => file.type.startsWith(type));
@@ -381,7 +404,7 @@
         // 显示错误信息
         [
           [errors.type, '文件类型不支持'],
-          [errors.size, `文件超过20MB`]
+          [errors.size, `文件超过${config.maxSize / 1024 / 1024}MB`]
         ].forEach(([files, msg], index) => {
           setTimeout(() => files.length && this.$message.error({message: `${msg}: ${files.join(', ')}`}, 100), index * 1000);
         });
@@ -584,13 +607,14 @@
           case 'unblock': this.handleBatchBlockOrUnblock('White'); break;
         }
       },
+      // 工具相关
       handleToolkit(command) {
         switch (command) {
-          case 'checkBrokenFiles': this.checkBrokenFiles(); break;
           case 'selectAllInPage': this.selectAllInPage(); break;
+          case 'checkBrokenFiles': this.checkBrokenFiles(); break;
+          case 'editWebsites': this.editWebsites(); break;
         }
       },
-      // 工具相关
       switchFileType(type) {  // 切换文件类型
         this.fileType = type;
         this.currentPage = 1;
@@ -646,6 +670,58 @@
           }
         });
       },
+      // 处理网站点击
+      handleWebsite(url) { window.open(url, '_blank'); },
+      // 编辑快捷方式
+      editWebsites() {
+        const websiteText = this.quickWebsites
+          .map(site => `${site.name}|${site.url}|${site.icon}`)
+          .join('\n');
+
+        this.$prompt('', '编辑快捷方式', {
+          inputType: 'textarea',
+          inputValue: websiteText,
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          dangerouslyUseHTMLString: true,
+          customClass: 'website-edit-dialog',
+          message: `
+            <div>
+              每行一个网站，格式：名称|网址|图标类名<br>
+              图标需在 <a href="https://fontawesome.com/v6/search?m=free" target="_blank" style="color: #409EFF; text-decoration: underline">Font Awesome</a> 中选择
+            </div>
+          `,
+          inputStyle: {
+            minHeight: '200px',
+            width: '100%',
+            fontFamily: 'monospace'
+          },
+          inputValidator: (value) => {
+            const lines = value.split('\n');
+            if (lines.length > 10) return '不能超过10行';
+            for (let line of lines) {
+              if (!line.trim()) continue;
+              const [name, url, icon = 'fas fa-link'] = line.split('|');
+              if (!name || !url) return '名称和网址不能为空：' + line;
+              if (!(/^https?:\/\/.+/.test(url) || /^\.\/.*/.test(url))) return '网址格式错误：'+line;
+              if (!/^(fas?|fa-brands|fa-regular|fa-solid)\s+fa-[a-z0-9-]+$/.test(icon)) {
+                return '图标类名格式错误：' + line;
+              }
+            }
+            return true;
+          }
+        }).then(({ value }) => {
+          const newSites = value.split('\n')
+            .filter(line => line.trim())
+            .map(line => {
+              const [name, url, icon = 'fas fa-link'] = line.split('|');
+              return { name, url, icon };
+            });
+          this.quickWebsites = newSites;
+          localStorage.setItem('quickWebsites', JSON.stringify(newSites));
+          this.$message.success('保存成功');
+        }).catch(() => {});
+      }
     },
     mounted() {
       window.addEventListener('resize', this.calculatePageSize);
@@ -676,6 +752,12 @@
           this.switchFileType(this.fileType);
         })
         .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+
+      // 加载保存的快捷网站列表
+      const savedWebsites = localStorage.getItem('quickWebsites');
+      if (savedWebsites) {
+        this.quickWebsites = JSON.parse(savedWebsites);
+      }
     },
     beforeDestroy() {
       window.removeEventListener('resize', this.calculatePageSize);
