@@ -94,11 +94,18 @@
                 </div>
               </div>
               <div class="card-footer">
-                <el-popover trigger="hover" placement="top" :show-after="1000">
-                  <p v-html="formattedFileDetails(item)"></p>
-                  <div slot="reference">
+                <el-popover
+                  trigger="hover"
+                  placement="top"
+                  :show-after="1000"
+                  :hide-after="200"
+                  popper-class="custom-popover">
+                  <template #default>
+                    <p v-html="formattedFileDetails(item)"></p>
+                  </template>
+                  <template #reference>
                     <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</span>
-                  </div>
+                  </template>
                 </el-popover>
               </div>
               </el-card>
@@ -109,11 +116,18 @@
                 <div class="video-content">
                   <video :src="'/file/' + item.name" controls style="width: 100%; height: 100%; object-fit: cover;"></video>
                   <div class="video-title">
-                    <el-popover trigger="hover" placement="top" :show-after="1000">
-                      <p v-html="formattedFileDetails(item)"></p>
-                      <div slot="reference">
+                    <el-popover
+                      trigger="hover"
+                      placement="top"
+                      :show-after="1000"
+                      :hide-after="200"
+                      popper-class="custom-popover">
+                      <template #default>
+                        <p v-html="formattedFileDetails(item)"></p>
+                      </template>
+                      <template #reference>
                         <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</span>
-                      </div>
+                      </template>
                     </el-popover>
                   </div>
                     <!-- 控制按钮区域 -->
@@ -145,11 +159,19 @@
                     </div>
                     <div class="audio-info">
                       <div class="audio-title">
-                        <el-popover trigger="hover" placement="top" :show-after="1000">
-                          <p v-html="formattedFileDetails(item)"></p>
-                          <div slot="reference">
+                        <el-popover
+                          trigger="hover"
+                          placement="top"
+                          :show-after="1000"
+                          :hide-after="200"
+                          :enterable="false"
+                          popper-class="custom-popover">
+                          <template #default>
+                            <p v-html="formattedFileDetails(item)"></p>
+                          </template>
+                          <template #reference>
                             <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</span>
-                          </div>
+                          </template>
                         </el-popover>
                       </div>
                       <div class="audio-subtitle">Audio File</div>
