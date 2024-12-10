@@ -21,7 +21,7 @@ export async function onRequest(context) {
         console.log(url.pathname.split(".")[0].split("/")[2])
         const filePath = await getFilePath(env, url.pathname.split(".")[0].split("/")[2]);
         console.log(filePath)
-        fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;  
+        fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;
 
     }
 
@@ -37,7 +37,8 @@ export async function onRequest(context) {
     // If the response is OK, proceed with further checks
     if (response.ok) {
         // Allow the admin page to directly view the image
-        if (request.headers.get('Referer') === `${url.origin}/admin`) {
+        const isAdmin = request.headers.get('Referer')?.includes(`${url.origin}/admin`);
+        if (isAdmin) {
             return response;
         }
 
