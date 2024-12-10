@@ -69,7 +69,7 @@ export async function onRequestPost(context) {
                     ListType: "None",
                     Label: "None",
                     liked: false,
-                    originalName: fileName,
+                    fileName: fileName,
                 }
             });
         }

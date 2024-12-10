@@ -104,9 +104,10 @@
                 <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover" lazy="true"></el-image>
                 <div class="image-overlay">
                   <div class="overlay-buttons">
-                  <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
-                  <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
-                </div>
+                    <el-button size="mini" type="info" @click.stop="handleEditName(item)">编辑</el-button>
+                    <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制</el-button>
+                    <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
+                  </div>
               </div>
               <div class="card-footer">
                 <el-popover
@@ -118,7 +119,7 @@
                   </template>
                   <template #reference>
                     <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">
-                      {{ item.metadata.originalName || item.name }}
+                      {{ item.metadata.fileName || item.name }}
                     </span>
                   </template>
                 </el-popover>
@@ -139,26 +140,17 @@
                         <p v-html="formattedFileDetails(item)"></p>
                       </template>
                       <template #reference>
-                        <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">
-                          {{ item.metadata.originalName || item.name }}
-                        </span>
+                        <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.metadata.fileName || item.name }}</span>
                       </template>
                     </el-popover>
                   </div>
                     <!-- 控制按钮区域 -->
                   <div class="video-controls">
-                    <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)">
-                      <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
-                    </button>
-                    <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)">
-                      <i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i>
-                    </button>
-                    <button class="control-btn" @click.stop="handleCopy(index, item.name)">
-                      <i class="fas fa-link"></i>
-                    </button>
-                    <button class="control-btn" @click.stop="handleDelete(index, item.name)">
-                      <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)"><i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i></button>
+                    <button class="control-btn edit-btn" @click.stop="handleEditName(item)"><i class="fas fa-edit"></i></button>
+                    <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)"><i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i></button>
+                    <button class="control-btn" @click.stop="handleCopy(index, item.name)"><i class="fas fa-link"></i></button>
+                    <button class="control-btn" @click.stop="handleDelete(index, item.name)"><i class="fas fa-trash-alt"></i></button>
                   </div>
                 </div>
               </el-card>
@@ -182,9 +174,7 @@
                             <p v-html="formattedFileDetails(item)"></p>
                           </template>
                           <template #reference>
-                            <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">
-                              {{ item.metadata.originalName || item.name }}
-                            </span>
+                            <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.metadata.fileName || item.name }}</span>
                           </template>
                         </el-popover>
                       </div>
@@ -200,18 +190,11 @@
                   </audio>
                   <!-- 控制按钮区域 -->
                   <div class="audio-controls">
-                    <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)">
-                      <i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i>
-                    </button>
-                    <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)">
-                      <i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i>
-                    </button>
-                    <button class="control-btn" @click.stop="handleCopy(index, item.name)">
-                      <i class="fas fa-copy"></i>
-                    </button>
-                    <button class="control-btn" @click.stop="handleDelete(index, item.name)">
-                      <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)"><i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i></button>
+                    <button class="control-btn edit-btn" @click.stop="handleEditName(item)"><i class="fas fa-edit"></i></button>
+                    <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)"><i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i></button>
+                    <button class="control-btn" @click.stop="handleCopy(index, item.name)"><i class="fas fa-copy"></i></button>
+                    <button class="control-btn" @click.stop="handleDelete(index, item.name)"><i class="fas fa-trash-alt"></i></button>
                   </div>
                 </div>
               </el-card>
@@ -235,9 +218,7 @@
                             <p v-html="formattedFileDetails(item)"></p>
                           </template>
                           <template #reference>
-                            <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">
-                              {{ item.metadata.originalName || item.name }}
-                            </span>
+                            <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.metadata.fileName || item.name }}</span>
                           </template>
                         </el-popover>
                       </div>
@@ -247,6 +228,7 @@
                   <!-- 控制按钮区域 -->
                   <div class="file-controls">
                     <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)"><i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i></button>
+                    <button class="control-btn edit-btn" @click.stop="handleEditName(item)"><i class="fas fa-edit"></i></button>
                     <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)"><i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i></button>
                     <button class="control-btn" @click.stop="handleCopy(index, item.name)"><i class="fas fa-copy"></i></button>
                     <button class="control-btn" @click.stop="handleDelete(index, item.name)"><i class="fas fa-trash-alt"></i></button>
@@ -333,7 +315,7 @@
           // 搜索匹配
           const searchLower = this.search.toLowerCase();
           const matchesSearch = !searchLower || [
-            (data.metadata.originalName || '').toLowerCase(),
+            (data.metadata.fileName || '').toLowerCase(),
             data.name?.toLowerCase(),
           ].some(field => field?.includes(searchLower));
 
@@ -393,16 +375,17 @@
       sort(command) { this.sortOption = command; },  // 切换排序方式
       filter(command) { this.filterOption = command; },  // 切换筛选方式
       sortData(data) {
-        return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
+        return this.sortOption === 'nameAsc' ? data.sort((a, b) =>
+          (a.metadata.fileName || a.name).localeCompare(b.metadata.fileName || b.name)) :
           data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
       },
       formattedFileDetails(item) {
         const metadata = item.metadata;
-        const timestamp = new Date(metadata.TimeStamp).toLocaleString();
+        const timestamp = new Date(metadata.TimeStamp).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
         return `
           <div style="text-align: left; padding: 5px;">
-            <div><strong>当前文件名：</strong>${item.name}</div>
-            <div><strong>原始文件名：</strong>${metadata.originalName || '未知'}</div>
+            <div><strong>ID：</strong>${item.name}</div>
+            <div><strong>文件名：</strong>${metadata.fileName || item.name}</div>
             <div><strong>上传时间：</strong>${timestamp}</div>
             <div><strong>元数据：</strong>${JSON.stringify(metadata)}</div>
           </div>
@@ -794,6 +777,33 @@
       getFileType(filename) {
         const ext = filename.split('.').pop();
         return `${ext.toUpperCase()}`;
+      },
+      handleEditName(item) {
+        this.$prompt('', '修改文件名', {
+          inputValue: item.metadata?.fileName || item.name,
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputValidator: (value) => {
+            if (!value) return '文件名不能为空';
+            if (value.length > 64) return '文件名不能超过64个字符';
+            return true;
+          }
+        }).then(({ value }) => {
+          fetch(`./api/manage/editName/${item.name}?newName=${encodeURIComponent(value)}`, {
+            method: 'GET',
+            credentials: 'include'
+          })
+          .then(response => response.json())
+          .then(result => {
+            if (result.success) {
+              item.metadata.fileName = value;
+              this.$message.success('文件名修改成功');
+            } else {
+              this.$message.error('文件名修改失败');
+            }
+          })
+          .catch(() => this.$message.error('修改文件名时出错，请检查网络连接'));
+        }).catch(() => {});
       }
     },
     mounted() {

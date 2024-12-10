@@ -53,7 +53,7 @@ export async function onRequest(context) {
                     Label: record.metadata.Label || "None",
                     TimeStamp: record.metadata.TimeStamp || Date.now(),
                     liked: record.metadata.liked !== undefined ? record.metadata.liked : false,
-                    originalName: record.metadata.originalName || params.id,    // 添加原始文件名
+                    fileName: record.metadata.fileName || params.id,    // 添加原始文件名
                 };
 
                 // Handle based on ListType and Label
@@ -72,7 +72,7 @@ export async function onRequest(context) {
             } else {
                 // If metadata does not exist, initialize it in KV with default values
                 await env.img_url.put(params.id, "", {
-                    metadata: { ListType: "None", Label: "None", TimeStamp: Date.now(), liked: false, originalName: params.id },
+                    metadata: { ListType: "None", Label: "None", TimeStamp: Date.now(), liked: false, fileName: params.id },
                 });
             }
         }
@@ -85,7 +85,7 @@ export async function onRequest(context) {
 
             if (env.img_url) {
                 await env.img_url.put(params.id, "", {
-                    metadata: { ListType: "None", Label: moderateData.rating_label, TimeStamp: record.metadata.TimeStamp || Date.now(), liked: false, originalName: record.metadata.originalName || params.id },
+                    metadata: { ListType: "None", Label: moderateData.rating_label, TimeStamp: record.metadata.TimeStamp || Date.now(), liked: false, fileName: record.metadata.fileName || params.id },
                 });
             }
 
@@ -96,7 +96,7 @@ export async function onRequest(context) {
             // Add image to KV with default metadata if ModerateContentApiKey is not available
             console.log("KV not enabled for moderation, adding default metadata.");
             await env.img_url.put(params.id, "", {
-                metadata: { ListType: "None", Label: "None", TimeStamp: record.metadata.TimeStamp || Date.now(), liked: false, originalName: record.metadata.originalName || params.id },
+                metadata: { ListType: "None", Label: "None", TimeStamp: record.metadata.TimeStamp || Date.now(), liked: false, fileName: record.metadata.fileName || params.id },
             });
         }
     }
