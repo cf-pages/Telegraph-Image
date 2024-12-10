@@ -61,6 +61,19 @@ export async function onRequestPost(context) {
             throw new Error('Failed to get file ID');
         }
 
+        // 将文件信息保存到 KV 存储
+        if (env.img_url) {
+            await env.img_url.put(`${fileId}.${fileExtension}`, "", {
+                metadata: {
+                    TimeStamp: Date.now(),
+                    ListType: "None",
+                    Label: "None",
+                    liked: false,
+                    originalName: fileName,
+                }
+            });
+        }
+
         return new Response(
             JSON.stringify([{ 'src': `/file/${fileId}.${fileExtension}` }]),
             {

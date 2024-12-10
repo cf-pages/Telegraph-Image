@@ -29,6 +29,7 @@
                   <el-dropdown-item command="image" :class="{ 'el-dropdown-menu__item--selected': fileType === 'image' }"><i class="fas fa-image"></i> 图片</el-dropdown-item>
                   <el-dropdown-item command="video" :class="{ 'el-dropdown-menu__item--selected': fileType === 'video' }"><i class="fas fa-video"></i> 视频</el-dropdown-item>
                   <el-dropdown-item command="audio" :class="{ 'el-dropdown-menu__item--selected': fileType === 'audio' }"><i class="fas fa-music"></i> 音频</el-dropdown-item>
+                  <el-dropdown-item command="document" :class="{ 'el-dropdown-menu__item--selected': fileType === 'document' }"><i class="fas fa-folder-open"></i> 文件</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
@@ -115,7 +116,9 @@
                     <p v-html="formattedFileDetails(item)"></p>
                   </template>
                   <template #reference>
-                    <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</span>
+                    <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">
+                      {{ item.metadata.originalName || item.name }}
+                    </span>
                   </template>
                 </el-popover>
               </div>
@@ -135,7 +138,9 @@
                         <p v-html="formattedFileDetails(item)"></p>
                       </template>
                       <template #reference>
-                        <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</span>
+                        <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">
+                          {{ item.metadata.originalName || item.name }}
+                        </span>
                       </template>
                     </el-popover>
                   </div>
@@ -158,7 +163,7 @@
               </el-card>
             </template>
             <!-- 音频 -->
-            <template v-else>
+            <template v-else-if="fileType === 'audio'">
               <el-card class="audio-card" :class="{ 'selected': item.selected }">
                 <div class="audio-content">
                   <!-- 音频标题区域 -->
@@ -176,7 +181,9 @@
                             <p v-html="formattedFileDetails(item)"></p>
                           </template>
                           <template #reference>
-                            <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.name }}</span>
+                            <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">
+                              {{ item.metadata.originalName || item.name }}
+                            </span>
                           </template>
                         </el-popover>
                       </div>
@@ -204,6 +211,44 @@
                     <button class="control-btn" @click.stop="handleDelete(index, item.name)">
                       <i class="fas fa-trash-alt"></i>
                     </button>
+                  </div>
+                </div>
+              </el-card>
+            </template>
+            <!-- 文件 -->
+            <template v-else>
+              <el-card class="file-card" :class="{ 'selected': item.selected }">
+                <div class="file-content">
+                  <!-- 文件标题区域 -->
+                  <div class="file-header">
+                    <div class="file-avatar">
+                      <i :class="getFileIcon(item.name)" style="font-size: 32px;"></i>
+                    </div>
+                    <div class="file-info">
+                      <div class="file-title">
+                        <el-popover
+                          trigger="click"
+                          placement="top"
+                          popper-class="custom-popover">
+                          <template #default>
+                            <p v-html="formattedFileDetails(item)"></p>
+                          </template>
+                          <template #reference>
+                            <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">
+                              {{ item.metadata.originalName || item.name }}
+                            </span>
+                          </template>
+                        </el-popover>
+                      </div>
+                      <div class="file-subtitle">{{ getFileType(item.name) }}</div>
+                    </div>
+                  </div>
+                  <!-- 控制按钮区域 -->
+                  <div class="file-controls">
+                    <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)"><i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i></button>
+                    <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)"><i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i></button>
+                    <button class="control-btn" @click.stop="handleCopy(index, item.name)"><i class="fas fa-copy"></i></button>
+                    <button class="control-btn" @click.stop="handleDelete(index, item.name)"><i class="fas fa-trash-alt"></i></button>
                   </div>
                 </div>
               </el-card>
@@ -242,16 +287,17 @@
       fileTypes: {
         image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'ico'],
         video: ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'mkv'],
-        audio: ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma']
+        audio: ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'],
+        document: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'zip', 'rar', '7z', 'js', 'py', 'java', 'h', 'cpp', 'c']
       },
       fileTypeNames: {
         image: '图片',
         video: '视频',
-        audio: '音频'
+        audio: '音频',
+        document: '文件'
       },
       uploadConfig: {
         maxSize: 20 * 1024 * 1024,  // 最大上传20MB
-        validTypes: ['image/', 'video/', 'audio/'],
         maxConcurrent: 3
       },
       tableData: [],
@@ -262,7 +308,6 @@
       sortOption: 'dateDesc',
       filterOption: 'all',
       fileType: 'image',
-
       quickWebsites: [
         { name: '原版后台', url: './admin.html', icon: 'fas fa-suitcase' },
         { name: '瀑布流', url: './admin-waterfall.html', icon: 'fas fa-wind' },
@@ -278,10 +323,11 @@
           // 搜索匹配
           const searchLower = this.search.toLowerCase();
           const matchesSearch = !searchLower || [
-            data.name.toLowerCase(),
-            data.metadata.ListType.toLowerCase(),
-            data.metadata.Label.toLowerCase()
-          ].some(field => field.includes(searchLower));
+            data.name?.toLowerCase(),
+            (data.metadata.originalName || '').toLowerCase(),
+            (data.metadata.ListType || 'None').toLowerCase(),
+            (data.metadata.Label || 'None').toLowerCase()
+          ].some(field => field?.includes(searchLower));
 
           // 筛选匹配
           const matchesFilter = {
@@ -311,7 +357,9 @@
       },
       fileTypeIcon() {
         return this.fileType === 'image' ? 'fas fa-image' :
-                this.fileType === 'video' ? 'fas fa-video' : 'fas fa-music';
+        this.fileType === 'video' ? 'fas fa-video' :
+        this.fileType === 'audio' ? 'fas fa-music' :
+        this.fileType === 'document' ? 'fas fa-folder-open' : '';
       }
     },
     watch: {  // 监听数据变化
@@ -340,7 +388,8 @@
         const timestamp = new Date(metadata.TimeStamp).toLocaleString();
         return `
           <div style="text-align: left; padding: 5px;">
-            <div><strong>文件名：</strong>${item.name}</div>
+            <div><strong>当前文件名：</strong>${item.name}</div>
+            <div><strong>原始文件名：</strong>${metadata.originalName || '未知'}</div>
             <div><strong>上传时间：</strong>${timestamp}</div>
             <div><strong>元数据：</strong>${JSON.stringify(metadata)}</div>
           </div>
@@ -392,27 +441,14 @@
         // telegram-bot可分发的最大文件大小（20MB）
         // 大于20MB虽然能够成功上传，但无法获取文件链接
         const config = this.uploadConfig;
-        // 文件分类
-        const { valid, errors } = files.reduce((acc, file) => {
-          const isValidType = config.validTypes.some(type => file.type.startsWith(type));
-          const isValidSize = file.size <= config.maxSize;
-          if (!isValidType) acc.errors.type.push(file.name);
-          else if (!isValidSize) acc.errors.size.push(file.name);
-          else acc.valid.push(file);
-          return acc;
-        }, { valid: [], errors: { type: [], size: [] } });
-        // 显示错误信息
-        [
-          [errors.type, '文件类型不支持'],
-          [errors.size, `文件超过${config.maxSize / 1024 / 1024}MB`]
-        ].forEach(([files, msg], index) => {
-          setTimeout(() => files.length && this.$message.error({message: `${msg}: ${files.join(', ')}`}, 100), index * 1000);
+        // 过滤有效文件
+        const valid = [], invalid = [];
+        files.forEach(file => {
+          (file.size <= config.maxSize ? valid : invalid).push(file);
         });
-        if (!valid.length) {
-          this.$message.info('没有符合条件的文件');
-          event.target.value = '';
-          return;
-        }
+        // 显示错误信息
+        if(invalid.length) { this.$message.error(`文件超过${config.maxSize/1024/1024}MB: \n${invalid.map(f => f.name).join('\n')}`); }
+        if(!valid.length) { this.$message.info('没有符合条件的文件'); event.target.value = ''; return; }
 
         try {
           await this.$confirm(`确定要上传这 ${valid.length} 个文件吗?`, '提示', {
@@ -716,6 +752,20 @@
           localStorage.setItem('quickWebsites', JSON.stringify(newSites));
           this.$message.success('保存成功');
         }).catch(() => {});
+      },
+      getFileIcon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        const icons = {
+          pdf: 'fas fa-file-pdf', doc: 'fas fa-file-word', docx: 'fas fa-file-word',
+          xls: 'fas fa-file-excel', xlsx: 'fas fa-file-excel', ppt: 'fas fa-file-powerpoint', pptx: 'fas fa-file-powerpoint',
+          txt: 'fas fa-file-lines', zip: 'fas fa-file-zipper', rar: 'fas fa-file-zipper', '7z': 'fas fa-file-zipper',
+          js: 'fas fa-file-code', py: 'fas fa-file-code', java: 'fas fa-file-code', h: 'fas fa-file-code', cpp: 'fas fa-file-code', c: 'fas fa-file-code',
+        };
+        return icons[ext] || 'fas fa-file';
+      },
+      getFileType(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        return `${ext.toUpperCase()} 文件`;
       }
     },
     mounted() {

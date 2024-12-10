@@ -7,7 +7,7 @@ export async function onRequest(context) {
 
     const url = new URL(request.url);
     let fileUrl = 'https://telegra.ph/' + url.pathname + url.search
-    if (url.pathname.length > 39) {
+    if (url.pathname.length > 39) { // 路径长度大于39位，说明是Telegram Bot API 上传的文件
         const formdata = new FormData();
         formdata.append("file_id", url.pathname);
 
@@ -42,18 +42,18 @@ export async function onRequest(context) {
             return response;
         }
 
+        const record = await env.img_url.getWithMetadata(params.id);
+        console.log("Record:", record);
         // Fetch KV metadata if available
         if (env.img_url) {
-            const record = await env.img_url.getWithMetadata(params.id);
-            console.log("Record:", record);
-
             // Ensure metadata exists and add default values for missing properties
             if (record && record.metadata) {
                 const metadata = {
                     ListType: record.metadata.ListType || "None",
                     Label: record.metadata.Label || "None",
                     TimeStamp: record.metadata.TimeStamp || Date.now(),
-                    liked: record.metadata.liked !== undefined ? record.metadata.liked : false
+                    liked: record.metadata.liked !== undefined ? record.metadata.liked : false,
+                    originalName: record.metadata.originalName || params.id,    // 添加原始文件名
                 };
 
                 // Handle based on ListType and Label
@@ -72,13 +72,12 @@ export async function onRequest(context) {
             } else {
                 // If metadata does not exist, initialize it in KV with default values
                 await env.img_url.put(params.id, "", {
-                    metadata: { ListType: "None", Label: "None", TimeStamp: Date.now(), liked: false },
+                    metadata: { ListType: "None", Label: "None", TimeStamp: Date.now(), liked: false, originalName: params.id },
                 });
             }
         }
 
         // If no metadata or further actions required, moderate content and add to KV if needed
-        const time = Date.now();
         if (env.ModerateContentApiKey) {
             const moderateResponse = await fetch(`https://api.moderatecontent.com/moderate/?key=${env.ModerateContentApiKey}&url=https://telegra.ph${url.pathname}${url.search}`);
             const moderateData = await moderateResponse.json();
@@ -86,7 +85,7 @@ export async function onRequest(context) {
 
             if (env.img_url) {
                 await env.img_url.put(params.id, "", {
-                    metadata: { ListType: "None", Label: moderateData.rating_label, TimeStamp: time, liked: false },
+                    metadata: { ListType: "None", Label: moderateData.rating_label, TimeStamp: record.metadata.TimeStamp || Date.now(), liked: false, originalName: record.metadata.originalName || params.id },
                 });
             }
 
@@ -97,7 +96,7 @@ export async function onRequest(context) {
             // Add image to KV with default metadata if ModerateContentApiKey is not available
             console.log("KV not enabled for moderation, adding default metadata.");
             await env.img_url.put(params.id, "", {
-                metadata: { ListType: "None", Label: "None", TimeStamp: time, liked: false },
+                metadata: { ListType: "None", Label: "None", TimeStamp: record.metadata.TimeStamp || Date.now(), liked: false, originalName: record.metadata.originalName || params.id },
             });
         }
     }
