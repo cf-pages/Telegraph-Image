@@ -400,7 +400,7 @@ body {
 .video-controls, .audio-controls, .file-controls {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 12px;
 }
 
 .like-btn i, .select-btn i {
@@ -437,9 +437,6 @@ body {
 @media (max-width: 768px) {
   .audio-card { max-height: none; }
   .custom-audio-player { height: 32px; }
-  .audio-controls {
-    gap: 16px;
-  }
 }
 .website-edit-dialog .el-textarea__inner{
   height: 240px !important;
