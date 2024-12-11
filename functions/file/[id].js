@@ -58,19 +58,21 @@ export async function onRequest(context) {
                 Label: "None",
                 TimeStamp: Date.now(),
                 liked: false,
-                fileName: params.id
+                fileName: params.id,
+                fileSize: 0,
             }
         };
         await env.img_url.put(params.id, "", { metadata: record.metadata });
     }
 
-        const metadata = {
-            ListType: record.metadata.ListType || "None",
-            Label: record.metadata.Label || "None",
-            TimeStamp: record.metadata.TimeStamp || Date.now(),
-            liked: record.metadata.liked !== undefined ? record.metadata.liked : false,
-            fileName: record.metadata.fileName || params.id,
-        };
+    const metadata = {
+        ListType: record.metadata.ListType || "None",
+        Label: record.metadata.Label || "None",
+        TimeStamp: record.metadata.TimeStamp || Date.now(),
+        liked: record.metadata.liked !== undefined ? record.metadata.liked : false,
+        fileName: record.metadata.fileName || params.id,
+        fileSize: record.metadata.fileSize || 0,
+    };
 
     // Handle based on ListType and Label
     if (metadata.ListType === "White") {

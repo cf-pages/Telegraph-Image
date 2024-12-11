@@ -39,6 +39,7 @@
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }"><i class="fas fa-sort-amount-down"></i> 按时间倒序</el-dropdown-item>
                   <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }"><i class="fas fa-sort-alpha-up"></i> 按名称升序</el-dropdown-item>
+                  <el-dropdown-item command="sizeDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'sizeDesc' }"><i class="fas fa-sort-amount-down"></i> 按大小倒序</el-dropdown-item>
                 </el-dropdown-menu>
               </el-dropdown>
             </el-tooltip>
@@ -375,8 +376,8 @@
       sort(command) { this.sortOption = command; },  // 切换排序方式
       filter(command) { this.filterOption = command; },  // 切换筛选方式
       sortData(data) {
-        return this.sortOption === 'nameAsc' ? data.sort((a, b) =>
-          (a.metadata.fileName || a.name).localeCompare(b.metadata.fileName || b.name)) :
+        return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
+          this.sortOption === 'sizeDesc' ? data.sort((a, b) => b.metadata.fileSize - a.metadata.fileSize) :
           data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
       },
       formattedFileDetails(item) {
@@ -824,7 +825,9 @@
             selected: false,
             metadata: {
               ...file.metadata,
-              liked: file.metadata.liked ?? false
+              liked: file.metadata.liked ?? false,
+              fileName: file.metadata.fileName ?? file.name,
+              fileSize: file.metadata.fileSize ?? 0
             }
           }));
           this.updateStats();

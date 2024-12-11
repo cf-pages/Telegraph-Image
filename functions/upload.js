@@ -70,6 +70,7 @@ export async function onRequestPost(context) {
                     Label: "None",
                     liked: false,
                     fileName: fileName,
+                    fileSize: uploadFile.size,
                 }
             });
         }
