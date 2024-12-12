@@ -61,6 +61,7 @@
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item command="copy" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-link"></i> 批量复制</el-dropdown-item>
                   <el-dropdown-item command="delete" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-trash-alt"></i> 批量删除</el-dropdown-item>
+                  <el-dropdown-item command="download" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-download"></i> 批量下载</el-dropdown-item>
                   <el-dropdown-item command="block" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-lock"></i> 加入黑名单</el-dropdown-item>
                   <el-dropdown-item command="unblock" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-unlock"></i> 加入白名单</el-dropdown-item>
                 </el-dropdown-menu>
@@ -605,6 +606,21 @@
         const links = this.selectedFiles.map(file => `${document.location.origin}/file/${file.name}`).join('\n');
         (navigator.clipboard?.writeText(links) || this.copyToClipboardFallback(links))
           .then(() => this.$message.success('批量复制链接成功~'));
+      },
+      handleBatchDownload() {  // 批量下载
+        this.$message.info(`正在下载 ${this.selectedFiles.length} 个文件`, { duration: 1000 });
+        this.selectedFiles.forEach((file, index) => {
+          setTimeout(() => {
+            const link = document.createElement('a');
+            link.style.display = 'none';
+            link.href = `/file/${file.name}`;
+            link.download = file.metadata.fileName || file.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }, index * 800);
+        });
+        this.selectedFiles = [];
       },
       handleBatchBlockOrUnblock(type) {  // 批量加入黑/白名单
         if (type !== 'Block' && type !== 'White') { this.$message.error('无效的操作类型'); return; }
