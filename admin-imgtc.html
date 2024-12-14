@@ -1,759 +1,865 @@
-  <!DOCTYPE html>
-  <html lang="zh">
-  
+<!DOCTYPE html>
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ImgTC | Admin</title>
-    <!-- Import CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
-    <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
-    <style>
-      body {
-        background: linear-gradient(90deg, #ffd7e4 0%, #c8f1ff 100%);
-        font-family: 'Arial', sans-serif;
-        color: #333;
-        margin: 0;
-        padding: 0;
-      }
-
-      .header-content {
-        position: fixed;
-        top: 0;
-        left: 1%;
-        right: 1%;
-        z-index: 999;
-        height: clamp(40px, 8vh, 60px);
-        display: flex;
-        align-items: center;
-        padding: 10px 20px;
-        background-color: rgba(255, 255, 255, 0.75);
-        -webkit-backdrop-filter: blur(10px);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: background-color 0.5s ease, box-shadow 0.5s ease;
-        border-bottom-left-radius: 10px;
-        border-bottom-right-radius: 10px;
-      }
-
-      .header-content:hover {
-        background-color: rgba(255, 255, 255, 0.85);
-        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
-      }
-
-      .title {
-        font-size: clamp(1.2em, 2vw, 1.8em);
-        font-weight: bold;
-        cursor: pointer;
-        transition: color 0.3s ease;
-        margin-right: 4px;
-        color: #333;
-      }
-
-      .title:hover {
-        color: #B39DDB; /* 使用柔和的淡紫色 */
-      }
-
-      .search-card {
-        margin-left: auto;
-        margin-right: 16px;
-      }
-
-      .stats {
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        font-size: clamp(0.9em, 1.5vw, 1.2em);
-        background: rgba(255, 255, 255, 0.9);
-        margin-right: 8px;
-        padding: 2px 8px;
-        border-radius: 12px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-        transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
-        color: #333;
-      }
-
-      .stats:hover {
-        background-color: #f0eaf8; /* 柔和的淡紫色 */
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        transform: scale(1.02);
-        color: #B39DDB;
-      }
-
-      /* 上传图标样式优化 */
-      .upload-icon {
-        margin-right: 10px;
-        font-size: clamp(1.2em, 1.5vw, 1.6em);
-        transition: color 0.3s ease, transform 0.3s ease, background-color 0.3s ease;
-        color: inherit;
-        cursor: pointer;
-        border-radius: 50%;
-        padding: 8px;
-        background-color: rgba(179, 157, 219, 0.15); /* 淡紫色的背景，与整体风格一致 */
-        border: 1px solid transparent;
-      }
-
-      .header-content .actions {
-        display: flex;
-        align-items: center;
-      }
-
-      .header-content .actions i {
-        font-size: clamp(1.2em, 1.5vw, 1.6em);
-        cursor: pointer;
-        transition: color 0.3s, transform 0.3s;
-        color: #333;
-        margin: 0 8px;
-      }
-
-      .header-content .actions i:hover {
-        color: #B39DDB; /* 使用柔和的淡紫色 */
-        transform: scale(1.1);
-      }
-
-      .header-content .actions .el-dropdown-link i {
-        color: #333;
-      }
-
-      .header-content .actions .el-dropdown-link i:hover {
-        color: #B39DDB; /* 使用柔和的淡紫色 */
-      }
-
-      .header-content .actions .disabled {
-        color: #bbb;
-        pointer-events: none;
-      }
-
-      .header-content .actions .enabled {
-        color: #B39DDB; /* 使用柔和的淡紫色 */
-      }
-
-      .search-card .el-input__inner {
-        border-radius: 20px;
-        width: clamp(200px, 25vw, 300px);
-        height: clamp(30px, 5vh, 40px);
-        font-size: 1.2em;
-        border: none;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        transition: width 0.3s;
-      }
-
-      .search-card .el-input__inner:focus {
-        width: clamp(250px, 30vw, 400px);
-      }
-
-      .main-container {
-        display: flex;
-        flex-direction: column;
-        margin-top: 20px;
-        padding: 20px;
-        min-height: calc(100vh - 80px);
-      }
-
-      .content {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 20px;
-        padding: 10px;
-        flex-grow: 1;
-      }
-
-      .el-card {
-        width: 100%;
-        aspect-ratio: 4 / 3;
-        background: rgba(255, 255, 255, 0.6);
-        border-radius: 8px;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        position: relative;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-        border: none;
-      }
-
-      .el-card:hover {
-        transform: scale(1.02);
-        cursor: pointer;
-      }
-
-      .el-image {
-        object-fit: cover;
-        transition: opacity 0.3s ease;
-      }
-
-      .el-image:hover {
-        opacity: 0.8;
-      }
-
-      .file-info {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        padding: 10px;
-        background: rgba(0, 0, 0, 0.6);
-        color: white;
-        text-align: center;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        box-sizing: border-box;
-      }
-
-      .image-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.6);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-
-      .el-card:hover .image-overlay {
-        opacity: 1;
-      }
-
-      .overlay-buttons {
-        display: flex;
-        gap: 10px;
-        pointer-events: auto;
-      }
-
-      .pagination-container {
-        display: flex;
-        justify-content: center;
-        margin-top: 16px;
-      }
-
-      .collect-icon {
-        position: absolute;
-        top: -1.3px;
-        left: 10px;
-        cursor: pointer;
-        font-size: 1.5em;
-        z-index: 10;
-        transition: color 0.3s ease, transform 0.3s ease;
-      }
-      .collect-icon:hover {transform: scale(1.2);}
-      .liked {color: #FFD7E4;}
-      .not-liked {color: #b39edb80;}
-
-      .el-checkbox {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        transform: scale(1.5);
-        z-index: 10;
-      }
-
-      .footer {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 15px;
-        margin-top: 20px;
-        font-size: 0.9em;
-        color: #555; /* 字体颜色改为黑色 */
-      }
-
-      .footer a {
-        color: #555; /* 链接颜色 */
-        text-decoration: none;
-        transition: color 0.3s ease;
-      }
-
-      .footer a:hover {
-        color: #333; /* 悬停时的链接颜色改为黑色 */
-      }
-
-      .footer i {
-        color: #333; /* 图标颜色改为黑色 */
-      }
-
-      /* 适配移动端 */
-      @media (max-width: 768px) {
-        .content {
-          grid-template-columns: 1fr; /* 单列布局 */
-          gap: 10px;
-        }
-        .header-content{padding: 8px 12px;}
-        .stats, .actions i{margin: 0;}
-        .el-card{aspect-ratio: unset; min-height: 180px;}
-        .el-card__body{padding: 0;}
-        .search-card {display: none;}
-      }
-    </style>
-  </head>
-  <body>
-    <div id="app">
-      <el-container>
-        <el-header>
-          <div class="header-content">
-            <span class="title" @click="refreshDashboard">Dashboard</span>
-            <div class="search-card">
-              <el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input>
-            </div>
-            <el-tooltip content="批量上传" placement="bottom">
-                <span class="stats" @click="handleUpload">
-                  <i class="fas fa-upload upload-icon"></i>记录数: {{ Number }}
-                </span>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ImgTC | Admin</title>
+  <!-- Import CSS -->
+  <link rel="stylesheet" href="./admin-imgtc.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/theme-chalk/index.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css">
+  <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div id="app">
+    <el-container>
+      <el-header>
+        <div class="header-content">
+          <span class="title" @click="refreshDashboard">Dashboard</span>
+          <div class="search-card"><el-input v-model="search" size="mini" placeholder="输入关键字搜索"></el-input></div>
+          <el-tooltip content="批量上传" placement="bottom">
+            <span class="stats" @click="handleUpload"><i class="fas fa-upload upload-icon"></i><span class="stats-text">记录数: </span>{{ Number }}</span>
+          </el-tooltip>
+          <input type="file" ref="fileInput" style="display: none;" multiple @change="uploadFiles">
+          <div class="actions">
+            <el-tooltip content="文件类型" placement="bottom">
+              <el-dropdown @command="switchFileType" :hide-on-click="false">
+                <span class="el-dropdown-link"><i :class="fileTypeIcon"></i></span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="image" :class="{ 'el-dropdown-menu__item--selected': fileType === 'image' }"><i :class="fileConfig.image.icon"></i> 图片</el-dropdown-item>
+                  <el-dropdown-item command="video" :class="{ 'el-dropdown-menu__item--selected': fileType === 'video' }"><i :class="fileConfig.video.icon"></i> 视频</el-dropdown-item>
+                  <el-dropdown-item command="audio" :class="{ 'el-dropdown-menu__item--selected': fileType === 'audio' }"><i :class="fileConfig.audio.icon"></i> 音频</el-dropdown-item>
+                  <el-dropdown-item command="document" :class="{ 'el-dropdown-menu__item--selected': fileType === 'document' }"><i :class="fileConfig.document.icon"></i> 文件</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
             </el-tooltip>
-            <input type="file" ref="fileInput" style="display: none;" multiple @change="uploadFiles">
-            <div class="actions">
-              <el-tooltip content="排序" placement="bottom">
-                <el-dropdown @command="sort" :hide-on-click="false">
-                  <span class="el-dropdown-link">
-                    <i :class="sortIcon"></i>
-                  </span>
-                  <el-dropdown-menu slot="dropdown">
-                    <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }">按时间倒序</el-dropdown-item>
-                    <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }">按名称升序</el-dropdown-item>
-                  </el-dropdown-menu>
-                </el-dropdown>
-              </el-tooltip>
-              <el-tooltip content="批量复制" placement="bottom">
-                <i class="fas fa-link" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchCopy"></i>
-              </el-tooltip>
-              <el-tooltip content="批量删除" placement="bottom">
-                <i class="fas fa-trash-alt" :class="{ disabled: selectedFiles.length === 0 }" @click="handleBatchDelete"></i>
-              </el-tooltip>
-              <el-tooltip content="退出登录" placement="bottom">
-                <i class="fas fa-home" @click="handleLogout"></i>
-              </el-tooltip>
-            </div>
+            <el-tooltip content="排序" placement="bottom">
+              <el-dropdown @command="sort" :hide-on-click="false">
+                <span class="el-dropdown-link"><i :class="sortIcon"></i></span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="dateDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'dateDesc' }"><i class="fas fa-sort-amount-down"></i> 按时间倒序</el-dropdown-item>
+                  <el-dropdown-item command="nameAsc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'nameAsc' }"><i class="fas fa-sort-alpha-up"></i> 按名称升序</el-dropdown-item>
+                  <el-dropdown-item command="sizeDesc" :class="{ 'el-dropdown-menu__item--selected': sortOption === 'sizeDesc' }"><i class="fas fa-sort-amount-down"></i> 按大小倒序</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-tooltip>
+            <el-tooltip content="筛选" placement="bottom">
+              <el-dropdown @command="filter" :hide-on-click="false">
+                <span class="el-dropdown-link"><i :class="filterIcon"></i></span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="all" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'all' }"><i class="fas fa-filter"></i> 全部</el-dropdown-item>
+                  <el-dropdown-item command="favorites" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'favorites' }"><i class="fas fa-bookmark"></i> 收藏</el-dropdown-item>
+                  <el-dropdown-item command="blocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'blocked' }"><i class="fas fa-lock"></i> 黑名单</el-dropdown-item>
+                  <el-dropdown-item command="unblocked" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'unblocked' }"><i class="fas fa-unlock"></i> 白名单</el-dropdown-item>
+                  <el-dropdown-item command="adult" :class="{ 'el-dropdown-menu__item--selected': filterOption === 'adult' }"><i class="fas fa-user-secret"></i> NSFW</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-tooltip>
+            <el-tooltip content="批量操作" placement="bottom">
+              <el-dropdown @command="handleBatchOperation" :hide-on-click="false">
+                <span class="el-dropdown-link"><i class="fas fa-tasks"></i></span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="copy" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-link"></i> 批量复制</el-dropdown-item>
+                  <el-dropdown-item command="delete" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-trash-alt"></i> 批量删除</el-dropdown-item>
+                  <el-dropdown-item command="download" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-download"></i> 批量下载</el-dropdown-item>
+                  <el-dropdown-item command="block" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-lock"></i> 加入黑名单</el-dropdown-item>
+                  <el-dropdown-item command="unblock" :class="{ disabled: selectedFiles.length === 0 }"><i class="fas fa-unlock"></i> 加入白名单</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-tooltip>
+            <el-tooltip content="快捷方式" placement="bottom">
+              <el-dropdown @command="handleWebsite">
+                <span class="el-dropdown-link"><i class="fas fa-link"></i></span>
+                <el-dropdown-menu slot="dropdown">
+                  <template v-for="site in quickWebsites">
+                    <el-dropdown-item :command="site.url">
+                      <i :class="site.icon"></i> {{ site.name }}
+                    </el-dropdown-item>
+                  </template>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-tooltip>
+            <el-tooltip content="工具箱" placement="bottom">
+              <el-dropdown @command="handleToolkit" :hide-on-click="false">
+                <span class="el-dropdown-link"><i class="fas fa-toolbox"></i></span>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="selectAllInPage"><i class="fas fa-check-square"></i> 全选当前页</el-dropdown-item>
+                  <el-dropdown-item command="checkBrokenFiles"><i class="fas fa-wrench"></i> 检测失效文件</el-dropdown-item>
+                  <el-dropdown-item command="editWebsites"><i class="fas fa-edit"></i> 编辑快捷方式</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+            </el-tooltip>
+            <el-tooltip content="退出登录" placement="bottom"><i class="fas fa-home" @click="handleLogout"></i></el-tooltip>
           </div>
-        </el-header>
-        <el-main class="main-container">
-          <div class="content">
-            <template v-for="(item, index) in paginatedTableData" :key="index">
-              <el-card>
+        </div>
+      </el-header>
+      <el-main class="main-container">
+        <div class="content">
+          <template v-for="(item, index) in paginatedTableData" :key="index">
+            <!-- 图片 -->
+            <template v-if="fileType === 'image'">
+              <el-card class="image-card">
                 <span class="collect-icon" @click.stop="toggleLike(index, item.name)">
-                  <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
+                <i :class="item.metadata.liked ? 'fa-solid fa-bookmark liked' : 'fa-regular fa-bookmark not-liked'"></i>
                 </span>
                 <el-checkbox v-model="item.selected" :ref="'checkbox-' + index"></el-checkbox>
-                <el-image
-                  :src="'/file/' + item.name"
-                  :preview-src-list="['/file/' + item.name]"
-                  fit="cover"
-                  lazy></el-image>
+                <el-image :src="'/file/' + item.name" :preview-src-list="['/file/' + item.name]" fit="cover" lazy="true"></el-image>
                 <div class="image-overlay">
                   <div class="overlay-buttons">
-                    <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制地址</el-button>
+                    <el-button size="mini" type="info" @click.stop="handleEditName(item)">编辑</el-button>
+                    <el-button size="mini" type="primary" @click.stop="handleCopy(index, item.name)">复制</el-button>
                     <el-button size="mini" type="danger" @click.stop="handleDelete(index, item.name)">删除</el-button>
                   </div>
-                </div>
-                <div class="file-info">{{ item.name }}</div>
+              </div>
+              <div class="card-footer">
+                <el-popover
+                  trigger="click"
+                  placement="top"
+                  popper-class="custom-popover">
+                  <template #default>
+                    <p v-html="formattedFileDetails(item)"></p>
+                  </template>
+                  <template #reference>
+                    <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">
+                      {{ item.metadata.fileName || item.name }}
+                    </span>
+                  </template>
+                </el-popover>
+              </div>
               </el-card>
             </template>
-          </div>
-          <div class="pagination-container">
-            <el-pagination
-              background
-              layout="prev, pager, next"
-              :total="filteredTableData.length"
-              :page-size="pageSize"
-              @current-change="handlePageChange"
-              :current-page.sync="currentPage">
-            </el-pagination>
-          </div>
-          <el-footer class="footer">
-            <div>Powered By</div>
-            <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener noreferrer">
-              <div><i class="fa-brands fa-github"></i> Telegraph-Image</div>
-            </a>
-          </el-footer>
-        </el-main>
-      </el-container>
-    </div>
-  </body>
-  <!-- Import Vue before Element -->
-  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script>
-  <!-- Import JavaScript -->
-  <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script>
-  <script>
-    new Vue({
-      el: '#app',
-      data: {
-        baseURL: document.location.origin,
-        Number: 0,
-        tableData: [],
-        search: '',
-        currentPage: 1,
-        pageSize: 15,
-        selectedFiles: [],
-        sortOption: 'dateDesc',
-      },
-      computed: {
-        filteredTableData() {
-          return this.tableData.filter(data => !this.search || data.name.toLowerCase().includes(this.search.toLowerCase()));
+            <!-- 视频 -->
+            <template v-else-if="fileType === 'video'">
+              <el-card class="video-card" :class="{ 'selected': item.selected }">
+                <div class="video-content">
+                  <video :src="'/file/' + item.name" controls style="width: 100%; height: 100%; object-fit: cover;"></video>
+                  <div class="video-title">
+                    <el-popover
+                      trigger="click"
+                      placement="top"
+                      popper-class="custom-popover">
+                      <template #default>
+                        <p v-html="formattedFileDetails(item)"></p>
+                      </template>
+                      <template #reference>
+                        <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.metadata.fileName || item.name }}</span>
+                      </template>
+                    </el-popover>
+                  </div>
+                    <!-- 控制按钮区域 -->
+                  <div class="video-controls">
+                    <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)"><i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i></button>
+                    <button class="control-btn edit-btn" @click.stop="handleEditName(item)"><i class="fas fa-edit"></i></button>
+                    <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)"><i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i></button>
+                    <button class="control-btn" @click.stop="handleCopy(index, item.name)"><i class="fas fa-link"></i></button>
+                    <button class="control-btn" @click.stop="handleDelete(index, item.name)"><i class="fas fa-trash-alt"></i></button>
+                  </div>
+                </div>
+              </el-card>
+            </template>
+            <!-- 音频 -->
+            <template v-else-if="fileType === 'audio'">
+              <el-card class="audio-card" :class="{ 'selected': item.selected }">
+                <div class="audio-content">
+                  <!-- 音频标题区域 -->
+                  <div class="audio-header">
+                    <div class="audio-avatar">
+                      <img src="./music.svg" alt="Music">
+                    </div>
+                    <div class="audio-info">
+                      <div class="audio-title">
+                        <el-popover
+                          trigger="click"
+                          placement="top"
+                          popper-class="custom-popover">
+                          <template #default>
+                            <p v-html="formattedFileDetails(item)"></p>
+                          </template>
+                          <template #reference>
+                            <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.metadata.fileName || item.name }}</span>
+                          </template>
+                        </el-popover>
+                      </div>
+                      <div class="audio-subtitle">{{ getFileType(item.name) }}</div>
+                    </div>
+                  </div>
+                  <audio
+                    class="custom-audio-player"
+                    :src="'/file/' + item.name"
+                    controls
+                    preload="metadata">
+                    当前浏览器不支持音频播放
+                  </audio>
+                  <!-- 控制按钮区域 -->
+                  <div class="audio-controls">
+                    <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)"><i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i></button>
+                    <button class="control-btn edit-btn" @click.stop="handleEditName(item)"><i class="fas fa-edit"></i></button>
+                    <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)"><i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i></button>
+                    <button class="control-btn" @click.stop="handleCopy(index, item.name)"><i class="fas fa-copy"></i></button>
+                    <button class="control-btn" @click.stop="handleDelete(index, item.name)"><i class="fas fa-trash-alt"></i></button>
+                  </div>
+                </div>
+              </el-card>
+            </template>
+            <!-- 文件 -->
+            <template v-else>
+              <el-card class="file-card" :class="{ 'selected': item.selected }">
+                <div class="file-content">
+                  <!-- 文件标题区域 -->
+                  <div class="file-header">
+                    <div class="file-avatar">
+                      <i :class="getFileIcon(item.name)" style="font-size: 32px;"></i>
+                    </div>
+                    <div class="file-info">
+                      <div class="file-title">
+                        <el-popover
+                          trigger="click"
+                          placement="top"
+                          popper-class="custom-popover">
+                          <template #default>
+                            <p v-html="formattedFileDetails(item)"></p>
+                          </template>
+                          <template #reference>
+                            <span :style="{ color: item.metadata.ListType !== 'Block' ? '#fff' : '#aaa' }">{{ item.metadata.fileName || item.name }}</span>
+                          </template>
+                        </el-popover>
+                      </div>
+                      <div class="file-subtitle">{{ getFileType(item.name) }}</div>
+                    </div>
+                  </div>
+                  <!-- 控制按钮区域 -->
+                  <div class="file-controls">
+                    <button class="control-btn like-btn" @click.stop="toggleLike(index, item.name)"><i :class="item.metadata.liked ? 'fas fa-heart liked' : 'far fa-heart'"></i></button>
+                    <button class="control-btn edit-btn" @click.stop="handleEditName(item)"><i class="fas fa-edit"></i></button>
+                    <button class="control-btn select-btn" @click.stop="toggleSelect(index, item.name)"><i :class="item.selected ? 'fas fa-square-check selected' : 'far fa-square'"></i></button>
+                    <button class="control-btn" @click.stop="handleCopy(index, item.name)"><i class="fas fa-copy"></i></button>
+                    <button class="control-btn" @click.stop="handleDelete(index, item.name)"><i class="fas fa-trash-alt"></i></button>
+                  </div>
+                </div>
+              </el-card>
+            </template>
+          </template>
+        </div>
+        <div class="pagination-container">
+          <el-pagination
+            background layout="prev, pager, next"
+            :total="filteredTableData.length" :page-size="pageSize"
+            @current-change="handlePageChange" :current-page.sync="currentPage" />
+        </div>
+        <el-footer class="footer">
+          <div>Powered By</div>
+          <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener noreferrer">
+            <div><i class="fa-brands fa-github"></i> Telegraph-Image</div>
+          </a>
+        </el-footer>
+      </el-main>
+    </el-container>
+  </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script> <!-- Vue -->
+<script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.3/lib/index.js"></script> <!-- ElementUI -->
+<script>
+  new Vue({
+    el: '#app',
+    data: {
+      baseURL: document.location.origin,
+      Number: 0,
+      fileConfig: {
+        image: {
+          name: '图片',
+          exts: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'ico'],
+          icon: 'fas fa-image',
+          count: 0
         },
-        paginatedTableData() {
-          const sortedData = this.sortData(this.filteredTableData);
-          const start = (this.currentPage - 1) * this.pageSize;
-          const end = start + this.pageSize;
-          return sortedData.slice(start, end);
+        video: {
+          name: '视频',
+          exts: ['mp4', 'webm', 'ogg', 'avi', 'mov', 'wmv', 'flv', 'mkv'],
+          icon: 'fas fa-video',
+          count: 0
         },
-        sortIcon() {
-          return this.sortOption === 'dateDesc' ? 'fas  fa-sort-amount-down' : 'fas fa-sort-alpha-up';
+        audio: {
+          name: '音频',
+          exts: ['mp3', 'wav', 'ogg', 'flac', 'aac', 'm4a', 'wma'],
+          icon: 'fas fa-music',
+          count: 0
+        },
+        document: {
+          name: '文件',
+          exts: [],
+          icon: 'fas fa-folder-open',
+          count: 0
         }
       },
-      watch: {
-        tableData: {
-          handler(newData) {
-            this.selectedFiles = newData.filter(file => file.selected);
-          },
-          deep: true
-        },
-        sortOption(newOption) {
-          localStorage.setItem('sortOption', newOption);
-        }
+      uploadConfig: {
+        maxSize: 20 * 1024 * 1024,  // 最大上传20MB
+        maxConcurrent: 3
       },
-      methods: {
-        refreshDashboard() {
-          location.reload();
+      tableData: [],
+      search: '',
+      currentPage: 1,
+      pageSize: 15,
+      selectedFiles: [],
+      sortOption: 'dateDesc',
+      filterOption: 'all',
+      fileType: 'image',
+      quickWebsites: [
+        { name: '原版后台', url: './admin.html', icon: 'fas fa-suitcase' },
+        { name: '瀑布流', url: './admin-waterfall.html', icon: 'fas fa-wind' },
+        { name: 'Movavi', url: 'https://www.movavi.com/zh/movavi-video-converter.html', icon: 'fas fa-file-video' },
+        { name: 'FreeConvert', url: 'https://www.freeconvert.com/zh/video-compressor', icon: 'fas fa-file' },
+        { name: 'YouCompress', url: 'https://www.youcompress.com/zh-cn/', icon: 'fas fa-file-zipper' },
+        { name: 'Cloudinary', url: 'https://console.cloudinary.com/', icon: 'fas fa-cloud' },
+      ],
+    },
+    computed: {
+      filteredTableData() {
+        return this.tableData.filter(data => {
+          // 搜索匹配
+          const searchLower = this.search.toLowerCase();
+          const matchesSearch = !searchLower || [
+            (data.metadata.fileName || '').toLowerCase(),
+            data.name?.toLowerCase(),
+          ].some(field => field?.includes(searchLower));
+
+          // 筛选匹配
+          const matchesFilter = {
+            'all': true,
+            'favorites': data.metadata.liked,
+            'blocked': data.metadata.ListType === 'Block',
+            'unblocked': data.metadata.ListType === 'White',
+            'adult': data.metadata.Label?.toLowerCase() === 'adult',
+          }[this.filterOption] ?? true;
+
+          // 文件类型匹配
+          const ext = data.name.split('.').pop().toLowerCase();
+          const matchesType = this.fileType === 'document' ?
+          !Object.keys(this.fileConfig).some(type =>
+            type !== 'document' && this.fileConfig[type].exts.includes(ext) // 匹配其他所有文件
+          ) :
+          this.fileConfig[this.fileType].exts.includes(ext);
+          return matchesSearch && matchesFilter && matchesType;
+        });
+      },
+      paginatedTableData() {
+        return this.sortData(this.filteredTableData)
+          .slice((this.currentPage - 1) * this.pageSize, this.currentPage * this.pageSize);
+      },
+      sortIcon() { return `fas fa-sort-${this.sortOption === 'dateDesc' ? 'amount-down' : 'alpha-up'}`; },
+      filterIcon() {
+        return this.filterOption === 'all' ? 'fas fa-filter' :
+        this.filterOption === 'favorites' ? 'fas fa-bookmark' :
+        this.filterOption === 'blocked' ? 'fas fa-lock' :
+        this.filterOption === 'unblocked' ? 'fas fa-unlock' :
+        this.filterOption === 'adult' ? 'fas fa-user-secret' : '';
+      },
+      fileTypeIcon() {
+        return this.fileType === 'image' ? 'fas fa-image' :
+        this.fileType === 'video' ? 'fas fa-video' :
+        this.fileType === 'audio' ? 'fas fa-music' :
+        this.fileType === 'document' ? 'fas fa-folder-open' : '';
+      }
+    },
+    watch: {  // 监听数据变化
+      tableData: {
+        handler(newData) {
+          this.selectedFiles = newData.filter(file => file.selected);
         },
-        calculatePageSize() {
-          const minPageSize = 15;
-          const cardMinWidth = 240; // 卡片最小宽度
-          const cardAspectRatio = 3 / 4; // 卡片的高宽比
-          const gap = 20; // 卡片间的间隙
+        deep: true
+      },
+      sortOption(newOption) { localStorage.setItem('sortOption', newOption); },
+      filterOption(newOption) { localStorage.setItem('filterOption', newOption); }
+    },
+    methods: {
+      refreshDashboard() {location.reload();},  // 刷新页面
+      handleLogout() { window.location.href = '/'; },  // 退出登录
+      handlePageChange(page) { this.currentPage = page; },  // 切换页面
+      handleUpload() { this.$refs.fileInput.click(); },  // 打开文件选择对话框
+      sort(command) { this.sortOption = command; },  // 切换排序方式
+      filter(command) { this.filterOption = command; },  // 切换筛选方式
+      sortData(data) {
+        return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
+          this.sortOption === 'sizeDesc' ? data.sort((a, b) => b.metadata.fileSize - a.metadata.fileSize) :
+          data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
+      },
+      formattedFileDetails(item) {
+        const metadata = item.metadata;
+        const timestamp = new Date(metadata.TimeStamp).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+        return `
+          <div style="text-align: left; padding: 5px;">
+            <div><strong>ID：</strong>${item.name}</div>
+            <div><strong>文件名：</strong>${metadata.fileName || item.name}</div>
+            <div><strong>上传时间：</strong>${timestamp}</div>
+            <div><strong>元数据：</strong>${JSON.stringify(metadata)}</div>
+          </div>
+        `;
+      },
+      calculatePageSize() {  // 设置页面大小
+        const config = {
+          minSize: 15, // 最小页面卡片数
+          cardWidth: 240,
+          ratio: 3/4, // 卡片高宽比
+          gap: 20, // 卡片间距
+          defaultWidth: 800,
+          defaultHeaderHeight: 60 // 默认Dashboard高度
+        };
+        // 获取容器尺寸
+        const content = document.querySelector('.content');
+        const header = document.querySelector('.header-content');
+        const width = content?.clientWidth || config.defaultWidth;
+        const height = window.innerHeight - (header?.offsetHeight || config.defaultHeaderHeight);
+        // 计算行列数
+        const cols = Math.floor(width / (config.cardWidth + config.gap));
+        const cardHeight = (width / cols - config.gap) * config.ratio;
+        const rows = Math.floor(height / (cardHeight + config.gap));
+        // 设置页面大小
+        this.pageSize = Math.max(rows * cols, config.minSize);
+      },
+      updateWindowWidth() {  // 动态调整页面大小
+        this.windowWidth = window.innerWidth;
+        this.calculatePageSize();
+      },
+      updateStats() {
+        this.Number = this.tableData.length;
+        let fileCount = {image: 0, video: 0, audio: 0, document: 0};
+        this.tableData.forEach(file => {
+          const ext = file.name.split('.').pop().toLowerCase();
+          const type = Object.keys(this.fileConfig).find(t =>
+            this.fileConfig[t].exts.includes(ext)
+          ) || 'document';
+          fileCount[type]++;
+        });
+        Object.keys(this.fileConfig).forEach(type => {
+          this.fileConfig[type].count = fileCount[type] || 0;
+        });
+      },
+      // 文件操作
+      async uploadFiles(event) {
+        const files = Array.from(event.target.files || []);
+        if (!files.length) return;
+        // 文件验证配置
+        // telegram-bot可分发的最大文件大小（20MB）
+        // 大于20MB虽然能够成功上传，但无法获取文件链接
+        const config = this.uploadConfig;
+        // 过滤有效文件
+        const valid = [], invalid = [];
+        files.forEach(file => {
+          (file.size <= config.maxSize ? valid : invalid).push(file);
+        });
+        // 显示错误信息
+        if(invalid.length) { this.$message.error(`文件超过${config.maxSize/1024/1024}MB: \n${invalid.map(f => f.name).join('\n')}`); }
+        if(!valid.length) { this.$message.info('没有符合条件的文件'); event.target.value = ''; return; }
 
-          const contentElement = document.querySelector('.content');
-          const containerWidth = contentElement ? contentElement.clientWidth : 800;
-          const columns = Math.floor(containerWidth / (cardMinWidth + gap));
-
-          const headerElement = document.querySelector('.header-content');
-          const headerHeight = headerElement ? headerElement.offsetHeight : 60; // 使用默认值60px
-          const containerHeight = window.innerHeight - headerHeight;
-          const cardHeight = (containerWidth / columns - gap) * cardAspectRatio;
-          const rows = Math.floor(containerHeight / (cardHeight + gap));
-
-          this.pageSize = Math.max(rows * columns, minPageSize);
-        },
-        updateWindowWidth() {
-          this.windowWidth = window.innerWidth;
-          this.calculatePageSize();
-        },
-        handleUpload() {
-          this.$refs.fileInput.click();
-        },
-        uploadFiles(event) {
-          const files = event.target.files;
-          if (files.length === 0) return;
-
-          // 过滤文件类型和大小
-          const validFiles = [];
-          const invalidTypeFiles = [];
-          const oversizedFiles = [];
-
-          Array.from(files).forEach(file => {
-            const isValidType = file.type.startsWith('image/') || file.type.startsWith('video/');
-            const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB
-
-            if (!isValidType) {
-              invalidTypeFiles.push(file.name);
-            } else if (!isValidSize) {
-              oversizedFiles.push(file.name);
-            } else {
-              validFiles.push(file);
-            }
-          });
-
-          // 显示错误消息
-          if (invalidTypeFiles.length > 0) {
-            this.$message.error(`以下文件类型不支持: ${invalidTypeFiles.join(', ')}`);
-          }
-          if (oversizedFiles.length > 0) {
-            this.$message.error(`以下文件超过5MB: ${oversizedFiles.join(', ')}`);
-          }
-
-          if (validFiles.length === 0) {
-            this.$message.info('没有符合条件的文件');
-            return;
-          }
-
-          console.log("ValidFiles: ", validFiles);
-          this.$confirm(`确定要上传这 ${validFiles.length} 个文件吗?`, '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
+        try {
+          await this.$confirm(`确定要上传这 ${valid.length} 个文件吗?`, '提示', {
             type: 'warning'
-          }).then(() => {
-            // 显示上传进度
-            const loadingMessage = this.$message({
-              message: '上传中...',
-              duration: 0,
-              showClose: false,
-            });
-
-            const maxConcurrent = 3; // 最大并发数
-            let current = 0;
-            let successCount = 0;
-            let failedUploads = [];
-
-            const uploadNext = () => {
-              if (current >= validFiles.length) {
-                // 检查是否所有文件都已处理
-                if (successCount + failedUploads.length === validFiles.length) {
-                  loadingMessage.close();
-                  if (successCount > 0) {
-                    this.$message.success(`成功上传 ${successCount} 个文件!`);
-                  }
-                  if (failedUploads.length > 0) {
-                    this.$message.error(`上传失败: ${failedUploads.join(', ')}`);
-                  }
-                  // 刷新文件列表
-                  this.refreshFileList();
-                }
-                return;
-              }
-
-              const file = validFiles[current];
-              current++;
-
+          });
+          const loading = this.$message({ message: '上传中...', duration: 0 });
+          let [successCount, failed] = [0, []];
+          // 并发上传处理函数
+          const upload = async file => {
+            try {
               const formData = new FormData();
               formData.append('file', file);
-
-              fetch(this.baseURL + '/upload', {
+              const res = await fetch(`${this.baseURL}/upload`, {
                 method: 'POST',
                 body: formData,
                 credentials: 'include'
-              }).then(response => {
-                if (!response.ok) {
-                  throw new Error(`上传失败: ${file.name}`);
-                }
-                return response.json();
-              }).then(result => {
-                if (Array.isArray(result) && result.length > 0 && result[0].error) {
-                  // 响应内容中包含错误
-                  throw new Error(result[0].error || `上传失败: ${file.name}`);
-                }
-
-                // 确保 result[0].src 存在
-                if (!result[0].src) {
-                  throw new Error(`上传成功但未返回文件路径: ${file.name}`);
-                }
-
-                successCount++;
-
-                // 处理成功上传的文件
-                const previewUrl = `${this.baseURL}${result[0].src}`;
-                if (result[0].src) {
-                  fetch(previewUrl, { method: 'GET', credentials: 'include' })
-                    .then(response => {
-                      if (!response.ok) {
-                        console.error(`无法获取文件: ${previewUrl}`);
-                      } else {
-                        this.tableData.unshift({
-                          name: result[0].src.replace(/^\/file\//, ''),
-                          selected: false,
-                          metadata: { TimeStamp: Date.now() }
-                        });
-                      }
-                    }).catch(error => {
-                      console.error(`获取文件时出错: ${previewUrl}`, error);
-                    });
-                }
-              }).catch(error => {
-                failedUploads.push(file.name); // 记录失败的文件名称
-                console.error(error.message);
-              }).finally(() => {
-                uploadNext(); // 继续上传下一个文件
               });
-            };
-
-            // 启动初始的并发上传任务
-            for (let i = 0; i < maxConcurrent && i < validFiles.length; i++) {
-              uploadNext();
-            }
-
-          }).catch(() => {
-            this.$message.info('已取消上传');
-          });
-
-          // 清空文件输入，以便可以重复选择相同的文件
-          event.target.value = '';
-        },
-        refreshFileList() {
-          // 重新获取文件列表
-          fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
-            .then(response => response.json())
-            .then(result => {
-              this.tableData = result.map(file => ({ ...file, selected: false }));
-              this.updateStats();
-              this.sortData(this.tableData);
-            })
-            .catch(() => this.$message.error('刷新文件列表失败，请检查网络连接'));
-        },
-        handleDelete(index, key) {
-          this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(() => {
-            fetch(`./api/manage/delete/${key}`, { method: 'GET', credentials: 'include' })
-              .then(response => response.ok ? this.tableData.splice(index, 1) : Promise.reject())
-              .then(() => {
-                this.updateStats();
-                this.$message.success('删除成功！');
-              })
-              .catch(() => this.$message.error('删除失败，请检查网络连接'));
-          }).catch(() => this.$message.info('已取消删除'));
-        },
-        handleBatchDelete() {
-          this.$confirm('此操作将永久删除选中的文件, 是否继续?', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning'
-          }).then(() => {
-            const promises = this.selectedFiles.map(file => fetch(`./api/manage/delete/${file.name}`, { method: 'GET', credentials: 'include' }));
-
-            Promise.all(promises)
-              .then(results => {
-                results.forEach((response, index) => {
-                  if (response.ok) {
-                    const fileIndex = this.tableData.findIndex(file => file.name === this.selectedFiles[index].name);
-                    if (fileIndex !== -1) {
-                      this.tableData.splice(fileIndex, 1);
-                    }
-                  }
-                });
-                this.selectedFiles = [];
-                this.updateStats();
-                this.$message.success('批量删除成功!');
-              })
-              .catch(() => this.$message.error('批量删除失败，请检查网络连接'));
-          }).catch(() => this.$message.info('已取消批量删除'));
-        },
-        handleBatchCopy() {
-          const links = this.selectedFiles.map(file => `${document.location.origin}/file/${file.name}`).join('\n');
-          navigator.clipboard ? navigator.clipboard.writeText(links).then(() => this.$message.success('批量复制链接成功~')) :
-            this.copyToClipboardFallback(links);
-        },
-        copyToClipboardFallback(text) {
-          const textarea = document.createElement('textarea');
-          document.body.appendChild(textarea);
-          textarea.style.position = 'fixed';
-          textarea.style.clip = 'rect(0 0 0 0)';
-          textarea.style.top = '10px';
-          textarea.value = text;
-          textarea.select();
-          document.execCommand('copy');
-          document.body.removeChild(textarea);
-          this.$message.success('批量复制链接成功~');
-        },
-        handleLogout() {
-          window.location.href = '/';
-        },
-        handleCopy(index, key) {
-          const text = `${this.baseURL}/file/${key}`;
-          navigator.clipboard ? navigator.clipboard.writeText(text).then(() => this.$message.success('复制文件链接成功~')) :
-            this.copyToClipboardFallback(text);
-        },
-        handlePageChange(page) {
-          this.currentPage = page;
-        },
-        // 处理收藏事件
-        toggleLike(index, key) {
-          console.log(`Toggling like for image: ${key}`);
-
-          // 乐观更新收藏状态
-          if (this.tableData[index].metadata.liked === undefined) {
-            this.tableData[index].metadata.liked = false;
-          }
-          this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
-
-          // 发送请求更新服务器数据
-          var requestOptions = {
-            method: 'GET',
-            redirect: 'follow',
-            credentials: 'include'
-          };
-
-          fetch(`./api/manage/toggleLike/${key}`, requestOptions)
-            .then(response => response.json())
-            .then(result => {
-              if (!result.success) {
-                // 如果服务器更新失败，将状态还原
-                this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
-                this.$message({
-                  message: '更新收藏状态失败，请稍后重试',
-                  type: 'error'
-                });
-              } else {
-                this.$message.success('更新收藏状态成功');
+              const data = await res.json();
+              if (!res.ok || (Array.isArray(data) && data[0]?.error)) {
+                throw new Error(data[0]?.error || '上传失败');
               }
-            })
-            .catch(error => {
-              console.error("An error occurred while synchronizing data with the server", error);
-              // 如果服务器响应错误，将状态还原
-              this.tableData[index].metadata.liked = !this.tableData[index].metadata.liked;
-              this.$message({
-                message: '同步服务器失败，请检查网络连接',
-                type: 'error'
+              const src = data[0]?.src;
+              if (!src) throw new Error('未返回文件路径');
+              // 验证并添加到列表
+              const preview = await fetch(`${this.baseURL}${src}`, {
+                credentials: 'include'
               });
-            });
-        },
-        updateStats() {
-          this.Number = this.tableData.length;
-        },
-        sort(command) {
-          this.sortOption = command;
-        },
-        sortData(data) {
-          return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
-            data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
-        }
-      },
-      mounted() {
-        window.addEventListener('resize', this.calculatePageSize);
-        this.updateWindowWidth();
-        fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
-          .then(response => response.text())
-          .then(result => {
-            if (result == "true") {
-              this.showLogoutButton = true;
-            } else if (result == "Not using basic auth.") {
-              // Do nothing
-            } else {
-              window.location.href = "./api/manage/login";
+              if (preview.ok) {
+                this.tableData.unshift({
+                  name: src.replace(/^\/file\//, ''),
+                  selected: false,
+                  metadata: { TimeStamp: Date.now(), fileSize: file.size, fileName: file.name }
+                });
+                successCount++;
+              }
+            } catch (err) {
+              failed.push(`${file.name} (${err.message})`);
+              console.error('Upload error:', err);
             }
-          })
-          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+          };
+          // 分批上传
+          for (let i = 0; i < valid.length; i += config.maxConcurrent) {
+            await Promise.all(
+              valid.slice(i, i + config.maxConcurrent).map(upload)
+            );
+          }
+          loading.close();
+          successCount && this.$message.success(`成功上传 ${successCount} 个文件`);
+          failed.length && this.$message.error(`上传失败: ${failed.join(', ')}`);
+          this.refreshFileList();
 
+        } catch {
+          this.$message.info('已取消上传');
+        }
+        event.target.value = '';
+      },
+      refreshFileList() {  // 不刷新页面,仅更新数据
         fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
           .then(response => response.json())
           .then(result => {
-            console.log("result: ", result);
-            this.tableData = result.map(file => ({
-              ...file,
-              selected: false,
-              metadata: {
-                ...file.metadata,
-                liked: file.metadata.liked !== undefined ? file.metadata.liked : false
-              }
-            }));
+            this.tableData = result.map(file => ({ ...file, selected: false }));
             this.updateStats();
-            const savedSortOption = localStorage.getItem('sortOption');
-            if (savedSortOption) {
-              this.sortOption = savedSortOption;
-            }
             this.sortData(this.tableData);
           })
-          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+          .catch(() => this.$message.error('刷新文件列表失败，请检查网络连接'));
       },
-      beforeDestroy() {
-        window.removeEventListener('resize', this.calculatePageSize);
+      toggleSelect(index, name) {
+        const fileIndex = this.tableData.findIndex(file => file.name === name);
+        this.tableData[fileIndex].selected = !this.tableData[fileIndex].selected;
+      },
+      toggleLike(index, name) {
+        console.log(`Toggling like for : ${name}`);
+        const fileIndex = this.tableData.findIndex(file => file.name === name);
+        // 乐观更新收藏状态
+        this.tableData[fileIndex].metadata.liked = !(this.tableData[fileIndex].metadata.liked ?? false);
+        // 发送请求更新服务器数据
+        var requestOptions = { method: 'GET', redirect: 'follow', credentials: 'include' };
+        fetch(`./api/manage/toggleLike/${name}`, requestOptions)
+          .then(response => response.json())
+          .then(result => {
+            if (!result.success) {  // 如果服务器更新失败，将状态还原
+              this.tableData[fileIndex].metadata.liked = !this.tableData[fileIndex].metadata.liked;
+              this.$message({message: '更新收藏状态失败，请稍后重试', type: 'error'});
+            } else {
+              this.$message.success(this.tableData[fileIndex].metadata.liked ? '收藏成功' : '取消收藏');
+            }
+          })
+          .catch(error => { // 如果服务器响应错误，将状态还原
+            this.tableData[fileIndex].metadata.liked = !this.tableData[fileIndex].metadata.liked;
+            this.$message({message: '同步服务器失败，请检查网络连接', type: 'error'});
+          });
+      },
+      handleDelete(index, key) {
+        this.$confirm('此操作将永久删除该文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          fetch(`./api/manage/delete/${key}`, { method: 'GET', credentials: 'include' })
+            .then(response => response.ok ? this.tableData.splice(index, 1) : Promise.reject())
+            .then(() => {
+              this.updateStats();
+              this.$message.success('删除成功！');
+            })
+            .catch(() => this.$message.error('删除失败，请检查网络连接'));
+        }).catch(() => this.$message.info('已取消删除'));
+      },
+      copyToClipboardFallback(text) {
+        const textarea = document.createElement('textarea');
+        document.body.appendChild(textarea);
+        textarea.style.position = 'fixed';
+        textarea.style.clip = 'rect(0 0 0 0)';
+        textarea.style.top = '10px';
+        textarea.value = text;
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      },
+      handleCopy(index, key) {
+        const link = `${this.baseURL}/file/${key}`;
+        (navigator.clipboard?.writeText(link) || this.copyToClipboardFallback(link))
+          .then(() => this.$message.success('复制文件链接成功~'))
+          .catch(() => this.$message.error('自动复制失败，请手动复制链接：' + link));
+      },
+      // 批处理相关
+      selectAllInPage() {  // 全选当前页
+        const selected = !this.paginatedTableData.every(file => file.selected);
+        this.paginatedTableData.forEach(file => file.selected = selected);
+      },
+      handleBatchDelete() {  // 批量删除
+        this.$confirm('此操作将永久删除这 ' + this.selectedFiles.length + ' 个文件, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const promises = this.selectedFiles.map(file => fetch(`./api/manage/delete/${file.name}`, { method: 'GET', credentials: 'include' }));
+
+          Promise.all(promises)
+            .then(results => {
+              results.forEach((response, index) => {
+                if (response.ok) {
+                  const fileIndex = this.tableData.findIndex(file => file.name === this.selectedFiles[index].name);
+                  if (fileIndex !== -1) {
+                    this.tableData.splice(fileIndex, 1);
+                  }
+                }
+              });
+              this.selectedFiles = [];
+              this.updateStats();
+              this.$message.success('批量删除成功!');
+            })
+            .catch(() => this.$message.error('批量删除失败，请检查网络连接'));
+        }).catch(() => this.$message.info('已取消批量删除'));
+      },
+      handleBatchCopy() {  // 批量复制链接
+        const links = this.selectedFiles.map(file => `${document.location.origin}/file/${file.name}`).join('\n');
+        (navigator.clipboard?.writeText(links) || this.copyToClipboardFallback(links))
+          .then(() => this.$message.success('批量复制链接成功~'));
+      },
+      handleBatchDownload() {  // 批量下载
+        this.$message.info(`正在下载 ${this.selectedFiles.length} 个文件`, { duration: 1000 });
+        this.selectedFiles.forEach((file, index) => {
+          setTimeout(() => {
+            const link = document.createElement('a');
+            link.href = `/file/${file.name}`;
+            link.download = file.metadata.fileName || file.name;
+            link.click();
+          }, index * 800);
+        });
+        this.selectedFiles = [];
+      },
+      handleBatchBlockOrUnblock(type) {  // 批量加入黑/白名单
+        if (type !== 'Block' && type !== 'White') { this.$message.error('无效的操作类型'); return; }
+        const typeToName = { Block: '黑名单', White: '白名单' };
+        this.$confirm(`确定要将这 ${this.selectedFiles.length} 个文件加入${typeToName[type]}吗?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          const promises = this.selectedFiles.map(file => fetch(`./api/manage/${type.toLowerCase()}/${file.name}`, { method: 'GET', credentials: 'include' }));
+
+          Promise.all(promises)
+            .then(responses => {
+              responses.forEach((response, index) => {
+                if (response.ok) {
+                  const fileIndex = this.tableData.findIndex(item => item.name === this.selectedFiles[index].name);
+                  if (fileIndex !== -1) {
+                    this.tableData[fileIndex].metadata.ListType = type;
+                  }
+                }
+              });
+              this.$message.success(`批量加入${typeToName[type]}成功`);
+              this.selectedFiles = [];
+            })
+            .catch(() => this.$message.error(`操作失败，请检查网络连接`));
+        });
+      },
+      handleBatchOperation(command) {
+        if (this.selectedFiles.length === 0) { this.$message.warning('请先选择文件'); return; }
+        switch (command) {
+          case 'copy': this.handleBatchCopy(); break;
+          case 'delete': this.handleBatchDelete(); break;
+          case 'download': this.handleBatchDownload(); break;
+          case 'block': this.handleBatchBlockOrUnblock('Block'); break;
+          case 'unblock': this.handleBatchBlockOrUnblock('White'); break;
+        }
+      },
+      // 工具相关
+      handleToolkit(command) {
+        switch (command) {
+          case 'selectAllInPage': this.selectAllInPage(); break;
+          case 'checkBrokenFiles': this.checkBrokenFiles(); break;
+          case 'editWebsites': this.editWebsites(); break;
+        }
+      },
+      switchFileType(type) {  // 切换文件类型
+        this.fileType = type;
+        this.currentPage = 1;
+        localStorage.setItem('fileType', type);
+        this.$message({
+          message: `已切换为${this.fileConfig[type].name}模式, 共${this.fileConfig[type].count}个文件`,
+          type: 'success',
+          duration: 1500
+        });
+      },
+      checkBrokenFiles() {  // 检测失效文件
+        const loadingMessage = this.$message({ message: '正在检测失效文件...', duration: 0});
+
+        let brokenCount = 0;
+        const promises = this.tableData.map((item, index) => {
+          const fileIndex = this.tableData.findIndex(item => item.name === this.selectedFiles[index].name);
+          return new Promise((resolve) => {
+            fetch(`${this.baseURL}/file/${item.name}`, {
+              method: 'HEAD',
+              cache: 'no-cache'  // 避免缓存影响检测结果
+            })
+              .then(response => {
+                if (!response.ok) {
+                  brokenCount++;
+                  this.tableData[fileIndex].selected = true;
+                  resolve({ index, status: 'error' });
+                } else {
+                  resolve({ index, status: 'success' });
+                }
+              })
+              .catch(() => {
+                brokenCount++;
+                this.tableData[fileIndex].selected = true;
+                resolve({ index, status: 'error' });
+              });
+          });
+        });
+
+        Promise.all(promises).then(() => {
+          loadingMessage.close();
+          if (brokenCount > 0) {
+            this.$message({
+              dangerouslyUseHTMLString: true,
+              message: `检测到 ${brokenCount} 个失效文件，已自动选中。<br>您可以使用批量删除功能移除它们。`,
+              type: 'warning',
+              duration: 5000
+            });
+          } else {
+            this.$message({
+              message: '未检测到失效文件',
+              type: 'success'
+            });
+          }
+        });
+      },
+      // 处理网站点击
+      handleWebsite(url) { window.open(url, '_blank'); },
+      // 编辑快捷方式
+      editWebsites() {
+        const websiteText = this.quickWebsites
+          .map(site => `${site.name}|${site.url}|${site.icon}`)
+          .join('\n');
+
+        this.$prompt('', '编辑快捷方式', {
+          inputType: 'textarea',
+          inputValue: websiteText,
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          dangerouslyUseHTMLString: true,
+          customClass: 'website-edit-dialog',
+          message: `
+            <div>
+              每行一个网站，格式：名称|网址|图标类名<br>
+              图标需在 <a href="https://fontawesome.com/v6/search?m=free" target="_blank" style="color: #409EFF; text-decoration: underline">Font Awesome</a> 中选择
+            </div>
+          `,
+          inputValidator: (value) => {
+            const lines = value.split('\n');
+            if (lines.length > 10) return '不能超过10行';
+            for (let line of lines) {
+              if (!line.trim()) continue;
+              const [name, url, icon = 'fas fa-link'] = line.split('|');
+              if (!name || !url) return '名称和网址不能为空：' + line;
+              if (!(/^https?:\/\/.+/.test(url) || /^\.\/.*/.test(url))) return '网址格式错误：'+line;
+              if (!/^(fas?|fa-brands|fa-regular|fa-solid)\s+fa-[a-z0-9-]+$/.test(icon)) {
+                return '图标类名格式错误：' + line;
+              }
+            }
+            return true;
+          }
+        }).then(({ value }) => {
+          const newSites = value.split('\n')
+            .filter(line => line.trim())
+            .map(line => {
+              const [name, url, icon = 'fas fa-link'] = line.split('|');
+              return { name, url, icon };
+            });
+          this.quickWebsites = newSites;
+          localStorage.setItem('quickWebsites', JSON.stringify(newSites));
+          this.$message.success('保存成功');
+        }).catch(() => {});
+      },
+      getFileIcon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        const iconMap = {
+          'pdf': 'fas fa-file-pdf',
+          'doc,docx': 'fas fa-file-word',
+          'xls,xlsx,csv': 'fas fa-file-excel',
+          'ppt,pptx': 'fas fa-file-powerpoint',
+          'txt,md,log': 'fas fa-file-lines',
+          'zip,rar,7z,tar,gz': 'fas fa-file-zipper',
+          'html,htm,css,js,ts,jsx,tsx,vue,php,py,java,c,cpp,h,hpp,cs,go,rs,rb,pl,sh,sql': 'fas fa-file-code',
+          'json,xml,yaml,yml,toml': 'fas fa-file-code',
+          'mp4,avi,mov,wmv,flv,mkv,webm': 'fas fa-file-video',
+          'mp3,wav,ogg,flac,aac,m4a,wma': 'fas fa-file-audio',
+          'jpg,jpeg,png,gif,bmp,webp,svg,ico': 'fas fa-file-image',
+          'psd,ai,eps,cdr': 'fas fa-file-image',
+          'exe,msi,app,dmg,deb,rpm': 'fas fa-file-arrow-down'
+        };
+        for(const [exts, icon] of Object.entries(iconMap)) {
+          if(exts.split(',').includes(ext)) {
+            return icon;
+          }
+        }
+        return 'fas fa-file';
+      },
+      getFileType(filename) {
+        const ext = filename.split('.').pop();
+        return `${ext.toUpperCase()}`;
+      },
+      handleEditName(item) {
+        this.$prompt('', '修改文件名', {
+          inputValue: item.metadata?.fileName || item.name,
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          inputValidator: (value) => {
+            if (!value) return '文件名不能为空';
+            if (value.length > 64) return '文件名不能超过64个字符';
+            return true;
+          }
+        }).then(({ value }) => {
+          fetch(`./api/manage/editName/${item.name}?newName=${encodeURIComponent(value)}`, {
+            method: 'GET',
+            credentials: 'include'
+          })
+          .then(response => response.json())
+          .then(result => {
+            if (result.success) {
+              item.metadata.fileName = value;
+              this.$message.success('文件名修改成功');
+            } else {
+              this.$message.error('文件名修改失败');
+            }
+          })
+          .catch(() => this.$message.error('修改文件名时出错，请检查网络连接'));
+        }).catch(() => {});
       }
-    });
-  </script>
-  </html>
+    },
+    mounted() {
+      window.addEventListener('resize', this.calculatePageSize);
+      this.updateWindowWidth();
+      fetch("./api/manage/check", { method: 'GET', credentials: 'include' })
+        .then(response => response.text())
+        .then(result => result === "true" ? this.showLogoutButton = true : window.location.href = "./api/manage/login")
+        .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+
+      // 获取文件列表数据
+      fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
+        .then(response => response.json())
+        .then(result => {
+          console.log("result: ", result);
+          this.tableData = result.map(file => ({
+            ...file,
+            selected: false,
+            metadata: {
+              ...file.metadata,
+              liked: file.metadata.liked ?? false,
+              fileName: file.metadata.fileName ?? file.name,
+              fileSize: file.metadata.fileSize ?? 0
+            }
+          }));
+          this.updateStats();
+          // 恢复设置
+          this.sortOption = localStorage.getItem('sortOption') || this.sortOption;
+          this.sortData(this.tableData);
+          this.fileType = localStorage.getItem('fileType') || this.fileType;
+          this.switchFileType(this.fileType);
+        })
+        .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+
+      if (localStorage.getItem('quickWebsites')) {
+        this.quickWebsites = JSON.parse(localStorage.getItem('quickWebsites'));
+      }
+    },
+    beforeDestroy() {
+      window.removeEventListener('resize', this.calculatePageSize);
+    }
+  });
+</script>
+</html>
