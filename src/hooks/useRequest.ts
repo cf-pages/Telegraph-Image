@@ -1,15 +1,14 @@
 import axios from "axios";
 
-const BASIC_USER = import.meta.env.BASIC_USER
-const BASIC_PASS = import.meta.env.BASIC_PASS
 
-export default function useRequest() {
+
+export default function useRequest(context: any) {
   const upload = async (files: Array<File>) => {
     if (files) {
       console.log('upload' + files)
       try {
-        console.log('BASIC_USER:' + BASIC_USER)
-        console.log('BASIC_USER:' + BASIC_PASS)
+        console.log('BASIC_USER:' + context.env.BASIC_USER)
+        console.log('BASIC_USER:' + context.env.BASIC_PASS)
         const result = await axios.post('http://localhost:8080/upload', files);
         console.log(result)
       } catch (e) {
