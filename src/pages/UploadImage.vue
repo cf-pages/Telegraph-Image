@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {ref} from 'vue';
-import useRequest from "@/hooks/useRequest.ts";
+import {useRequest} from "@/hooks/useRequest.ts";
 
 const {upload} = useRequest()
 
