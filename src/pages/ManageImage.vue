@@ -13,12 +13,12 @@ interface ImgUrlArr {
   name: string
 }
 
-let img_url_arr = ref<ImgUrlArr[]>([{"name": "1"}, {"name": "2"}]);
+const img_url_arr = ref<ImgUrlArr[]>([{"name": "1"}, {"name": "2"}]);
 axios.get('/get_image_url')
   .then(
     res => {
-      img_url_arr = ref(res.data)
-      console.log('res', img_url_arr)
+      img_url_arr.value = res.data
+      console.log('res', res.data)
     }
   ).catch(e => console.log(e))
 
