@@ -1,8 +1,16 @@
 interface Env {
-  KV: KVNamespace;
+    KV: KVNamespace;
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
-  console.log(111111)
-  return new Response();
+    const {
+        request,
+        env,
+        params,
+        waitUntil,
+        next,
+        data,
+    } = context;
+    console.log(request, env, params, waitUntil, next, data)
+    return new Response('123');
 };
