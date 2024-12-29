@@ -28,5 +28,5 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   await axios.get(file_url,).then(res => res_data = res.data)
 
 
-  return new Response(res_data, {headers: {'Accept': '*/*','Content-Disposition': 'inline;',}, status: 200});
+  return new Response(res_data, {headers: {'Accept': 'image/avif,image/webp,image/apng','Content-Disposition': 'inline;',}, status: 200});
 };
