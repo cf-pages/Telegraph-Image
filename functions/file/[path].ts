@@ -7,12 +7,13 @@ interface Env {
 export const onRequest: PagesFunction<Env> = async (context) => {
   const {request, env,} = context;
   // get file path json
-  const path = request.url.split(".")[0].split("/")[2];
-  const url = `https://api.telegram.org/bot${env['TG_Bot_Token']}/getFile?file_id=${path}`;
+  const url:URL = new URL(request.url);
+  const path = url.pathname.split(".")[0].split("/")[2];
+  const get_path_url = `https://api.telegram.org/bot${env['TG_Bot_Token']}/getFile?file_id=${path}`;
   console.log(path);
   // const url = `https://api.telegram.org/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/getFile?file_id=AgACAgUAAyEGAASQv4IqAAMHZ29c4WtA7PjpKtLaCcKvVEDAEjAAAkPBMRssGXhXRD_Nin8nX64BAAMCAAN5AAM2BA`;
   let file_path;
-  axios.get(url).then(
+  axios.get(get_path_url).then(
     (res: AxiosResponse) => {
       file_path = res.data.file_path;
     }).catch(() => {
