@@ -9,9 +9,15 @@ await axios.get('/user_login_request').then(
   }
 ).catch(e => console.log(e))
 
+interface ImgUrlArr {
+  name: string
+}
+
+let img_url_arr = ref<ImgUrlArr[]>([]);
 await axios.get('/get_image_url').then(
   res => {
-    console.log('res', res)
+    img_url_arr = ref(res.data)
+    console.log('res', res.data)
   }
 ).catch(e => console.log(e))
 
@@ -19,7 +25,9 @@ await axios.get('/get_image_url').then(
 
 <template>
   <div ref="manage">manage</div>
-
+  <div v-for="item in img_url_arr">
+    {{ item.name }}
+  </div>
 </template>
 
 <style scoped>
