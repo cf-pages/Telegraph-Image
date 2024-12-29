@@ -25,10 +25,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const file_url = `https://api.telegram.org/file/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/photos/file_5.jpg`;
 
   let res_data;
-  await axios.get(file_url,).then(res => res_data = res.data)
+  await axios.get(file_url, {responseType: 'blob'}).then(res => res_data = res.data)
 
 
-  return new Response(new Blob([res_data]),
+  return new Response(res_data,
     {
       headers: {
         'Accept-Ranges': 'bytes',
