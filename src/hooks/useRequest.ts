@@ -23,11 +23,3 @@ export function useRequest() {
     upload
   }
 }
-
-
-export async function onRequest(context: any) {
-  console.log(context.env.BASIC_USER)
-  console.log(context.env.BASIC_PASS)
-
-  return new Response();
-}

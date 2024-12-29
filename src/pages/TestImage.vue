@@ -1,8 +1,16 @@
 <script setup lang="ts">
+import {ref} from 'vue';
+
+const logout = ref<HTMLDivElement>();
+
+const logoutTrigger = () => {
+  window.location.href = '/logout_request'
+}
+
 </script>
 
 <template>
-  <div ref="test">test</div>
+  <button ref="logout" @click="logoutTrigger"><span>Logout</span></button>
 </template>
 
 <style scoped>
