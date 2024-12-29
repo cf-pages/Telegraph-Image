@@ -30,10 +30,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   return new Response(res_data,
     {
-      headers: {
-        'Accept-Ranges': 'bytes',
-        'Content-Type': 'application/octet-stream',
-      },
       status: 200
     });
 };
