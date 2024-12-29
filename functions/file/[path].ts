@@ -28,5 +28,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   await axios.get(file_url,).then(res => res_data = res.data)
 
 
-  return new Response(new Blob([new Uint8Array(res_data)]), {headers: {'Content-Type': 'application/octet-stream',}, status: 200});
+  return new Response(new Blob(res_data),
+    {
+      headers: {
+        'Accept-Ranges': 'bytes',
+        'Content-Type': 'application/octet-stream',
+      },
+      status: 200
+    });
 };
