@@ -28,5 +28,5 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   await axios.get(file_url,).then(res => res_data = res.data)
 
 
-  return new Response(res_data, {headers: {'Content-Type': 'application/octet-stream',}, status: 200});
+  return new Response(new Blob([res_data]), {headers: {'Content-Type': 'image/jpeg','Content-Disposition': 'inline;',}, status: 200});
 };
