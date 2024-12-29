@@ -5,13 +5,13 @@ interface Env {
 export const onRequest: PagesFunction<Env> = async (context) => {
   const {
     request,
-    env,
-    params,
-    waitUntil,
-    next,
-    data,
+    // env,
+    // params,
+    // waitUntil,
+    // next,
+    // data,
   } = context;
-  console.log(request, env, params, waitUntil, next, data)
+  // console.log(request, env, params, waitUntil, next, data)
   if (!request.headers.has('Authorization')) {
     return new Response('Unauthorized', {
       status: 401,

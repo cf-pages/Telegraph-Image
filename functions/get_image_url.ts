@@ -4,15 +4,18 @@ interface Env {
 
 export const onRequest: PagesFunction<Env> = async (context) => {
   const {
-    request,
+    // request,
     env,
-    params,
-    waitUntil,
-    next,
-    data,
+    // params,
+    // waitUntil,
+    // next,
+    // data,
   } = context;
-  console.log(request, env, params, waitUntil, next, data)
-  const img_url_list = env.img_url.list();
+  const img_url_list = env.img_url.list().catch(e => {
+    console.log(e);
+    return [{"name": "1"},{"name": "2"}];
+  });
   const img_url_keys = JSON.stringify((await img_url_list).keys);
+  console.log(img_url_keys)
   return new Response(img_url_keys);
 };

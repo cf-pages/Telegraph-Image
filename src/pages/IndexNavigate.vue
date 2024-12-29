@@ -6,6 +6,7 @@ import {RouterLink} from "vue-router";
   <div class="index-navigate">
     <RouterLink to="/">上传图片</RouterLink>
     <RouterLink :to="{name: 'manage-image'}">管理图片</RouterLink>
+    <RouterLink :to="{name: 'test-image'}">测试</RouterLink>
   </div>
 </template>
 
