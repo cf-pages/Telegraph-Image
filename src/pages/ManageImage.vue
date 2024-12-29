@@ -3,7 +3,7 @@ import {ref} from 'vue';
 import axios from "axios";
 
 const manage = ref<HTMLDivElement>();
-await axios.get('/user_login_request').then(
+axios.get('/user_login_request').then(
   res => {
     console.log('res', res)
   }
