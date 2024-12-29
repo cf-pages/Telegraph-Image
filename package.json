@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "wrangler-dev": "npx wrangler pages dev .",
+    "wrangler-dev": "npx wrangler pages dev ./dist",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
