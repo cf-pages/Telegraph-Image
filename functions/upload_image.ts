@@ -12,5 +12,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     data,
   } = context;
   console.log(request, env, params, waitUntil, next, data)
+
   return new Response('123' + env['BASIC_USER']);
 };
