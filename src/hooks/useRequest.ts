@@ -1,22 +1,23 @@
 import axios from "axios";
-// import {type PagesFunction, type KVNamespace, Response as CfResponse} from "@cloudflare/workers-types";
-//
-// interface Env {
-//     KV: KVNamespace;
-// }
-
+import FormData from "form-data";
 
 export function useRequest() {
-  const upload = async (files: Array<File>) => {
+  const upload = async (files: Array<File>):Promise<string> => {
     if (files) {
-      console.log('upload' + files)
+      console.log('upload' + files);
       try {
-        const result = await axios.post('http://localhost:8080/upload', files);
-        console.log(result)
+        const formData = new FormData();
+        for (const file of files) {
+          formData.append('files', file);
+        }
+        const result = await axios.post('https://image.unrose.com/upload_image', formData, {headers: {...formData.getHeaders()}});
+        console.log(result);
+        return JSON.stringify(result.data);
       } catch (e) {
         console.log(e)
       }
     }
+    return '';
   };
 
   return {

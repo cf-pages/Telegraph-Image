@@ -5,6 +5,7 @@ import {useRequest} from "@/hooks/useRequest.ts";
 const {upload} = useRequest()
 
 const uploadTrigger = ref<HTMLDivElement>();
+const uploadTriggerStatus = ref<HTMLSpanElement>();
 const uploadStatus = ref<HTMLSpanElement>();
 const selectedFiles = ref<File[]>([]);
 const isDragging = ref(false);
@@ -15,28 +16,34 @@ const triggerFileInput = () => {
   fileInput.value?.click();
 };
 const onDragOver = () => {
-  if (uploadStatus.value) {
-    uploadStatus.value.innerText = '松开上传';
+  if (uploadTriggerStatus.value) {
+    uploadTriggerStatus.value.innerText = '松开上传';
   }
   isDragging.value = true;
 };
 const onDragLeave = () => {
-  if (uploadStatus.value) {
-    uploadStatus.value.innerText = '点击或拖拽文件上传';
+  if (uploadTriggerStatus.value) {
+    uploadTriggerStatus.value.innerText = '点击或拖拽文件上传';
   }
   isDragging.value = false;
 };
 const onDrop = (event: DragEvent) => {
-  if (uploadStatus.value) {
-    uploadStatus.value.innerText = '上传中';
+  if (uploadTriggerStatus.value) {
+    uploadTriggerStatus.value.innerText = '上传中';
   }
   isDragging.value = false;
   if (event.dataTransfer && event.dataTransfer.files) {
     selectedFiles.value = Array.from(event.dataTransfer.files);
     console.log(selectedFiles)
-    upload(selectedFiles.value)
-    if (uploadStatus.value) {
-      uploadStatus.value.innerText = '点击或拖拽文件上传';
+    upload(selectedFiles.value).then(
+      (res) => {
+        if (uploadStatus.value) {
+          uploadStatus.value.innerText = res;
+        }
+      }
+    );
+    if (uploadTriggerStatus.value) {
+      uploadTriggerStatus.value.innerText = '点击或拖拽文件上传';
     }
   }
 };
@@ -53,7 +60,13 @@ const handlePaste = (event: ClipboardEvent) => {
       }
     }
     console.log(selectedFiles)
-    upload(selectedFiles.value)
+    upload(selectedFiles.value).then(
+      (res) => {
+        if (uploadStatus.value) {
+          uploadStatus.value.innerText = res;
+        }
+      }
+    );
   }
 };
 
@@ -62,7 +75,13 @@ const change = (event: Event) => {
   if (target.files) {
     selectedFiles.value = Array.from(target.files);
     console.log(selectedFiles)
-    upload(selectedFiles.value)
+    upload(selectedFiles.value).then(
+      (res) => {
+        if (uploadStatus.value) {
+          uploadStatus.value.innerText = res;
+        }
+      }
+    );
   }
 };
 
@@ -71,7 +90,8 @@ const change = (event: Event) => {
   <div ref="effectiveArea" class="effective-area" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave"
        @drop.prevent="onDrop" @paste="handlePaste">
     <div ref="uploadTrigger" class="upload-trigger" :class="{ dragging: isDragging}" @click="triggerFileInput">
-      <span ref="uploadStatus">点击或拖拽文件上传</span>
+      <span ref="uploadTriggerStatus">点击或拖拽文件上传</span>
+      <span ref="uploadStatus"></span>
       <input ref="fileInput" type="file" @change="change" hidden="hidden" multiple>
     </div>
   </div>
