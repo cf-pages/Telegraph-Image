@@ -19,7 +19,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     (res: AxiosResponse) => {
       console.log('res.data', res.data.length);
       file_path_data = res.data
-      file_path = res.data.file_path;
+      file_path = res.data.result.file_path;
     }).catch(() => {
     file_path = 'photos/file_5.jpg'
   });
