@@ -14,7 +14,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   console.log('get_path_url', get_path_url);
   // const url = `https://api.telegram.org/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/getFile?file_id=AgACAgUAAyEGAASQv4IqAAMHZ29c4WtA7PjpKtLaCcKvVEDAEjAAAkPBMRssGXhXRD_Nin8nX64BAAMCAAN5AAM2BA`;
   let file_path;
-  axios.get(get_path_url).then(
+  await axios.get(get_path_url).then(
     (res: AxiosResponse) => {
       console.log('res.data',res.data);
       file_path = res.data.file_path;
