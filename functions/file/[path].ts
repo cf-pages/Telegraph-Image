@@ -17,7 +17,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   let file_path: string;
   await axios.get(get_path_url).then(
     (res: AxiosResponse) => {
-      console.log('res.data', res.data);
+      console.log('res.data', res.data.length);
       file_path_data = res.data
       file_path = res.data.file_path;
     }).catch(() => {
@@ -30,15 +30,15 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   // const file_url = `https://api.telegram.org/file/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/photos/file_5.jpg`;
   // const file_url = `https://www.bing.com/th?id=OHR.BorobudurBells_ROW9657189052_1920x1080.webp&qlt=50`;
 
-  let res_data: Blob;
+  let res_data: ArrayBuffer;
   let res_data_headers: HeadersInit;
-  await axios.get(file_url, {responseType: 'blob'})
+  await axios.get(file_url, {responseType: 'arraybuffer'})
     .then(res => {
         res_data_headers = {
           'Content-Type': 'image/jpeg',
           'Content-Disposition': 'inline',
         }
-        res_data = res.data;
+        res_data = res.data
       }
     ).catch((e) => {
       res_data_headers = {
