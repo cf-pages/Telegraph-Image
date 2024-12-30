@@ -14,36 +14,40 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   // console.log(request)
   const formData: FormData = await request.formData();
-  const files = formData.getAll('files');
-
   let res_data: string = '';
-  for (const file of files) {
-    const file_name = file['name'];
-    const file_extension = file_name.split('.').pop().toLowerCase();
-    console.log(file_name, file_extension);
+  try {
+    const files = formData.getAll('files');
 
-    const telegramFormData = new FormData();
-    telegramFormData.append("chat_id", env['TG_Chat_ID']);
+    for (const file of files) {
+      const file_name = file['name'];
+      const file_extension = file_name.split('.').pop().toLowerCase();
+      console.log(file_name, file_extension);
 
-    // 根据文件类型选择合适的上传方式
-    let apiEndpoint: string;
-    let file_type = '';
-    if (file['type'].startsWith('image/')) {
-      file_type = 'photo';
-      apiEndpoint = 'sendPhoto';
-    } else {
-      file_type = 'document';
-      apiEndpoint = 'sendDocument';
+      const telegramFormData = new FormData();
+      telegramFormData.append("chat_id", "env['TG_Chat_ID']");
+
+      // 根据文件类型选择合适的上传方式
+      let apiEndpoint: string;
+      let file_type = '';
+      if (file['type'].startsWith('image/')) {
+        file_type = 'photo';
+        apiEndpoint = 'sendPhoto';
+      } else {
+        file_type = 'document';
+        apiEndpoint = 'sendDocument';
+      }
+      telegramFormData.append(file_type, file);
+
+      const api_url = `https://api.telegram.org/bot${env['TG_Bot_Token']}/${apiEndpoint}`;
+
+      const axios_res: AxiosResponse = await axios.post(api_url, telegramFormData)
+
+      res_data += JSON.stringify(axios_res.data);
     }
-    telegramFormData.append(file_type, file);
-
-    const api_url = `https://api.telegram.org/bot${env['TG_Bot_Token']}/${apiEndpoint}`;
-
-    const axios_res: AxiosResponse = await axios.post(api_url, telegramFormData)
-
-    res_data += JSON.stringify(axios_res.data);
+  } catch (e) {
+    console.log(e);
+    res_data += e.toString()
   }
-
 
   return new Response(res_data,
     {
