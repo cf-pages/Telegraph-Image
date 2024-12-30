@@ -12,7 +12,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   console.log('path', path);
   const get_path_url = `https://api.telegram.org/bot${env['TG_Bot_Token']}/getFile?file_id=${path}`;
   console.log('get_path_url', get_path_url);
-  // const url = `https://api.telegram.org/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/getFile?file_id=AgACAgUAAyEGAASQv4IqAAMHZ29c4WtA7PjpKtLaCcKvVEDAEjAAAkPBMRssGXhXRD_Nin8nX64BAAMCAAN5AAM2BA`;
+  // const url = `https://api.telegram.org/bot8162291976:AAHr3lremFwufqIicZidKhQuv0Hn2mgsYfI/getFile?file_id=AgACAgUAAyEGAASQv4IqAAMKZ3Kh6EhK5VFEjObyN5JguC8sVNUAAtPBMRtYJ5hX4jqkjEyov5UBAAMCAAN5AAM2BA`;
   let file_path_data: object;
   let file_path: string;
   await axios.get(get_path_url, {responseType: "json"}).then(
@@ -44,7 +44,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       res_data_headers = {
         'Content-Type': 'text/html',
       }
-      res_data = e.toString() + '/' + file_path + '/' + file_path_data;
+      res_data = e.toString() + '/' + file_path + '/' + JSON.stringify(file_path_data);
     });
 
   return new Response(res_data,
