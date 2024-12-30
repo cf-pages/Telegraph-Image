@@ -13,10 +13,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const get_path_url = `https://api.telegram.org/bot${env['TG_Bot_Token']}/getFile?file_id=${path}`;
   console.log('get_path_url', get_path_url);
   // const url = `https://api.telegram.org/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/getFile?file_id=AgACAgUAAyEGAASQv4IqAAMHZ29c4WtA7PjpKtLaCcKvVEDAEjAAAkPBMRssGXhXRD_Nin8nX64BAAMCAAN5AAM2BA`;
-  let file_path:string;
+  let file_path: string;
   await axios.get(get_path_url).then(
     (res: AxiosResponse) => {
-      console.log('res.data',res.data);
+      console.log('res.data', res.data);
       file_path = res.data.file_path;
     }).catch(() => {
     file_path = 'photos/file_5.jpg'
@@ -24,19 +24,30 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   // get file
   const file_url = `https://api.telegram.org/file/bot${env['TG_Bot_Token']}/${file_path}`;
-  console.log('file_path',file_url)
+  console.log('file_path', file_url)
   // const file_url = `https://api.telegram.org/file/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/photos/file_5.jpg`;
   // const file_url = `https://www.bing.com/th?id=OHR.BorobudurBells_ROW9657189052_1920x1080.webp&qlt=50`;
 
-  let res_data:Blob;
-  await axios.get(file_url, {responseType: 'blob'}).then(res => res_data = res.data).catch(()=> res_data = new Blob());
+  let res_data: Blob;
+  let res_data_headers: HeadersInit;
+  await axios.get(file_url, {responseType: 'blob'})
+    .then(res => {
+        res_data_headers = {
+          'Content-Type': 'image/jpeg',
+          'Content-Disposition': 'inline',
+        }
+        res_data = res.data;
+      }
+    ).catch((e) => {
+      res_data_headers = {
+        'Content-Type': 'text/html',
+      }
+      res_data = e.toString()
+    });
 
   return new Response(res_data,
     {
-      headers: {
-        'Content-Type': 'image/jpeg',
-        'Content-Disposition': 'inline',
-      },
+      headers: res_data_headers,
       status: 200
     });
 };
