@@ -39,7 +39,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
       const fetch_res = await fetch(api_url, {method: 'POST', body: telegramFormData});
 
-      res_data += JSON.stringify(await fetch_res.json());
+      const fetch_res_json = await fetch_res.json() as JSON;
+      const res_file_id = getFileId(fetch_res_json);
+      res_data += res_file_id;
     }
   } catch (e) {
     res_data += e.toString()
@@ -51,3 +53,18 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       status: 200,
     });
 };
+
+function getFileId(message_data:JSON) {
+  if (!message_data['ok'] || !message_data['result']) return null;
+
+  const result = message_data['result'];
+  if (result.photo) {
+    return result.photo.reduce((prev:JSON, current:JSON) =>
+      (prev['file_size'] > current['file_size']) ? prev : current
+    ).file_id;
+  }
+  if (result.document) return result.document.file_id;
+  if (result.video) return result.video.file_id;
+
+  return null;
+}
