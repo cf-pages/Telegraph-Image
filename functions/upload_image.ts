@@ -12,10 +12,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   // console.log(request)
   const formData: FormData = await request.formData();
-  let res_data: string = '';
+  let res_data: string = 'res_data';
   try {
     const files = formData.getAll('files');
-
+    res_data+=files.length.toString();
     for (const file of files) {
       const file_name = file['name'];
       const file_extension = file_name.split('.').pop().toLowerCase();
