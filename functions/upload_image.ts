@@ -1,5 +1,3 @@
-import axios, {AxiosResponse} from "axios";
-
 interface Env {
   KV: KVNamespace;
 }
@@ -40,13 +38,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
       const api_url = `https://api.telegram.org/bot${env['TG_Bot_Token']}/${apiEndpoint}`;
 
-      let axios_res: AxiosResponse;
-      await axios.post(api_url, telegramFormData)
-        .then(res => axios_res = res
-        )
-        .catch(e => res_data += e.toString());
+      const fetch_res = await fetch(api_url, {method: 'POST', body: telegramFormData});
 
-      res_data += JSON.stringify(axios_res.data);
+      res_data += JSON.stringify(fetch_res);
     }
   } catch (e) {
     res_data += e.toString()
