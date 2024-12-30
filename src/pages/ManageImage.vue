@@ -41,7 +41,7 @@ axios.get('/get_image_url')
 }
 
 img {
-  max-width: 100%;
+  max-width: 80%;
   height: auto;
 }
 </style>
