@@ -42,7 +42,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       res_data_headers = {
         'Content-Type': 'text/html',
       }
-      res_data = e.toString() + [file_url];
+      res_data = e.toString() + [file_path];
     });
 
   return new Response(res_data,
