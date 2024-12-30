@@ -22,7 +22,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       console.log(file_name, file_extension);
 
       const telegramFormData = new FormData();
-      telegramFormData.append("chat_id", "env['TG_Chat_ID']");
+      telegramFormData.append("chat_id", env['TG_Chat_ID']);
 
       // 根据文件类型选择合适的上传方式
       let apiEndpoint: string;
