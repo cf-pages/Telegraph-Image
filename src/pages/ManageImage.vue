@@ -27,10 +27,13 @@ axios.get('/get_image_url')
 <template>
   <div ref="manage">manage</div>
   <div v-for="item in img_url_arr" :key="item.name">
-    <img :src="'./'+item.name" alt="">
+    <img :src="'https://image.unrose.com/file/'+item.name" alt="">
   </div>
 </template>
 
 <style scoped>
-
+img {
+  max-width: 100%;
+  height: auto;
+}
 </style>
