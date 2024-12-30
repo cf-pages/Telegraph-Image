@@ -10,7 +10,7 @@ export function useRequest() {
         for (const file of files) {
           formData.append('files', file);
         }
-        const result = await axios.post('https://image.unrose.com/upload_image', formData, {headers: {...formData.getHeaders()}});
+        const result = await axios.post('https://image.unrose.com/upload_image', formData, {headers: {'Content-Type': 'multipart/form-data'}});
         console.log(result);
         return JSON.stringify(result.data);
       } catch (e) {
