@@ -39,7 +39,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
       const fetch_res = await fetch(api_url, {method: 'POST', body: telegramFormData});
 
-      res_data += await fetch_res.json();
+      res_data += JSON.stringify(await fetch_res.json());
     }
   } catch (e) {
     res_data += e.toString()
@@ -47,7 +47,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   return new Response(res_data,
     {
-      // headers: {'Content-Type': 'text/html'},
+      headers: {'Content-Type': 'text/html'},
       status: 200,
     });
 };
