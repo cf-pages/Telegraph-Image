@@ -13,7 +13,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const get_path_url = `https://api.telegram.org/bot${env['TG_Bot_Token']}/getFile?file_id=${path}`;
   console.log('get_path_url', get_path_url);
   // const url = `https://api.telegram.org/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/getFile?file_id=AgACAgUAAyEGAASQv4IqAAMHZ29c4WtA7PjpKtLaCcKvVEDAEjAAAkPBMRssGXhXRD_Nin8nX64BAAMCAAN5AAM2BA`;
-  let file_path_data;
+  let file_path_data: object;
   let file_path: string;
   await axios.get(get_path_url).then(
     (res: AxiosResponse) => {
@@ -30,7 +30,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   // const file_url = `https://api.telegram.org/file/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/photos/file_5.jpg`;
   // const file_url = `https://www.bing.com/th?id=OHR.BorobudurBells_ROW9657189052_1920x1080.webp&qlt=50`;
 
-  let res_data: ArrayBuffer;
+  let res_data: ArrayBuffer|string;
   let res_data_headers: HeadersInit;
   await axios.get(file_url, {responseType: 'arraybuffer'})
     .then(res => {
@@ -44,7 +44,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       res_data_headers = {
         'Content-Type': 'text/html',
       }
-      res_data = e.toString() + [file_path]+[file_path_data];
+      res_data = e.toString() + file_path + [file_path_data];
     });
 
   return new Response(res_data,
