@@ -13,7 +13,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const get_path_url = `https://api.telegram.org/bot${env['TG_Bot_Token']}/getFile?file_id=${path}`;
   console.log('get_path_url', get_path_url);
   // const url = `https://api.telegram.org/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/getFile?file_id=AgACAgUAAyEGAASQv4IqAAMHZ29c4WtA7PjpKtLaCcKvVEDAEjAAAkPBMRssGXhXRD_Nin8nX64BAAMCAAN5AAM2BA`;
-  let file_path;
+  let file_path:string;
   await axios.get(get_path_url).then(
     (res: AxiosResponse) => {
       console.log('res.data',res.data);
@@ -27,7 +27,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   console.log('file_path',file_path)
   // const file_url = `https://api.telegram.org/file/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/photos/file_5.jpg`;
 
-  let res_data;
+  let res_data:Blob;
   await axios.get(file_url, {responseType: 'blob'}).then(res => res_data = res.data)
 
   return new Response(res_data,
