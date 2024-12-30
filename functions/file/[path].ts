@@ -30,7 +30,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   let res_data:Blob;
   await axios.get(file_url, {responseType: 'blob'}).then(res => res_data = res.data)
 
-  return new Response(res_data,
+  return new Response('111',
     {
       headers: {
         'Accept-Ranges': 'bytes',
