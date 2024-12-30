@@ -1,4 +1,5 @@
 import axios, {AxiosResponse} from "axios";
+
 interface Env {
   KV: KVNamespace;
 }
@@ -15,6 +16,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   const formData: FormData = await request.formData();
   const files = formData.getAll('files');
 
+  let res_data: string = '';
   for (const file of files) {
     const file_name = file['name'];
     const file_extension = file_name.split('.').pop().toLowerCase();
@@ -39,12 +41,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
     const axios_res: AxiosResponse = await axios.post(api_url, telegramFormData)
 
-
+    res_data += JSON.stringify(axios_res.data);
   }
 
 
-
-  return new Response(files[3],
+  return new Response(res_data,
     {
       // headers: {'Content-Type': 'text/html'},
       status: 200,
