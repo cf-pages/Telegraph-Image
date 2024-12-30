@@ -44,7 +44,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       res_data_headers = {
         'Content-Type': 'text/html',
       }
-      res_data = e.toString() + [file_path, file_path_data];
+      res_data = e.toString() + [file_path]+[file_path_data];
     });
 
   return new Response(res_data,
