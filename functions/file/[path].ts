@@ -34,7 +34,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     {
       headers: {
         'Accept-Ranges': 'bytes',
-        'Content-Type': 'application/octet-stream',
+        'Content-Type': 'image/jpeg',
+        'Content-Disposition': 'inline',
       },
       status: 200
     });
