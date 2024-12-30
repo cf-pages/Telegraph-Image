@@ -18,10 +18,10 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   await axios.get(get_path_url, {responseType: "json"}).then(
     (res: AxiosResponse) => {
       console.log('res.data', res.data.length);
-      file_path_data = res.data
+      file_path_data = res.data;
       file_path = res.data.result.file_path;
     }).catch(() => {
-    file_path = 'photos/file_5.jpg'
+    file_path = 'fail get file path';
   });
 
   // get file
