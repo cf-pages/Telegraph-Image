@@ -12,10 +12,9 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   // console.log(request)
   const formData: FormData = await request.formData();
-  let res_data: string = 'res_data';
+  let res_data: string = '';
   try {
     const files = formData.getAll('files');
-    res_data+=files.length.toString();
     for (const file of files) {
       const file_name = file['name'];
       const file_extension = file_name.split('.').pop().toLowerCase();
@@ -40,7 +39,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
       const fetch_res = await fetch(api_url, {method: 'POST', body: telegramFormData});
 
-      res_data += fetch_res.json();
+      res_data += await fetch_res.json();
     }
   } catch (e) {
     res_data += e.toString()
