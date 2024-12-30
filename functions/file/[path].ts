@@ -24,16 +24,16 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   // get file
   const file_url = `https://api.telegram.org/file/bot${env['TG_Bot_Token']}/${file_path}`;
-  console.log('file_path',file_path)
+  console.log('file_path',file_url)
   // const file_url = `https://api.telegram.org/file/bot8162291976:AAGznGhSV8Pj47IfoEGj6UyQJWKtrB191qg/photos/file_5.jpg`;
+  // const file_url = `https://www.bing.com/th?id=OHR.BorobudurBells_ROW9657189052_1920x1080.webp&qlt=50`;
 
   let res_data:Blob;
-  await axios.get(file_url, {responseType: 'blob'}).then(res => res_data = res.data)
+  await axios.get(file_url, {responseType: 'blob'}).then(res => res_data = res.data).catch(()=> res_data = new Blob());
 
-  return new Response('111',
+  return new Response(res_data,
     {
       headers: {
-        'Accept-Ranges': 'bytes',
         'Content-Type': 'image/jpeg',
         'Content-Disposition': 'inline',
       },
