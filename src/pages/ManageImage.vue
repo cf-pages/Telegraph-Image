@@ -26,12 +26,20 @@ axios.get('/get_image_url')
 
 <template>
   <div ref="manage">manage</div>
-  <div v-for="item in img_url_arr" :key="item.name">
-    <img :src="'https://image.unrose.com/file/'+item.name" alt="">
+  <div class="show_img">
+    <div v-for="item in img_url_arr" :key="item.name">
+      <img :src="'https://image.unrose.com/file/'+item.name" alt="">
+    </div>
   </div>
 </template>
 
 <style scoped>
+.show_img {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
 img {
   max-width: 100%;
   height: auto;
