@@ -40,7 +40,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
       const fetch_res = await fetch(api_url, {method: 'POST', body: telegramFormData});
 
-      res_data += JSON.stringify(fetch_res.json());
+      res_data += fetch_res.json();
     }
   } catch (e) {
     res_data += e.toString()
