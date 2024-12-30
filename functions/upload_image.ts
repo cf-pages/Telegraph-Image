@@ -40,12 +40,15 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
       const api_url = `https://api.telegram.org/bot${env['TG_Bot_Token']}/${apiEndpoint}`;
 
-      const axios_res: AxiosResponse = await axios.post(api_url, telegramFormData)
+      let axios_res: AxiosResponse;
+      await axios.post(api_url, telegramFormData)
+        .then(res => axios_res = res
+        )
+        .catch(e => res_data += e.toString());
 
       res_data += JSON.stringify(axios_res.data);
     }
   } catch (e) {
-    console.log(e);
     res_data += e.toString()
   }
 
