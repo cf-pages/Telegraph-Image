@@ -83,18 +83,19 @@ const change = (event: Event) => {
   height: 100%;
   text-align: center;
   justify-content: center;
-  background-color: aquamarine;
+  background-color: #cefcec;
 }
 
 .upload-trigger {
   width: 300px;
   height: 300px;
   cursor: pointer;
-  background-color: #d67fff;
+  font-size: x-large;
+  background-color: #e9bfff;
 }
 
 .dragging {
-  background-color: #f57a7a;
+  background-color: #cf6969;
 }
 
 </style>
