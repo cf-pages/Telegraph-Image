@@ -12,7 +12,7 @@ export function useRequest() {
         }
         const result = await axios.post('https://image.unrose.com/upload_image', formData, {headers: {'Content-Type': 'multipart/form-data'}});
         console.log(result.data);
-        return JSON.parse(result.data);
+        return result.data;
       } catch (e) {
         console.log(e)
       }
