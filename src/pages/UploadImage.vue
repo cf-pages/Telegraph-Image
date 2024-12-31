@@ -103,7 +103,7 @@ const change = (event: Event) => {
 <style scoped>
 .effective-area {
   display: flex;
-  height: 100%;
+  height: 90vh;
   text-align: center;
   justify-content: center;
   background-color: #cefcec;

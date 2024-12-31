@@ -19,7 +19,7 @@ const logoutTrigger = () => {
 <style scoped>
 .index-navigate{
   display: flex;
-  height: 60px;
+  height: 5vh;
   text-align: center;
   justify-items: center;
   font-size: xx-large;
