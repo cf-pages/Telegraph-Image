@@ -40,7 +40,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const fetch_res_json = await fetch_res.json() as JSON;
       const res_file_id = getFileId(fetch_res_json);
       const img_kv_key = res_file_id + '.' + file_extension;
-      env.img_url.put(img_kv_key, '');
+      await env.img_url.put(img_kv_key, '',{});
 
       res_data.push("https://image.unrose.com/file/" + img_kv_key);
     }
