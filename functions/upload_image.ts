@@ -45,7 +45,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       res_data.push("https://image.unrose.com/file/" + img_kv_key);
     }
   } catch (e) {
-    res_data += e.toString()
+    res_data.push(e.toString());
   }
 
   return new Response(JSON.stringify(res_data),

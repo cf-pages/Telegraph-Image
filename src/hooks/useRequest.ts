@@ -11,8 +11,8 @@ export function useRequest() {
           formData.append('files', file);
         }
         const result = await axios.post('https://image.unrose.com/upload_image', formData, {headers: {'Content-Type': 'multipart/form-data'}});
-        console.log(result);
-        return JSON.parse(result.data.data);
+        console.log(result.data);
+        return JSON.parse(result.data);
       } catch (e) {
         console.log(e)
       }
