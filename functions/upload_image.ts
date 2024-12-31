@@ -12,7 +12,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   // console.log(request)
   const formData: FormData = await request.formData();
-  let res_data: string[] = ['123',];
+  const res_data: string[] = [];
   try {
     const files = formData.getAll('files');
     for (const file of files) {
