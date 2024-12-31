@@ -128,6 +128,8 @@ const change = (event: Event) => {
 }
 
 .upload-status {
+  white-space: nowrap;
+  overflow: hidden;
   margin-top: 0;
 }
 
