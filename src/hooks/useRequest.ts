@@ -2,7 +2,7 @@ import axios from "axios";
 import FormData from "form-data";
 
 export function useRequest() {
-  const upload = async (files: Array<File>):Promise<string> => {
+  const upload = async (files: Array<File>):Promise<string[]> => {
     if (files) {
       console.log('upload' + files);
       try {
@@ -12,12 +12,12 @@ export function useRequest() {
         }
         const result = await axios.post('https://image.unrose.com/upload_image', formData, {headers: {'Content-Type': 'multipart/form-data'}});
         console.log(result);
-        return JSON.stringify(result.data);
+        return JSON.parse(result.data);
       } catch (e) {
         console.log(e)
       }
     }
-    return '';
+    return [''];
   };
 
   return {

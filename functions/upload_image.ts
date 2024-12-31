@@ -1,5 +1,5 @@
 interface Env {
-  KV: KVNamespace;
+  img_url: KVNamespace;
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
@@ -12,7 +12,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   // console.log(request)
   const formData: FormData = await request.formData();
-  let res_data: string = '';
+  let res_data: string[] = ['123',];
   try {
     const files = formData.getAll('files');
     for (const file of files) {
@@ -36,30 +36,31 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       telegramFormData.append(file_type, file);
 
       const api_url = `https://api.telegram.org/bot${env['TG_Bot_Token']}/${apiEndpoint}`;
-
       const fetch_res = await fetch(api_url, {method: 'POST', body: telegramFormData});
-
       const fetch_res_json = await fetch_res.json() as JSON;
       const res_file_id = getFileId(fetch_res_json);
-      res_data += res_file_id;
+      const img_kv_key = res_file_id + '.' + file_extension;
+      img_url.put(img_kv_key, '');
+
+      res_data.push("https://image.unrose.com/file/" + img_kv_key);
     }
   } catch (e) {
     res_data += e.toString()
   }
 
-  return new Response(res_data,
+  return new Response(JSON.stringify(res_data),
     {
       headers: {'Content-Type': 'text/html'},
       status: 200,
     });
 };
 
-function getFileId(message_data:JSON) {
+function getFileId(message_data: JSON) {
   if (!message_data['ok'] || !message_data['result']) return null;
 
   const result = message_data['result'];
   if (result.photo) {
-    return result.photo.reduce((prev:JSON, current:JSON) =>
+    return result.photo.reduce((prev: JSON, current: JSON) =>
       (prev['file_size'] > current['file_size']) ? prev : current
     ).file_id;
   }

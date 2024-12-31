@@ -7,6 +7,7 @@ const {upload} = useRequest()
 const uploadTrigger = ref<HTMLDivElement>();
 const uploadTriggerStatus = ref<HTMLSpanElement>();
 const uploadStatus = ref<HTMLSpanElement>();
+const uploadStatusResponse = ref<string[]>();
 const selectedFiles = ref<File[]>([]);
 const isDragging = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -31,15 +32,16 @@ const onDrop = (event: DragEvent) => {
   if (uploadTriggerStatus.value) {
     uploadTriggerStatus.value.innerText = '上传中';
   }
+  // stop firefox open tab
+  event.preventDefault();
+  event.stopPropagation();
   isDragging.value = false;
   if (event.dataTransfer && event.dataTransfer.files) {
     selectedFiles.value = Array.from(event.dataTransfer.files);
     console.log(selectedFiles)
     upload(selectedFiles.value).then(
       (res) => {
-        if (uploadStatus.value) {
-          uploadStatus.value.innerText = res;
-        }
+        uploadStatusResponse.value = res;
       }
     );
     if (uploadTriggerStatus.value) {
@@ -50,6 +52,7 @@ const onDrop = (event: DragEvent) => {
 const handlePaste = (event: ClipboardEvent) => {
   const items = event.clipboardData?.items;
   if (items) {
+    console.log(items)
     selectedFiles.value = [];
     for (const item of items) {
       if (item.kind === 'file') {
@@ -62,9 +65,7 @@ const handlePaste = (event: ClipboardEvent) => {
     console.log(selectedFiles)
     upload(selectedFiles.value).then(
       (res) => {
-        if (uploadStatus.value) {
-          uploadStatus.value.innerText = res;
-        }
+        uploadStatusResponse.value = res;
       }
     );
   }
@@ -77,9 +78,7 @@ const change = (event: Event) => {
     console.log(selectedFiles)
     upload(selectedFiles.value).then(
       (res) => {
-        if (uploadStatus.value) {
-          uploadStatus.value.innerText = res;
-        }
+        uploadStatusResponse.value = res;
       }
     );
   }
@@ -90,8 +89,12 @@ const change = (event: Event) => {
   <div ref="effectiveArea" class="effective-area" @dragover.prevent="onDragOver" @dragleave.prevent="onDragLeave"
        @drop.prevent="onDrop" @paste="handlePaste">
     <div ref="uploadTrigger" class="upload-trigger" :class="{ dragging: isDragging}" @click="triggerFileInput">
-      <span ref="uploadTriggerStatus">点击或拖拽文件上传</span>
-      <span ref="uploadStatus"></span>
+      <span ref="uploadTriggerStatus" class="upload-trigger-status">点击或拖拽文件上传</span>
+      <div class="upload-status-interval"></div>
+      <div ref="uploadStatus" v-for="uploadStatusText in uploadStatusResponse" :key="uploadStatusText"
+           class="upload-status">
+        {{ uploadStatusText }}
+      </div>
       <input ref="fileInput" type="file" @change="change" hidden="hidden" multiple>
     </div>
   </div>
@@ -107,11 +110,25 @@ const change = (event: Event) => {
 }
 
 .upload-trigger {
+  display: flex;
+  flex-direction: column;
   width: 300px;
   height: 300px;
   cursor: pointer;
   font-size: x-large;
   background-color: #e9bfff;
+}
+
+.upload-trigger-status {
+  order: -1;
+}
+
+.upload-status-interval {
+  margin-top: auto;
+}
+
+.upload-status {
+  margin-top: 0;
 }
 
 .dragging {
