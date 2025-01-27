@@ -63,21 +63,29 @@ export async function onRequestPost(context) {
 
         // 保存短链接映射到KV
         if (env.img_url) {
+            // 保存短链接到长链接的映射
             await env.img_url.put(`short_${shortId}`, longId);
+            
+            // 保存长链接的元数据，包含短链接信息
             await env.img_url.put(longId, "", {
                 metadata: { 
                     ListType: "None", 
                     Label: "None", 
                     TimeStamp: Date.now(), 
                     liked: false,
-                    shortId: shortId
+                    shortId: shortId,
+                    originalId: longId  // 添加原始ID信息
                 },
             });
         }
 
-        // 返回短链接
+        // 返回包含长短链接的响应
         return new Response(
-            JSON.stringify([{ 'src': `/file/${shortId}` }]),
+            JSON.stringify([{ 
+                'src': `/file/${shortId}`,
+                'originalSrc': `/file/${longId}`,
+                'shortId': shortId
+            }]),
             {
                 status: 200,
                 headers: { 'Content-Type': 'application/json' }
