@@ -69,20 +69,20 @@ export async function onRequest(context) {
             console.log("Record:", record);
 
             // 如果是新的长链接，创建短链接
-            if (originalId.length > 39 && (!record || !record.metadata || !record.metadata.shortId)) {
+            if (originalId.length > 39 && (!record || !record.metadata)) {
                 const shortId = generateShortId();
-                const metadata = record && record.metadata ? record.metadata : {
+                const metadata = {
                     ListType: "None",
                     Label: "None",
                     TimeStamp: Date.now(),
-                    liked: false
+                    liked: false,
+                    shortId: shortId
                 };
                 
                 // 保存短链接映射
                 await env.img_url.put(`short_${shortId}`, originalId);
                 
-                // 更新原始记录，添加shortId
-                metadata.shortId = shortId;
+                // 更新原始记录
                 await env.img_url.put(originalId, "", {
                     metadata: metadata
                 });
@@ -111,19 +111,6 @@ export async function onRequest(context) {
                 if (env.WhiteList_Mode === "true") {
                     return Response.redirect(`${url.origin}/whitelist-on.html`, 302);
                 }
-            } else {
-                // If metadata does not exist, initialize it in KV with default values
-                const shortId = generateShortId();
-                await env.img_url.put(`short_${shortId}`, originalId);
-                await env.img_url.put(originalId, "", {
-                    metadata: { 
-                        ListType: "None", 
-                        Label: "None", 
-                        TimeStamp: Date.now(), 
-                        liked: false,
-                        shortId: shortId
-                    },
-                });
             }
         }
 
@@ -135,36 +122,25 @@ export async function onRequest(context) {
             console.log("Moderate Data:", moderateData);
 
             if (env.img_url) {
-                const shortId = generateShortId();
-                await env.img_url.put(`short_${shortId}`, originalId);
+                // 获取现有记录
+                const record = await env.img_url.getWithMetadata(originalId);
+                const metadata = record && record.metadata ? record.metadata : {
+                    ListType: "None",
+                    TimeStamp: time,
+                    liked: false
+                };
+                
+                // 更新Label但保留其他元数据
+                metadata.Label = moderateData.rating_label;
+                
                 await env.img_url.put(originalId, "", {
-                    metadata: { 
-                        ListType: "None", 
-                        Label: moderateData.rating_label, 
-                        TimeStamp: time, 
-                        liked: false,
-                        shortId: shortId
-                    },
+                    metadata: metadata
                 });
             }
 
             if (moderateData.rating_label === "adult") {
                 return Response.redirect(`${url.origin}/block-img.html`, 302);
             }
-        } else if (env.img_url) {
-            // Add image to KV with default metadata if ModerateContentApiKey is not available
-            console.log("KV not enabled for moderation, adding default metadata.");
-            const shortId = generateShortId();
-            await env.img_url.put(`short_${shortId}`, originalId);
-            await env.img_url.put(originalId, "", {
-                metadata: { 
-                    ListType: "None", 
-                    Label: "None", 
-                    TimeStamp: time, 
-                    liked: false,
-                    shortId: shortId
-                },
-            });
         }
     }
 
