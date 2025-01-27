@@ -11,11 +11,17 @@ export async function onRequest(context) {
 
     // 检查是否是短链接格式（6位字符）
     if (originalId.length === 6) {
-        // 从KV中获取原始ID
+        // 从KV中查找原始ID
         if (env.img_url) {
-            const originalData = await env.img_url.get(`short_${originalId}`);
-            if (originalData) {
-                originalId = originalData;
+            // 列出所有KV记录
+            const kvList = await env.img_url.list();
+            // 遍历查找匹配的shortId
+            for (const key of kvList.keys) {
+                const record = await env.img_url.getWithMetadata(key.name);
+                if (record && record.metadata && record.metadata.shortId === originalId) {
+                    originalId = key.name;
+                    break;
+                }
             }
         }
     }
@@ -67,26 +73,6 @@ export async function onRequest(context) {
         if (env.img_url) {
             const record = await env.img_url.getWithMetadata(originalId);
             console.log("Record:", record);
-
-            // 如果是新的长链接，创建短链接
-            if (originalId.length > 39 && (!record || !record.metadata)) {
-                const shortId = generateShortId();
-                const metadata = {
-                    ListType: "None",
-                    Label: "None",
-                    TimeStamp: Date.now(),
-                    liked: false,
-                    shortId: shortId
-                };
-                
-                // 保存短链接映射
-                await env.img_url.put(`short_${shortId}`, originalId);
-                
-                // 更新原始记录
-                await env.img_url.put(originalId, "", {
-                    metadata: metadata
-                });
-            }
 
             // Ensure metadata exists and add default values for missing properties
             if (record && record.metadata) {
