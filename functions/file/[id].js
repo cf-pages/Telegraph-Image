@@ -8,11 +8,9 @@ export async function onRequest(context) {
     const url = new URL(request.url);
     let fileUrl = 'https://telegra.ph/' + url.pathname + url.search;
     let originalId = params.id;
-    let isShortLink = false;
 
     // 检查是否是短链接格式（6位字符）
     if (originalId.length === 6) {
-        isShortLink = true;
         // 从KV中获取原始ID
         if (env.img_url) {
             const originalData = await env.img_url.get(`short_${originalId}`);
@@ -71,7 +69,7 @@ export async function onRequest(context) {
             console.log("Record:", record);
 
             // 如果是新的长链接，创建短链接
-            if (!isShortLink && originalId.length > 39 && (!record || !record.metadata || !record.metadata.shortId)) {
+            if (originalId.length > 39 && (!record || !record.metadata || !record.metadata.shortId)) {
                 const shortId = generateShortId();
                 const metadata = record && record.metadata ? record.metadata : {
                     ListType: "None",
@@ -83,9 +81,8 @@ export async function onRequest(context) {
                 // 保存短链接映射
                 await env.img_url.put(`short_${shortId}`, originalId);
                 
-                // 更新原始记录，添加shortId和originalId
+                // 更新原始记录，添加shortId
                 metadata.shortId = shortId;
-                metadata.originalId = originalId;
                 await env.img_url.put(originalId, "", {
                     metadata: metadata
                 });
@@ -98,8 +95,7 @@ export async function onRequest(context) {
                     Label: record.metadata.Label || "None",
                     TimeStamp: record.metadata.TimeStamp || Date.now(),
                     liked: record.metadata.liked !== undefined ? record.metadata.liked : false,
-                    shortId: record.metadata.shortId,
-                    originalId: record.metadata.originalId || originalId
+                    shortId: record.metadata.shortId
                 };
 
                 // Handle based on ListType and Label
@@ -125,8 +121,7 @@ export async function onRequest(context) {
                         Label: "None", 
                         TimeStamp: Date.now(), 
                         liked: false,
-                        shortId: shortId,
-                        originalId: originalId
+                        shortId: shortId
                     },
                 });
             }
@@ -148,8 +143,7 @@ export async function onRequest(context) {
                         Label: moderateData.rating_label, 
                         TimeStamp: time, 
                         liked: false,
-                        shortId: shortId,
-                        originalId: originalId
+                        shortId: shortId
                     },
                 });
             }
@@ -168,8 +162,7 @@ export async function onRequest(context) {
                     Label: "None", 
                     TimeStamp: time, 
                     liked: false,
-                    shortId: shortId,
-                    originalId: originalId
+                    shortId: shortId
                 },
             });
         }
