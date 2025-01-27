@@ -6,23 +6,42 @@ export async function onRequest(context) {
     } = context;
 
     const url = new URL(request.url);
-    let fileUrl = 'https://telegra.ph/' + url.pathname + url.search
-    if (url.pathname.length > 39) {
+    let fileUrl = 'https://telegra.ph/' + url.pathname + url.search;
+    let originalId = params.id;
+
+    // 检查是否是短链接格式（6位字符）
+    if (originalId.length === 6) {
+        // 从KV中查找原始ID
+        if (env.img_url) {
+            // 列出所有KV记录
+            const kvList = await env.img_url.list();
+            // 遍历查找匹配的shortId
+            for (const key of kvList.keys) {
+                const record = await env.img_url.getWithMetadata(key.name);
+                if (record && record.metadata && record.metadata.shortId === originalId) {
+                    originalId = key.name;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (originalId.length > 39) {
         const formdata = new FormData();
-        formdata.append("file_id", url.pathname);
+        formdata.append("file_id", originalId);
 
         const requestOptions = {
             method: "POST",
             body: formdata,
             redirect: "follow"
         };
-        // /file/AgACAgEAAxkDAAMDZt1Gzs4W8dQPWiQJxO5YSH5X-gsAAt-sMRuWNelGOSaEM_9lHHgBAAMCAANtAAM2BA.png
-        //get the AgACAgEAAxkDAAMDZt1Gzs4W8dQPWiQJxO5YSH5X-gsAAt-sMRuWNelGOSaEM_9lHHgBAAMCAANtAAM2BA
-        console.log(url.pathname.split(".")[0].split("/")[2])
-        const filePath = await getFilePath(env, url.pathname.split(".")[0].split("/")[2]);
-        console.log(filePath)
-        fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;  
-
+        
+        console.log(originalId.split(".")[0]);
+        const filePath = await getFilePath(env, originalId.split(".")[0]);
+        console.log(filePath);
+        if (filePath) {
+            fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;
+        }
     }
 
     const response = await fetch(fileUrl, {
@@ -34,16 +53,25 @@ export async function onRequest(context) {
     // Log response details
     console.log(response.ok, response.status);
 
+    // 获取文件扩展名
+    const fileExtension = originalId.split('.').pop().toLowerCase();
+    
+    // 创建新的Response对象，添加正确的Content-Type
+    const newResponse = new Response(response.body, response);
+    const contentType = getContentType(fileExtension);
+    newResponse.headers.set('Content-Type', contentType);
+    newResponse.headers.set('Content-Disposition', 'inline');
+
     // If the response is OK, proceed with further checks
     if (response.ok) {
         // Allow the admin page to directly view the image
         if (request.headers.get('Referer') === `${url.origin}/admin`) {
-            return response;
+            return newResponse;
         }
 
         // Fetch KV metadata if available
         if (env.img_url) {
-            const record = await env.img_url.getWithMetadata(params.id);
+            const record = await env.img_url.getWithMetadata(originalId);
             console.log("Record:", record);
 
             // Ensure metadata exists and add default values for missing properties
@@ -52,12 +80,13 @@ export async function onRequest(context) {
                     ListType: record.metadata.ListType || "None",
                     Label: record.metadata.Label || "None",
                     TimeStamp: record.metadata.TimeStamp || Date.now(),
-                    liked: record.metadata.liked !== undefined ? record.metadata.liked : false
+                    liked: record.metadata.liked !== undefined ? record.metadata.liked : false,
+                    shortId: record.metadata.shortId
                 };
 
                 // Handle based on ListType and Label
                 if (metadata.ListType === "White") {
-                    return response;
+                    return newResponse;
                 } else if (metadata.ListType === "Block" || metadata.Label === "adult") {
                     const referer = request.headers.get('Referer');
                     const redirectUrl = referer ? "https://static-res.pages.dev/teleimage/img-block-compressed.png" : `${url.origin}/block-img.html`;
@@ -68,11 +97,6 @@ export async function onRequest(context) {
                 if (env.WhiteList_Mode === "true") {
                     return Response.redirect(`${url.origin}/whitelist-on.html`, 302);
                 }
-            } else {
-                // If metadata does not exist, initialize it in KV with default values
-                await env.img_url.put(params.id, "", {
-                    metadata: { ListType: "None", Label: "None", TimeStamp: Date.now(), liked: false },
-                });
             }
         }
 
@@ -84,25 +108,29 @@ export async function onRequest(context) {
             console.log("Moderate Data:", moderateData);
 
             if (env.img_url) {
-                await env.img_url.put(params.id, "", {
-                    metadata: { ListType: "None", Label: moderateData.rating_label, TimeStamp: time, liked: false },
+                // 获取现有记录
+                const record = await env.img_url.getWithMetadata(originalId);
+                const metadata = record && record.metadata ? record.metadata : {
+                    ListType: "None",
+                    TimeStamp: time,
+                    liked: false
+                };
+                
+                // 更新Label但保留其他元数据
+                metadata.Label = moderateData.rating_label;
+                
+                await env.img_url.put(originalId, "", {
+                    metadata: metadata
                 });
             }
 
             if (moderateData.rating_label === "adult") {
                 return Response.redirect(`${url.origin}/block-img.html`, 302);
             }
-        } else if (env.img_url) {
-            // Add image to KV with default metadata if ModerateContentApiKey is not available
-            console.log("KV not enabled for moderation, adding default metadata.");
-            await env.img_url.put(params.id, "", {
-                metadata: { ListType: "None", Label: "None", TimeStamp: time, liked: false },
-            });
         }
     }
 
-    return response;
-
+    return newResponse;
 }
 
 async function getFilePath(env, file_id) {
@@ -130,4 +158,29 @@ async function getFilePath(env, file_id) {
         console.error('Error fetching file path:', error.message);
         return null;
     }
+}
+
+// 添加getContentType辅助函数
+function getContentType(extension) {
+    const contentTypes = {
+        'png': 'image/png',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+        'svg': 'image/svg+xml',
+        'ico': 'image/x-icon',
+        'bmp': 'image/bmp'
+    };
+    return contentTypes[extension] || 'application/octet-stream';
+}
+
+// 生成6位短链接ID
+function generateShortId() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
 }
