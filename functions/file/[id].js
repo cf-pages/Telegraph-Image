@@ -6,23 +6,36 @@ export async function onRequest(context) {
     } = context;
 
     const url = new URL(request.url);
-    let fileUrl = 'https://telegra.ph/' + url.pathname + url.search
-    if (url.pathname.length > 39) {
+    let fileUrl = 'https://telegra.ph/' + url.pathname + url.search;
+    let originalId = params.id;
+
+    // 检查是否是短链接格式（6位字符）
+    if (originalId.length === 6) {
+        // 从KV中获取原始ID
+        if (env.img_url) {
+            const originalData = await env.img_url.get(`short_${originalId}`);
+            if (originalData) {
+                originalId = originalData;
+            }
+        }
+    }
+
+    if (originalId.length > 39) {
         const formdata = new FormData();
-        formdata.append("file_id", url.pathname);
+        formdata.append("file_id", originalId);
 
         const requestOptions = {
             method: "POST",
             body: formdata,
             redirect: "follow"
         };
-        // /file/AgACAgEAAxkDAAMDZt1Gzs4W8dQPWiQJxO5YSH5X-gsAAt-sMRuWNelGOSaEM_9lHHgBAAMCAANtAAM2BA.png
-        //get the AgACAgEAAxkDAAMDZt1Gzs4W8dQPWiQJxO5YSH5X-gsAAt-sMRuWNelGOSaEM_9lHHgBAAMCAANtAAM2BA
-        console.log(url.pathname.split(".")[0].split("/")[2])
-        const filePath = await getFilePath(env, url.pathname.split(".")[0].split("/")[2]);
-        console.log(filePath)
-        fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;  
-
+        
+        console.log(originalId.split(".")[0]);
+        const filePath = await getFilePath(env, originalId.split(".")[0]);
+        console.log(filePath);
+        if (filePath) {
+            fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;
+        }
     }
 
     const response = await fetch(fileUrl, {
@@ -35,7 +48,7 @@ export async function onRequest(context) {
     console.log(response.ok, response.status);
 
     // 获取文件扩展名
-    const fileExtension = url.pathname.split('.').pop().toLowerCase();
+    const fileExtension = originalId.split('.').pop().toLowerCase();
     
     // 创建新的Response对象，添加正确的Content-Type
     const newResponse = new Response(response.body, response);
@@ -52,8 +65,28 @@ export async function onRequest(context) {
 
         // Fetch KV metadata if available
         if (env.img_url) {
-            const record = await env.img_url.getWithMetadata(params.id);
+            const record = await env.img_url.getWithMetadata(originalId);
             console.log("Record:", record);
+
+            // 如果是新的长链接，创建短链接
+            if (originalId.length > 39 && (!record || !record.metadata || !record.metadata.shortId)) {
+                const shortId = generateShortId();
+                const metadata = record && record.metadata ? record.metadata : {
+                    ListType: "None",
+                    Label: "None",
+                    TimeStamp: Date.now(),
+                    liked: false
+                };
+                
+                // 保存短链接映射
+                await env.img_url.put(`short_${shortId}`, originalId);
+                
+                // 更新原始记录，添加shortId
+                metadata.shortId = shortId;
+                await env.img_url.put(originalId, "", {
+                    metadata: metadata
+                });
+            }
 
             // Ensure metadata exists and add default values for missing properties
             if (record && record.metadata) {
@@ -61,7 +94,8 @@ export async function onRequest(context) {
                     ListType: record.metadata.ListType || "None",
                     Label: record.metadata.Label || "None",
                     TimeStamp: record.metadata.TimeStamp || Date.now(),
-                    liked: record.metadata.liked !== undefined ? record.metadata.liked : false
+                    liked: record.metadata.liked !== undefined ? record.metadata.liked : false,
+                    shortId: record.metadata.shortId
                 };
 
                 // Handle based on ListType and Label
@@ -79,8 +113,16 @@ export async function onRequest(context) {
                 }
             } else {
                 // If metadata does not exist, initialize it in KV with default values
-                await env.img_url.put(params.id, "", {
-                    metadata: { ListType: "None", Label: "None", TimeStamp: Date.now(), liked: false },
+                const shortId = generateShortId();
+                await env.img_url.put(`short_${shortId}`, originalId);
+                await env.img_url.put(originalId, "", {
+                    metadata: { 
+                        ListType: "None", 
+                        Label: "None", 
+                        TimeStamp: Date.now(), 
+                        liked: false,
+                        shortId: shortId
+                    },
                 });
             }
         }
@@ -93,8 +135,16 @@ export async function onRequest(context) {
             console.log("Moderate Data:", moderateData);
 
             if (env.img_url) {
-                await env.img_url.put(params.id, "", {
-                    metadata: { ListType: "None", Label: moderateData.rating_label, TimeStamp: time, liked: false },
+                const shortId = generateShortId();
+                await env.img_url.put(`short_${shortId}`, originalId);
+                await env.img_url.put(originalId, "", {
+                    metadata: { 
+                        ListType: "None", 
+                        Label: moderateData.rating_label, 
+                        TimeStamp: time, 
+                        liked: false,
+                        shortId: shortId
+                    },
                 });
             }
 
@@ -104,8 +154,16 @@ export async function onRequest(context) {
         } else if (env.img_url) {
             // Add image to KV with default metadata if ModerateContentApiKey is not available
             console.log("KV not enabled for moderation, adding default metadata.");
-            await env.img_url.put(params.id, "", {
-                metadata: { ListType: "None", Label: "None", TimeStamp: time, liked: false },
+            const shortId = generateShortId();
+            await env.img_url.put(`short_${shortId}`, originalId);
+            await env.img_url.put(originalId, "", {
+                metadata: { 
+                    ListType: "None", 
+                    Label: "None", 
+                    TimeStamp: time, 
+                    liked: false,
+                    shortId: shortId
+                },
             });
         }
     }
@@ -153,4 +211,14 @@ function getContentType(extension) {
         'bmp': 'image/bmp'
     };
     return contentTypes[extension] || 'application/octet-stream';
+}
+
+// 生成6位短链接ID
+function generateShortId() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
 }
