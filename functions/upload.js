@@ -4,7 +4,6 @@ export async function onRequestPost(context) {
     const { request, env } = context;
 
     try {
-
         const clonedRequest = request.clone();
         const formData = await clonedRequest.formData();
 
@@ -58,8 +57,27 @@ export async function onRequestPost(context) {
             throw new Error('Failed to get file ID');
         }
 
+        // 生成短链接ID
+        const shortId = generateShortId();
+        const longId = `${fileId}.${fileExtension}`;
+
+        // 保存短链接映射到KV
+        if (env.img_url) {
+            await env.img_url.put(`short_${shortId}`, longId);
+            await env.img_url.put(longId, "", {
+                metadata: { 
+                    ListType: "None", 
+                    Label: "None", 
+                    TimeStamp: Date.now(), 
+                    liked: false,
+                    shortId: shortId
+                },
+            });
+        }
+
+        // 返回短链接
         return new Response(
-            JSON.stringify([{ 'src': `/file/${fileId}.${fileExtension}` }]),
+            JSON.stringify([{ 'src': `/file/${shortId}` }]),
             {
                 status: 200,
                 headers: { 'Content-Type': 'application/json' }
@@ -90,4 +108,14 @@ function getFileId(response) {
     if (result.video) return result.video.file_id;
 
     return null;
+}
+
+// 生成6位短链接ID
+function generateShortId() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
 }
