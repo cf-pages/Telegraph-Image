@@ -19,6 +19,30 @@
     .el-button+.el-button {
       margin: 0;
     }
+
+    .json-viewer {
+      background-color: #f5f7fa;
+      padding: 10px;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+
+    .json-key {
+      color: #409EFF;
+    }
+
+    .json-string {
+      color: #67C23A;
+    }
+
+    .json-number {
+      color: #E6A23C;
+    }
+
+    .json-boolean {
+      color: #F56C6C;
+    }
   </style>
   <script src="https://js.sentry-cdn.com/219f636ac7bde5edab2c3e16885cb535.min.js" crossorigin="anonymous"></script>
 </head>
@@ -89,10 +113,16 @@
             </el-table-column>
             <el-table-column label="data" prop="data">
               <template slot-scope="scope">
-                <el-popover trigger="hover" placement="top">
-                  <p>{{ scope.row.metadata }}</p>
+                <el-popover trigger="hover" placement="top" width="400">
+                  <div class="json-viewer">
+                    <span class="json-key">"ListType"</span>: <span class="json-string">"{{scope.row.metadata.ListType}}"</span>,
+                    <span class="json-key">"Label"</span>: <span class="json-string">"{{scope.row.metadata.Label}}"</span>,
+                    <span class="json-key">"TimeStamp"</span>: <span class="json-number">{{scope.row.metadata.TimeStamp}}</span>,
+                    <span class="json-key">"liked"</span>: <span class="json-boolean">{{scope.row.metadata.liked}}</span>,
+                    <span class="json-key">"shortId"</span>: <span class="json-string">"{{scope.row.metadata.shortId}}"</span>
+                  </div>
                   <div slot="reference" class="name-wrapper">
-                    <el-tag size="medium">{{ scope.row.metadata }}</el-tag>
+                    <el-tag size="medium">{{ formatMetadata(scope.row.metadata) }}</el-tag>
                   </div>
                 </el-popover>
               </template>
@@ -205,8 +235,15 @@
       handleLogout() {
         window.location.href = "./api/manage/logout";
       },
+      formatMetadata(metadata) {
+        if (!metadata) return '';
+        const date = new Date(metadata.TimeStamp);
+        return `${metadata.ListType} | ${metadata.Label} | ${date.toLocaleString()}`;
+      },
       handleCopy(index, key) {
-        const text = `${document.location.origin}/file/${key}`;
+        // 使用metadata中的shortId而不是原始key
+        const shortId = this.tableData[index].metadata.shortId;
+        const text = `${document.location.origin}/file/${shortId}`;
         if (navigator.clipboard) {
           // clipboard api 复制
           navigator.clipboard.writeText(text);
@@ -227,7 +264,7 @@
           document.body.removeChild(textarea);
         }
         this.$message({
-          message: '复制文件链接成功~',
+          message: '复制短链接成功~',
           type: 'success'
         });
       },
