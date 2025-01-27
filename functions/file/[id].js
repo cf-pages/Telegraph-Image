@@ -34,11 +34,20 @@ export async function onRequest(context) {
     // Log response details
     console.log(response.ok, response.status);
 
+    // 获取文件扩展名
+    const fileExtension = url.pathname.split('.').pop().toLowerCase();
+    
+    // 创建新的Response对象，添加正确的Content-Type
+    const newResponse = new Response(response.body, response);
+    const contentType = getContentType(fileExtension);
+    newResponse.headers.set('Content-Type', contentType);
+    newResponse.headers.set('Content-Disposition', 'inline');
+
     // If the response is OK, proceed with further checks
     if (response.ok) {
         // Allow the admin page to directly view the image
         if (request.headers.get('Referer') === `${url.origin}/admin`) {
-            return response;
+            return newResponse;
         }
 
         // Fetch KV metadata if available
@@ -57,7 +66,7 @@ export async function onRequest(context) {
 
                 // Handle based on ListType and Label
                 if (metadata.ListType === "White") {
-                    return response;
+                    return newResponse;
                 } else if (metadata.ListType === "Block" || metadata.Label === "adult") {
                     const referer = request.headers.get('Referer');
                     const redirectUrl = referer ? "https://static-res.pages.dev/teleimage/img-block-compressed.png" : `${url.origin}/block-img.html`;
@@ -101,8 +110,7 @@ export async function onRequest(context) {
         }
     }
 
-    return response;
-
+    return newResponse;
 }
 
 async function getFilePath(env, file_id) {
@@ -130,4 +138,19 @@ async function getFilePath(env, file_id) {
         console.error('Error fetching file path:', error.message);
         return null;
     }
+}
+
+// 添加getContentType辅助函数
+function getContentType(extension) {
+    const contentTypes = {
+        'png': 'image/png',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+        'svg': 'image/svg+xml',
+        'ico': 'image/x-icon',
+        'bmp': 'image/bmp'
+    };
+    return contentTypes[extension] || 'application/octet-stream';
 }
