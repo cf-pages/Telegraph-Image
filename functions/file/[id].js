@@ -21,7 +21,7 @@ export async function onRequest(context) {
         console.log(url.pathname.split(".")[0].split("/")[2])
         const filePath = await getFilePath(env, url.pathname.split(".")[0].split("/")[2]);
         console.log(filePath)
-        fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;  
+        fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;
 
     }
 
@@ -101,8 +101,46 @@ export async function onRequest(context) {
         }
     }
 
-    return response;
+    if (url.pathname.length > 39) {
+        const fileExtension = url.pathname.split('.').pop().toLowerCase();
+        let contentType;
 
+        switch (fileExtension) {
+        case 'jpg':
+        case 'jpeg':
+            contentType = 'image/jpeg';
+            break;
+        case 'png':
+            contentType = 'image/png';
+            break;
+        case 'gif':
+            contentType = 'image/gif';
+            break;
+        case 'bmp':
+            contentType = 'image/bmp';
+            break;
+        case 'ico':
+            contentType = 'image/x-icon';
+            break;
+        case 'svg':
+            contentType = 'image/svg+xml';
+            break;
+        case 'webp':
+            contentType = 'image/webp';
+            break;
+        default:
+            contentType = 'application/octet-stream';
+            break;
+        }
+
+        return new Response(response.body, {
+            headers: {
+                'Content-Type': contentType
+            }
+        });
+    }
+
+    return response;
 }
 
 async function getFilePath(env, file_id) {
