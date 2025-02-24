@@ -101,8 +101,15 @@ export async function onRequest(context) {
         }
     }
 
-    return response;
-
+    // Create a new response with modified headers for image preview
+    const newHeaders = new Headers(response.headers);
+    newHeaders.set('Content-Disposition', 'inline');
+    
+    return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: newHeaders
+    });
 }
 
 async function getFilePath(env, file_id) {
