@@ -7,7 +7,7 @@ export async function onRequest(context) {
 
     const url = new URL(request.url);
     let fileUrl = 'https://telegra.ph/' + url.pathname + url.search
-    if (url.pathname.length > 39) { // 路径长度大于39位，说明是Telegram Bot API 上传的文件
+    if (url.pathname.length > 39) { // Path length > 39 indicates file uploaded via Telegram Bot API
         const formdata = new FormData();
         formdata.append("file_id", url.pathname);
 
@@ -42,16 +42,17 @@ export async function onRequest(context) {
         return response;
     }
 
-    // check if kv storage is available
+    // Check if KV storage is available
     if (!env.img_url) {
-        console.error("KV storage not available");
-        return new Response("img_url KV storage not configured", { status: 500 });
+        console.log("KV storage not available, returning image directly");
+        return response;  // Directly return image response, terminate execution
     }
 
+    // The following code executes only if KV is available
     let record = await env.img_url.getWithMetadata(params.id);
     if (!record || !record.metadata) {
         // Initialize metadata if it doesn't exist
-        console.log("metadata not found, initializing...");
+        console.log("Metadata not found, initializing...");
         record = {
             metadata: {
                 ListType: "None",
@@ -90,19 +91,39 @@ export async function onRequest(context) {
 
     // If no metadata or further actions required, moderate content and add to KV if needed
     if (env.ModerateContentApiKey) {
-        const moderateResponse = await fetch(`https://api.moderatecontent.com/moderate/?key=${env.ModerateContentApiKey}&url=https://telegra.ph${url.pathname}${url.search}`);
-        const moderateData = await moderateResponse.json();
-        console.log("Moderate Data:", moderateData);
-        metadata.Label = moderateData.rating_label;
+        try {
+            console.log("Starting content moderation...");
+            const moderateUrl = `https://api.moderatecontent.com/moderate/?key=${env.ModerateContentApiKey}&url=https://telegra.ph${url.pathname}${url.search}`;
+            const moderateResponse = await fetch(moderateUrl);
 
-        if (moderateData.rating_label === "adult") {
-            await env.img_url.put(params.id, "", { metadata });
-            return Response.redirect(`${url.origin}/block-img.html`, 302);
+            if (!moderateResponse.ok) {
+                console.error("Content moderation API request failed: " + moderateResponse.status);
+            } else {
+                const moderateData = await moderateResponse.json();
+                console.log("Content moderation results:", moderateData);
+
+                if (moderateData && moderateData.rating_label) {
+                    metadata.Label = moderateData.rating_label;
+
+                    if (moderateData.rating_label === "adult") {
+                        console.log("Content marked as adult, saving metadata and redirecting");
+                        await env.img_url.put(params.id, "", { metadata });
+                        return Response.redirect(`${url.origin}/block-img.html`, 302);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error during content moderation: " + error.message);
+            // Moderation failure should not affect user experience, continue processing
         }
     }
 
-    // save metadata directly, no additional conditions are needed
+    // Only save metadata if content is not adult content
+    // Adult content cases are already handled above and will not reach this point
+    console.log("Saving metadata");
     await env.img_url.put(params.id, "", { metadata });
+
+    // Return file content
     return response;
 }
 
