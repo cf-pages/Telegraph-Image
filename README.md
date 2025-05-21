@@ -32,10 +32,19 @@
    ![202409071751619](https://github.com/user-attachments/assets/59fe8b20-c969-4d13-8d46-e58c0e8b9e79)
 
 最后去Cloudflare Pages后台设置相关的环境变量（注：修改环境变量后，需要重新部署才能生效）
+
+## 上传模式选择
+
+通过设置 `UPLOAD_MODE` 环境变量，您可以选择图片上传的存储后端。
+
+- **R2 存储**: 设置 `UPLOAD_MODE` 为 `R2`。图片将上传到 Cloudflare R2 存储桶。请确保您已正确配置 R2 相关的环境变量（详见下表）。
+- **Telegram 存储 (默认)**: 如果 `UPLOAD_MODE` 未设置或设置为任何其他值，则默认使用 Telegraph (通过 Telegram Bot) 进行存储。
+
 | 环境变量        | 示例值                    | 说明                                                                                   |
 |-----------------|---------------------------|----------------------------------------------------------------------------------------|
 | `TG_Bot_Token`   | `123468:AAxxxGKrn5`        | 从[@BotFather](https://t.me/BotFather)获取的Telegram Bot Token。                        |
 | `TG_Chat_ID`     | `-1234567`                 | 频道的ID，确保TG Bot是该频道或群组的管理员。 |
+| `UPLOAD_MODE`   | `R2`                      |  设置图片上传模式。可选值为 `R2` (使用 Cloudflare R2 存储) 或留空/其他值 (默认使用 Telegraph)。 |
 
 ## 如何部署
 
