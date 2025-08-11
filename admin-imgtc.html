@@ -240,13 +240,16 @@
             </template>
           </template>
         </div>
-        <div class="pagination-container">
-          <el-pagination
-            background layout="prev, pager, next"
-            :total="filteredTableData.length" :page-size="pageSize"
-            @current-change="handlePageChange" :current-page.sync="currentPage" />
-        </div>
-        <el-footer class="footer">
+  <div class="pagination-container">
+    <el-pagination
+      background layout="prev, pager, next"
+      :total="filteredTableData.length" :page-size="pageSize"
+      @current-change="handlePageChange" :current-page.sync="currentPage" />
+  </div>
+  <div style="text-align:center;margin-top:16px;">
+    <el-button v-if="nextCursor" @click="loadMore">加载更多</el-button>
+  </div>
+  <el-footer class="footer">
           <div>Powered By</div>
           <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener noreferrer">
             <div><i class="fa-brands fa-github"></i> Telegraph-Image</div>
@@ -294,7 +297,8 @@
         maxSize: 20 * 1024 * 1024,  // 最大上传20MB
         maxConcurrent: 3
       },
-      tableData: [],
+        tableData: [],
+        nextCursor: null,
       search: '',
       currentPage: 1,
       pageSize: 15,
@@ -373,13 +377,39 @@
       refreshDashboard() {location.reload();},  // 刷新页面
       handleLogout() { window.location.href = '/'; },  // 退出登录
       handlePageChange(page) { this.currentPage = page; },  // 切换页面
-      handleUpload() { this.$refs.fileInput.click(); },  // 打开文件选择对话框
-      sort(command) { this.sortOption = command; },  // 切换排序方式
-      filter(command) { this.filterOption = command; },  // 切换筛选方式
-      sortData(data) {
-        return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
-          this.sortOption === 'sizeDesc' ? data.sort((a, b) => b.metadata.fileSize - a.metadata.fileSize) :
-          data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
+        handleUpload() { this.$refs.fileInput.click(); },  // 打开文件选择对话框
+        sort(command) { this.sortOption = command; },  // 切换排序方式
+        filter(command) { this.filterOption = command; },  // 切换筛选方式
+        loadMore() {
+          const opts = { method: 'GET', credentials: 'include' };
+          const url = this.nextCursor
+            ? `./api/manage/list?cursor=${encodeURIComponent(this.nextCursor)}`
+            : `./api/manage/list?limit=100`;
+
+          fetch(url, opts)
+            .then(r => r.json())
+            .then(result => {
+              const files = result.keys || [];
+              const mapped = files.map(file => ({
+                ...file,
+                selected: false,
+                metadata: {
+                  ...file.metadata,
+                  liked: file.metadata.liked ?? false,
+                  fileName: file.metadata.fileName ?? file.name,
+                  fileSize: file.metadata.fileSize ?? 0
+                }
+              }));
+              this.tableData = this.tableData.concat(mapped);
+              this.nextCursor = result.list_complete ? null : result.cursor;
+              this.updateStats();
+            })
+            .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+        },
+        sortData(data) {
+          return this.sortOption === 'nameAsc' ? data.sort((a, b) => a.name.localeCompare(b.name)) :
+            this.sortOption === 'sizeDesc' ? data.sort((a, b) => b.metadata.fileSize - a.metadata.fileSize) :
+            data.sort((a, b) => b.metadata.TimeStamp - a.metadata.TimeStamp);
       },
       formattedFileDetails(item) {
         const metadata = item.metadata;
@@ -504,16 +534,27 @@
         }
         event.target.value = '';
       },
-      refreshFileList() {  // 不刷新页面,仅更新数据
-        fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
-          .then(response => response.json())
-          .then(result => {
-            this.tableData = result.map(file => ({ ...file, selected: false }));
-            this.updateStats();
-            this.sortData(this.tableData);
-          })
-          .catch(() => this.$message.error('刷新文件列表失败，请检查网络连接'));
-      },
+        refreshFileList() {  // 不刷新页面,仅更新数据
+          fetch("./api/manage/list?limit=100", { method: 'GET', credentials: 'include' })
+            .then(response => response.json())
+            .then(result => {
+              const files = result.keys || [];
+              this.tableData = files.map(file => ({
+                ...file,
+                selected: false,
+                metadata: {
+                  ...file.metadata,
+                  liked: file.metadata.liked ?? false,
+                  fileName: file.metadata.fileName ?? file.name,
+                  fileSize: file.metadata.fileSize ?? 0
+                }
+              }));
+              this.nextCursor = result.list_complete ? null : result.cursor;
+              this.updateStats();
+              this.sortData(this.tableData);
+            })
+            .catch(() => this.$message.error('刷新文件列表失败，请检查网络连接'));
+        },
       toggleSelect(index, name) {
         const fileIndex = this.tableData.findIndex(file => file.name === name);
         this.tableData[fileIndex].selected = !this.tableData[fileIndex].selected;
@@ -830,28 +871,30 @@
         .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
       // 获取文件列表数据
-      fetch("./api/manage/list", { method: 'GET', credentials: 'include' })
-        .then(response => response.json())
-        .then(result => {
-          console.log("result: ", result);
-          this.tableData = result.map(file => ({
-            ...file,
-            selected: false,
-            metadata: {
-              ...file.metadata,
-              liked: file.metadata.liked ?? false,
-              fileName: file.metadata.fileName ?? file.name,
-              fileSize: file.metadata.fileSize ?? 0
-            }
-          }));
-          this.updateStats();
-          // 恢复设置
-          this.sortOption = localStorage.getItem('sortOption') || this.sortOption;
-          this.sortData(this.tableData);
-          this.fileType = localStorage.getItem('fileType') || this.fileType;
-          this.switchFileType(this.fileType);
-        })
-        .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
+        fetch("./api/manage/list?limit=100", { method: 'GET', credentials: 'include' })
+          .then(response => response.json())
+          .then(result => {
+            console.log("result: ", result);
+            const files = result.keys || [];
+            this.nextCursor = result.list_complete ? null : result.cursor;
+            this.tableData = files.map(file => ({
+              ...file,
+              selected: false,
+              metadata: {
+                ...file.metadata,
+                liked: file.metadata.liked ?? false,
+                fileName: file.metadata.fileName ?? file.name,
+                fileSize: file.metadata.fileSize ?? 0
+              }
+            }));
+            this.updateStats();
+            // 恢复设置
+            this.sortOption = localStorage.getItem('sortOption') || this.sortOption;
+            this.sortData(this.tableData);
+            this.fileType = localStorage.getItem('fileType') || this.fileType;
+            this.switchFileType(this.fileType);
+          })
+          .catch(() => this.$message.error('同步数据时出错，请检查网络连接'));
 
       if (localStorage.getItem('quickWebsites')) {
         this.quickWebsites = JSON.parse(localStorage.getItem('quickWebsites'));

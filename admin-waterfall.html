@@ -58,28 +58,35 @@
 </style>
 </head>
 <body>
-  <div class="box">
-  </div>
+  <div class="box"></div>
+  <button id="loadMore" style="display:block;margin:16px auto;" onclick="loadMore()">加载更多</button>
   <!-- 放大遮罩层 -->
     <div id="bigimg" onclick="closeBigImg();"></div>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
 <script>
-  var imgList
-  $.ajax({
-    url: "./api/manage/list",
-    async: false,
-    dataType: "json",
-    success: function(data) {
-      imgList = data; // 将请求的数据赋值给全局变量
-    }
-});
-  var targetElement = document.querySelector('.box');
-    let str ='';
-    for (let i = 0; i < imgList.length; i++){
-      if(imgList[i].name.indexOf(".mp4")>0)continue;
-      str += '<img onclick="showBigImg(this)" data-original='+"/file/"+imgList[i].name+' src='+"/file/"+imgList[i].name +'>';
-    }
-    targetElement.innerHTML = str
+  var cursor = null;
+  function loadMore(){
+    $.ajax({
+      url: cursor
+        ? "./api/manage/list?cursor=" + encodeURIComponent(cursor)
+        : "./api/manage/list?limit=100",
+      dataType: "json",
+      success: function(data){
+        cursor = data.list_complete ? null : data.cursor;
+        var images = data.keys || [];
+        var targetElement = document.querySelector('.box');
+        let str = '';
+        for (let i = 0; i < images.length; i++){
+          if(images[i].name.indexOf('.mp4')>0) continue;
+          str += '<img onclick="showBigImg(this)" data-original="/file/'+images[i].name+'" src="/file/'+images[i].name+'">';
+        }
+        targetElement.insertAdjacentHTML('beforeend', str);
+        if(!cursor){ document.getElementById('loadMore').style.display='none'; }
+      },
+      error: function(){ alert("同步失败，请检查网络"); }
+    });
+  }
+  loadMore();
 </script>
 </body>
 <script>
