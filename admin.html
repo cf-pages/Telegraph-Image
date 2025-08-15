@@ -99,7 +99,7 @@
             </el-table-column>
             <el-table-column align="right">
               <template slot="header" slot-scope="scope">
-                <el-input v-model="search" size="mini" placeholder="输入关键字搜索" />
+                <el-input v-model="search" @input="handleSearch" size="mini" placeholder="输入关键字搜索" />
               </template>
               <template slot-scope="scope">
                 <el-button size="mini" type="primary" @click="handleCopy(scope.$index,scope.row.name)">复制地址</el-button>
@@ -233,11 +233,30 @@
           type: 'success'
         });
       },
+      handleSearch() {
+        this.tableData = [];
+        this.nextCursor = null;
+        const opts = { method: 'GET', redirect: 'follow', credentials: 'include' };
+        const base = this.search
+          ? `./api/manage/list?limit=100&prefix=${encodeURIComponent(this.search)}`
+          : `./api/manage/list?limit=100`;
+        fetch(base, opts)
+          .then(r => r.json())
+          .then(result => {
+            this.tableData = result.keys || [];
+            this.nextCursor = result.list_complete ? null : result.cursor;
+            this.Number = this.tableData.length;
+          })
+          .catch(() => alert("同步失败，请检查网络"));
+      },
       loadMore() {
         const opts = { method: 'GET', redirect: 'follow', credentials: 'include' };
-        const url = this.nextCursor
-          ? `./api/manage/list?cursor=${encodeURIComponent(this.nextCursor)}`
+        const base = this.search
+          ? `./api/manage/list?limit=100&prefix=${encodeURIComponent(this.search)}`
           : `./api/manage/list?limit=100`;
+        const url = this.nextCursor
+          ? `${base}&cursor=${encodeURIComponent(this.nextCursor)}`
+          : base;
 
         fetch(url, opts)
           .then(r => r.json())

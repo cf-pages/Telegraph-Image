@@ -8,7 +8,8 @@ export async function onRequest(context) {
   if (limit > 1000) limit = 1000;
 
   const cursor = url.searchParams.get("cursor") || undefined;
-  const value = await env.img_url.list({ limit, cursor });
+  const prefix = url.searchParams.get("prefix") || undefined;
+  const value = await env.img_url.list({ limit, cursor, prefix });
 
   return new Response(JSON.stringify(value), {
     headers: { "Content-Type": "application/json" }
