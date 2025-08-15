@@ -250,7 +250,7 @@
               this.nextCursor = result.list_complete ? null : result.cursor;
               this.Number = this.tableData.length;
             })
-            .catch(() => alert("同步失败，请检查网络"));
+            .catch(() => alert("搜索失败，请检查网络"));
         }, 300);
       },
       loadMore() {
