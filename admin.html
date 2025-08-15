@@ -108,9 +108,10 @@
                 <el-button size="mini" type="danger" @click="handleDelete(scope.$index,scope.row.name)">删除</el-button>
               </template>
             </el-table-column>
-          </el-table>
-        </template>
-      </el-main>
+            </el-table>
+            <el-button v-if="nextCursor" style="margin-top:16px" @click="loadMore">加载更多</el-button>
+          </template>
+        </el-main>
     </el-container>
   </div>
 </body>
@@ -126,9 +127,10 @@
     data: {
       Number: 0,
       WhiteList: 0,
-      BlackList: 0,
-      showLogoutButton: false,
-      tableData: [],
+        BlackList: 0,
+        showLogoutButton: false,
+        tableData: [],
+        nextCursor: null,
       dialogFormVisible: false,
       formLabelWidth: '120px',
       form: {
@@ -231,6 +233,21 @@
           type: 'success'
         });
       },
+      loadMore() {
+        const opts = { method: 'GET', redirect: 'follow', credentials: 'include' };
+        const url = this.nextCursor
+          ? `./api/manage/list?cursor=${encodeURIComponent(this.nextCursor)}`
+          : `./api/manage/list?limit=100`;
+
+        fetch(url, opts)
+          .then(r => r.json())
+          .then(result => {
+            this.tableData = this.tableData.concat(result.keys || []);
+            this.nextCursor = result.list_complete ? null : result.cursor;
+            this.Number = this.tableData.length;
+          })
+          .catch(() => alert("同步失败，请检查网络"));
+      },
     },
 
     mounted() {
@@ -273,7 +290,7 @@
       };
 
 
-      fetch("./api/manage/list", requestOptions)
+        fetch("./api/manage/list?limit=100", requestOptions)
         //判断是否需要登录
         .then(response => {
           if (response.status == 401) {
@@ -284,8 +301,13 @@
             return response;
           }
         })
-        .then(response => response.text())
-        .then(result => { this.tableData = JSON.parse(result); console.log(result); this.Number = this.tableData.length })
+        .then(response => response.json())
+        .then(result => {
+          this.tableData = result.keys || [];
+          this.nextCursor = result.list_complete ? null : result.cursor;
+          console.log(result);
+          this.Number = this.tableData.length;
+        })
         .catch(error => { alert("An error occurred while synchronizing data with the server, please check the network connection"); console.log('error', error) });
 
     }
