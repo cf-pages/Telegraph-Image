@@ -138,7 +138,8 @@
         id: ''
       },
       search: '',
-      password: '123456'
+      password: '123456',
+      searchTimer: null
     },
     methods: {
       handleBlock(index, key) {
@@ -234,20 +235,23 @@
         });
       },
       handleSearch() {
-        this.tableData = [];
-        this.nextCursor = null;
-        const opts = { method: 'GET', redirect: 'follow', credentials: 'include' };
-        const base = this.search
-          ? `./api/manage/list?limit=100&prefix=${encodeURIComponent(this.search)}`
-          : `./api/manage/list?limit=100`;
-        fetch(base, opts)
-          .then(r => r.json())
-          .then(result => {
-            this.tableData = result.keys || [];
-            this.nextCursor = result.list_complete ? null : result.cursor;
-            this.Number = this.tableData.length;
-          })
-          .catch(() => alert("同步失败，请检查网络"));
+        clearTimeout(this.searchTimer);
+        this.searchTimer = setTimeout(() => {
+          this.tableData = [];
+          this.nextCursor = null;
+          const opts = { method: 'GET', redirect: 'follow', credentials: 'include' };
+          const base = this.search
+            ? `./api/manage/list?limit=100&prefix=${encodeURIComponent(this.search)}`
+            : `./api/manage/list?limit=100`;
+          fetch(base, opts)
+            .then(r => r.json())
+            .then(result => {
+              this.tableData = result.keys || [];
+              this.nextCursor = result.list_complete ? null : result.cursor;
+              this.Number = this.tableData.length;
+            })
+            .catch(() => alert("同步失败，请检查网络"));
+        }, 300);
       },
       loadMore() {
         const opts = { method: 'GET', redirect: 'follow', credentials: 'include' };
