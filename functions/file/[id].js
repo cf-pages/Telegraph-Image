@@ -6,56 +6,61 @@ export async function onRequest(context) {
     } = context;
 
     const url = new URL(request.url);
-    const slugOrFileId = params.id; // 这里的 params.id 可能是短码（slug）或 Telegram file ID
+    let slugOrFileId = params.id; // 这里的 params.id 可能是短码（slug）或完整的 Telegram file ID
 
     // ===================================
-    // 1. 短链接重定向逻辑
-    // 检查 KV 中是否存在短链接映射
-    // 我们使用一个明确的前缀 'url_map:' 来区分短链接和图片 KV 记录
-    // 注意：短链接不能和图片ID冲突，但由于图片ID很长，冲突概率极低。
+    // 核心修改部分：短链接解析和重写
     // ===================================
-    if (env.img_url) {
+    let targetPath = ''; 
+    const isShortlink = slugOrFileId.length <= 8; // 假设短码长度 <= 8
+
+    if (env.img_url && isShortlink) {
         const shortlinkKey = `url_map:${slugOrFileId}`;
         try {
-            const longUrl = await env.img_url.get(shortlinkKey);
+            // 查找短码对应的目标路径（完整的 /file/AgAC...）
+            const mappedPath = await env.img_url.get(shortlinkKey);
 
-            if (longUrl) {
-                // 如果找到短链接，执行 302 临时重定向
-                console.log(`[Shortlink] Redirecting ${slugOrFileId} to ${longUrl}`);
-
-                // *** 可选：在这里添加点击统计逻辑 ***
-                // 可以在 metadata 中存储点击次数，每次访问时更新
-
-                return Response.redirect(longUrl, 302);
+            if (mappedPath) {
+                console.log(`[Shortlink] Resolving ${slugOrFileId} to ${mappedPath}`);
+                
+                // 如果找到，将 URL 路径重写为完整的图片路径
+                // 这会将 params.id 设为完整的 fileId.ext，供下面的图片逻辑使用
+                targetPath = mappedPath; 
+                // 更新 slugOrFileId 以便后续 KV 查找使用完整的图片ID
+                slugOrFileId = mappedPath.split('/').pop(); 
             }
         } catch (error) {
-            console.error('Error checking shortlink:', error);
-            // 发生错误，继续执行图片加载逻辑，不影响原功能
+            console.error('Error resolving shortlink:', error);
+            // 发生错误，继续执行，尝试将 slugOrFileId 视为普通图片ID
         }
     }
+    
+    // 如果 targetPath 仍然为空，说明不是短链接，或者短链接解析失败。
+    // 我们回退到使用原始的 params.id (即完整的 fileId.ext)
+    if (!targetPath) {
+         targetPath = url.pathname;
+    }
+
     // ===================================
-    // 2. 原始图片加载逻辑
-    // 如果没有短链接匹配，则认为是图片加载请求。
+    // 原始图片加载逻辑 (使用 targetPath 或 url.pathname)
     // ===================================
+    
+    let fileUrl = 'https://telegra.ph/' + targetPath + url.search
+    
+    // Path length > 39 indicates file uploaded via Telegram Bot API (长的 fileId)
+    // 注意：这里的判断逻辑可能需要微调，以适应短码。但由于短码被解析后，我们已经有了长的 fileId，我们可以依赖它。
+    if (slugOrFileId.length > 39 && slugOrFileId.includes('.')) { 
+        // 提取纯粹的 fileId，不带扩展名
+        const rawFileId = slugOrFileId.split(".")[0]; 
 
-    // 原始图片加载逻辑开始
-    let fileUrl = 'https://telegra.ph/' + url.pathname + url.search
-    if (url.pathname.length > 39) { // Path length > 39 indicates file uploaded via Telegram Bot API
-        const formdata = new FormData();
-        formdata.append("file_id", url.pathname);
-
-        // ... 省略 requestOptions 的设置 (在下面会删除，因为它未使用) ...
-
-        // /file/AgACAgEAAxkDAAMDZt1Gzs4W8dQPWiQJxO5YSH5X-gsAAt-sMRuWNelGOSaEM_9lHHgBAAMCAANtAAM2BA.png
-        // get the AgACAgEAAxkDAAMDZt1Gzs4W8dQPWiQJxO5YSH5X-gsAAt-sMRuWNelGOSaEM_9lHHgBAAMCAANtAAM2BA
-        console.log(url.pathname.split(".")[0].split("/")[2])
-        const filePath = await getFilePath(env, url.pathname.split(".")[0].split("/")[2]);
-        console.log(filePath)
+        console.log(`Fetching file path for raw ID: ${rawFileId}`);
+        const filePath = await getFilePath(env, rawFileId);
+        
         if (filePath) {
              fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;
         } else {
-             // 如果获取文件路径失败，可以返回 404 或默认的 Telegraph 链接
-             fileUrl = 'https://telegra.ph/' + url.pathname + url.search
+             console.error(`Failed to get file path for ID: ${rawFileId}`);
+             fileUrl = 'https://telegra.ph/' + targetPath + url.search
         }
     }
 
@@ -65,6 +70,8 @@ export async function onRequest(context) {
         body: request.body,
     });
 
+    // ... [保持原有的 KV 管理和内容审查逻辑不变] ...
+    
     // If the response is OK, proceed with further checks
     if (!response.ok) return response;
 
@@ -84,7 +91,8 @@ export async function onRequest(context) {
     }
 
     // The following code executes only if KV is available
-    let record = await env.img_url.getWithMetadata(slugOrFileId); // 使用 slugOrFileId 作为 KV 键
+    // 注意：这里的 KV 键必须是完整的 fileId.ext，而不是短码
+    let record = await env.img_url.getWithMetadata(slugOrFileId); 
     if (!record || !record.metadata) {
         // Initialize metadata if it doesn't exist
         console.log("Metadata not found, initializing...");
@@ -128,10 +136,8 @@ export async function onRequest(context) {
     if (env.ModerateContentApiKey) {
         try {
             console.log("Starting content moderation...");
-            // 注意：Telegraph 链接是硬编码的，如果您的图片来自 Telegram Bot API，这里可能需要调整 URL
-            const moderationSourceUrl = fileUrl.startsWith('https://api.telegram.org') ? fileUrl : `https://telegra.ph${url.pathname}${url.search}`;
-            
-            const moderateUrl = `https://api.moderatecontent.com/moderate/?key=${env.ModerateContentApiKey}&url=${moderationSourceUrl}`;
+            // 使用最终的 fileUrl 作为审查源
+            const moderateUrl = `https://api.moderatecontent.com/moderate/?key=${env.ModerateContentApiKey}&url=${fileUrl}`;
             const moderateResponse = await fetch(moderateUrl);
 
             if (!moderateResponse.ok) {
@@ -152,12 +158,10 @@ export async function onRequest(context) {
             }
         } catch (error) {
             console.error("Error during content moderation: " + error.message);
-            // Moderation failure should not affect user experience, continue processing
         }
     }
 
     // Only save metadata if content is not adult content
-    // Adult content cases are already handled above and will not reach this point
     console.log("Saving metadata");
     await env.img_url.put(slugOrFileId, "", { metadata });
 
