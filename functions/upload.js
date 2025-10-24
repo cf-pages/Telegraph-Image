@@ -1,5 +1,19 @@
 import { errorHandling, telemetryData } from "./utils/middleware";
 
+// ===================================
+// 新增短链接辅助函数
+// Base62 字符集: 0-9, a-z, A-Z (共 62 个字符)
+const BASE62_CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+function generateUniqueSlug(length) {
+    let result = '';
+    const charsLength = BASE62_CHARS.length;
+    for (let i = 0; i < length; i++) {
+        result += BASE62_CHARS.charAt(Math.floor(Math.random() * charsLength));
+    }
+    return result;
+}
+// ===================================
+
 export async function onRequestPost(context) {
     const { request, env } = context;
 
@@ -11,8 +25,75 @@ export async function onRequestPost(context) {
         telemetryData(context);
 
         const uploadFile = formData.get('file');
+
+        // ===================================
+        // 1. 短链接创建逻辑
+        // 如果没有上传文件，但有 'long_url' 字段，则认为是短链接请求
+        const longUrl = formData.get('long_url');
+        if (!uploadFile && longUrl) {
+            if (!env.img_url) {
+                throw new Error('KV storage (img_url) not configured for shortlink.');
+            }
+            
+            // 确保 URL 是有效的
+            try {
+                new URL(longUrl);
+            } catch (e) {
+                throw new Error("Invalid URL provided.");
+            }
+
+            let slug;
+            let isUnique = false;
+            let attempts = 0;
+            const MAX_ATTEMPTS = 5;
+
+            // 检查是否已存在该长链接的短码（可选优化）
+            const searchKey = `url_map_long:${longUrl}`;
+            let existingSlug = await env.img_url.get(searchKey);
+            
+            if (existingSlug) {
+                slug = existingSlug;
+            } else {
+                // 生成并检查唯一的短码
+                while (!isUnique && attempts < MAX_ATTEMPTS) {
+                    slug = generateUniqueSlug(6); // 生成 6 位 Base62 编码
+                    const key = `url_map:${slug}`;
+                    
+                    const existingLongUrl = await env.img_url.get(key);
+                    
+                    if (existingLongUrl === null) {
+                        isUnique = true;
+                        // 存储短码 -> 长链接
+                        await env.img_url.put(key, longUrl, { metadata: { source: 'shortlink' } });
+                        // 存储长链接 -> 短码 (用于重复检查)
+                        await env.img_url.put(searchKey, slug, { metadata: { source: 'shortlink' } });
+                    }
+                    attempts++;
+                }
+
+                if (!isUnique) {
+                    throw new Error('Failed to generate a unique shortlink identifier.');
+                }
+            }
+            
+            // 构建短链接 URL
+            const shortUrl = `${new URL(request.url).origin}/s/${slug}`;
+
+            return new Response(
+                JSON.stringify({ 
+                    success: true,
+                    type: 'shortlink',
+                    short_url: shortUrl,
+                    long_url: longUrl 
+                }),
+                { status: 200, headers: { 'Content-Type': 'application/json' } }
+            );
+        }
+        // ------------------------------------
+
+        // 2. 原始图片上传逻辑 (仅在有文件且非短链接时执行)
         if (!uploadFile) {
-            throw new Error('No file uploaded');
+            throw new Error('No file or long_url uploaded');
         }
 
         const fileName = uploadFile.name;
@@ -63,6 +144,7 @@ export async function onRequestPost(context) {
             });
         }
 
+        // 这里的返回路径 `/file/` 仍然用于图片加载
         return new Response(
             JSON.stringify([{ 'src': `/file/${fileId}.${fileExtension}` }]),
             {
@@ -81,6 +163,8 @@ export async function onRequestPost(context) {
         );
     }
 }
+
+// 保持原有的 getFileId 和 sendToTelegram 函数不变...
 
 function getFileId(response) {
     if (!response.ok || !response.result) return null;
