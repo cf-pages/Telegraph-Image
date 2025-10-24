@@ -3,15 +3,35 @@ import { errorHandling, telemetryData } from "./utils/middleware";
 // ===================================
 // 新增哈希函数，用于从长文件ID生成短码
 // Cloudflare Workers 内置的 SubtleCrypto API
+// ===================================
+// 新增哈希函数，使用 globalThis.crypto 确保兼容性
+// Cloudflare Workers 环境下的 Web Crypto API 位于全局对象上
 async function sha256(str) {
+    // 确保在任何环境中都能访问到 Web Crypto API
+    const webCrypto = globalThis.crypto || crypto; 
+    if (!webCrypto || !webCrypto.subtle) {
+         throw new Error("Web Crypto API is not available.");
+    }
+
     const encoder = new TextEncoder();
     const data = encoder.encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    
+    // 使用 SubtleCrypto 进行哈希计算
+    const hashBuffer = await webCrypto.subtle.digest('SHA-256', data);
+    
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     // 转换为十六进制字符串
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     return hashHex;
 }
+
+// 从哈希值截取前 N 位作为短码 (Slug)。
+const SLUG_LENGTH = 8; 
+async function generateShortCodeFromFileId(fileId) {
+    const hash = await sha256(fileId);
+    return hash.substring(0, SLUG_LENGTH);
+}
+// ===================================
 
 // 从哈希值截取前 N 位作为短码 (Slug)。Base62 转换太复杂，这里直接用Hex截取。
 // 6位 Base16 (Hex) 可以提供 16^6 = 16,777,216 个组合
