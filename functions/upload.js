@@ -15,6 +15,28 @@ export async function onRequestPost(context) {
             throw new Error('No file uploaded');
         }
 
+        const captchaToken = formData.get('captchaToken');
+        if (!captchaToken) {
+            return new Response(
+                JSON.stringify({ error: 'Missing CAPTCHA token' }),
+                {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
+        }
+
+        const captchaResult = await validateCaptcha(captchaToken);
+        if (!captchaResult.success) {
+            return new Response(
+                JSON.stringify({ error: 'CAPTCHA validation failed' }),
+                {
+                    status: 400,
+                    headers: { 'Content-Type': 'application/json' }
+                }
+            );
+        }
+
         const fileName = uploadFile.name;
         const fileExtension = fileName.split('.').pop().toLowerCase();
 
@@ -130,5 +152,25 @@ async function sendToTelegram(formData, apiEndpoint, env, retryCount = 0) {
             return await sendToTelegram(formData, apiEndpoint, env, retryCount + 1);
         }
         return { success: false, error: 'Network error occurred' };
+    }
+}
+
+async function validateCaptcha(token) {
+    try {
+        const response = await fetch('https://captcha.gurl.eu.org/api/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token, keepToken: false })
+        });
+
+        if (!response.ok) {
+            return { success: false };
+        }
+
+        const result = await response.json();
+        return { success: !!result.success };
+    } catch (error) {
+        console.error('CAPTCHA validation error:', error);
+        return { success: false };
     }
 }
