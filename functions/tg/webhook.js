@@ -49,6 +49,23 @@ export async function onRequestPost(context) {
     return new Response('OK');
   }
 
+  // Sender allowlist (KV: tg_allowlist)
+  // Policy selected by user:
+  // 1) message without from.id -> reject silently
+  // 2) unauthorized -> reply only in private chat
+  const fromId = message?.from?.id;
+  if (!fromId) {
+    return new Response('OK');
+  }
+
+  const isAllowed = await isSenderAllowed(env, fromId);
+  if (!isAllowed) {
+    if (message?.chat?.type === 'private') {
+      await sendMessage(env, chatId, '未授权：你不在上传白名单中。');
+    }
+    return new Response('OK');
+  }
+
   const origin = new URL(request.url).origin;
   const media = await extractMedia(env, message);
 
@@ -235,5 +252,22 @@ async function sendMessage(env, chatId, text) {
     });
   } catch (e) {
     console.error('sendMessage failed:', e);
+  }
+}
+
+async function isSenderAllowed(env, fromId) {
+  // If tg_allowlist is not bound, deny for safety.
+  if (!env.tg_allowlist) {
+    console.warn('KV binding tg_allowlist is missing, deny by default.');
+    return false;
+  }
+
+  try {
+    const v = await env.tg_allowlist.get(String(fromId));
+    return v !== null;
+  } catch (e) {
+    console.error('Allowlist check failed:', e);
+    // Fail-closed for safety when allowlist is enabled but check fails
+    return false;
   }
 }
