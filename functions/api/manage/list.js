@@ -1,3 +1,5 @@
+import { jsonResponse } from "../../utils/http.js";
+
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -11,7 +13,5 @@ export async function onRequest(context) {
   const prefix = url.searchParams.get("prefix") || undefined;
   const value = await env.img_url.list({ limit, cursor, prefix });
 
-  return new Response(JSON.stringify(value), {
-    headers: { "Content-Type": "application/json" }
-  });
+  return jsonResponse(value);
 }

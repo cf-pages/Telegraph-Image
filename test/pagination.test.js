@@ -45,4 +45,28 @@ describe('KV list pagination', function () {
     assert.strictEqual(secondData.list_complete, true);
     assert.ok(!secondData.cursor);
   });
+
+  it('clamps invalid limits and forwards prefix filters', async function () {
+    const onRequest = await getOnRequest();
+    let observedOptions;
+    const env = {
+      img_url: {
+        list: options => {
+          observedOptions = options;
+          return Promise.resolve({ keys: [], list_complete: true });
+        }
+      }
+    };
+
+    const request = new Request('https://example.com/api/manage/list?limit=2000&prefix=avatar');
+    const res = await onRequest({ request, env });
+    const data = JSON.parse(await res.text());
+
+    assert.deepStrictEqual(data, { keys: [], list_complete: true });
+    assert.deepStrictEqual(observedOptions, {
+      limit: 1000,
+      cursor: undefined,
+      prefix: 'avatar'
+    });
+  });
 });
