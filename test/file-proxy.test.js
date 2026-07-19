@@ -86,6 +86,67 @@ describe('file proxy function', function () {
     assert.strictEqual(await res.text(), 'image-body');
   });
 
+  it('fixes the Content-Type from the file extension when upstream sends octet-stream', async function () {
+    const onRequest = await getOnRequest();
+
+    fetchMock = installFetchMock(async input => {
+      assert.strictEqual(String(input), 'https://telegra.ph//file/cat.png');
+      return new Response('image-body', {
+        status: 200,
+        headers: { 'Content-Type': 'application/octet-stream' },
+      });
+    });
+
+    const res = await onRequest(makeContext({
+      request: new Request('https://example.com/file/cat.png'),
+      env: {},
+      params: { id: 'cat.png' },
+    }));
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.headers.get('Content-Type'), 'image/png');
+    assert.strictEqual(res.headers.get('Content-Disposition'), 'inline; filename="cat.png"');
+    assert.strictEqual(await res.text(), 'image-body');
+  });
+
+  it('leaves octet-stream files with unknown extensions untouched', async function () {
+    const onRequest = await getOnRequest();
+
+    fetchMock = installFetchMock(async () => new Response('binary-body', {
+      status: 200,
+      headers: { 'Content-Type': 'application/octet-stream' },
+    }));
+
+    const res = await onRequest(makeContext({
+      request: new Request('https://example.com/file/archive.bin'),
+      env: {},
+      params: { id: 'archive.bin' },
+    }));
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.headers.get('Content-Type'), 'application/octet-stream');
+    assert.strictEqual(res.headers.get('Content-Disposition'), null);
+    assert.strictEqual(await res.text(), 'binary-body');
+  });
+
+  it('does not promote svg uploads to image/svg+xml', async function () {
+    const onRequest = await getOnRequest();
+
+    fetchMock = installFetchMock(async () => new Response('<svg/>', {
+      status: 200,
+      headers: { 'Content-Type': 'application/octet-stream' },
+    }));
+
+    const res = await onRequest(makeContext({
+      request: new Request('https://example.com/file/sketch.svg'),
+      env: {},
+      params: { id: 'sketch.svg' },
+    }));
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.headers.get('Content-Type'), 'application/octet-stream');
+  });
+
   it('does not force inline disposition for non-previewable files', async function () {
     const onRequest = await getOnRequest();
 

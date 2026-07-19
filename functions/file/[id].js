@@ -28,20 +28,20 @@ export async function onRequest(context) {
     // Allow the admin page to directly view the image
     const isAdmin = request.headers.get('Referer')?.includes(`${url.origin}/admin`);
     if (isAdmin) {
-        return withInlineDisposition(response, params.id);
+        return withFileHeaders(response, params.id);
     }
 
     // Check if KV storage is available
     if (!env.img_url) {
         console.log("KV storage not available, returning image directly");
-        return withInlineDisposition(response, params.id);  // Directly return image response, terminate execution
+        return withFileHeaders(response, params.id);  // Directly return image response, terminate execution
     }
 
     const metadata = await getOrCreateMetadata(env, params.id);
 
     // Handle based on ListType and Label
     if (isWhitelisted(metadata)) {
-        return withInlineDisposition(response, params.id);
+        return withFileHeaders(response, params.id);
     } else if (isBlocked(metadata)) {
         const referer = request.headers.get('Referer');
         const redirectUrl = referer ? "https://static-res.pages.dev/teleimage/img-block-compressed.png" : `${url.origin}/block-img.html`;
@@ -65,7 +65,7 @@ export async function onRequest(context) {
     await putMetadata(env, params.id, metadata);
 
     // Return file content
-    return withInlineDisposition(response, params.id);
+    return withFileHeaders(response, params.id);
 }
 
 async function resolveFileUrl(env, url) {
@@ -106,21 +106,65 @@ async function moderateFile(env, url, metadata) {
     }
 }
 
-function withInlineDisposition(response, filename) {
-    const contentType = response.headers.get('Content-Type') || '';
+function withFileHeaders(response, filename) {
+    const upstreamType = response.headers.get('Content-Type') || '';
+    const correctedType = isUsableContentType(upstreamType) ? null : contentTypeFromFilename(filename);
+    const effectiveType = correctedType || upstreamType;
+    const inline = isPreviewableContent(effectiveType) || isPreviewableFilename(filename);
 
-    if (!isPreviewableContent(contentType) && !isPreviewableFilename(filename)) {
+    if (!correctedType && !inline) {
         return response;
     }
 
     const headers = new Headers(response.headers);
-    headers.set('Content-Disposition', `inline; filename="${escapeFilename(filename)}"`);
+    if (correctedType) {
+        headers.set('Content-Type', correctedType);
+    }
+    if (inline) {
+        headers.set('Content-Disposition', `inline; filename="${escapeFilename(filename)}"`);
+    }
 
     return new Response(response.body, {
         status: response.status,
         statusText: response.statusText,
         headers,
     });
+}
+
+function isUsableContentType(contentType) {
+    return contentType !== '' && !contentType.startsWith('application/octet-stream');
+}
+
+// svg is deliberately absent: serving user uploads as image/svg+xml would allow
+// stored XSS on the deployment's own origin.
+const CONTENT_TYPES_BY_EXTENSION = {
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    gif: 'image/gif',
+    webp: 'image/webp',
+    avif: 'image/avif',
+    apng: 'image/apng',
+    bmp: 'image/bmp',
+    ico: 'image/x-icon',
+    mp4: 'video/mp4',
+    m4v: 'video/x-m4v',
+    mov: 'video/quicktime',
+    webm: 'video/webm',
+    ogv: 'video/ogg',
+    mp3: 'audio/mpeg',
+    m4a: 'audio/mp4',
+    ogg: 'audio/ogg',
+    oga: 'audio/ogg',
+    wav: 'audio/wav',
+    flac: 'audio/flac',
+    aac: 'audio/aac',
+    pdf: 'application/pdf',
+};
+
+function contentTypeFromFilename(filename) {
+    const extension = String(filename).split('.').pop().toLowerCase();
+    return CONTENT_TYPES_BY_EXTENSION[extension] || null;
 }
 
 function isPreviewableContent(contentType) {
