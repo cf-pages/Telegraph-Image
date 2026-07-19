@@ -5,6 +5,7 @@ import {
     putMetadata,
 } from "../utils/metadata.js";
 import { getTelegramFilePath } from "../utils/telegram.js";
+import { isShortUrlsEnabled, looksLikeShortId, resolveShortId } from "../utils/shortlink.js";
 
 export async function onRequest(context) {
     const {
@@ -14,7 +15,8 @@ export async function onRequest(context) {
     } = context;
 
     const url = new URL(request.url);
-    const fileUrl = await resolveFileUrl(env, url);
+    const fileId = await resolveRequestedId(env, params.id);
+    const fileUrl = await resolveFileUrl(env, url, fileId);
 
     const response = await fetch(fileUrl, {
         method: request.method,
@@ -28,20 +30,20 @@ export async function onRequest(context) {
     // Allow the admin page to directly view the image
     const isAdmin = request.headers.get('Referer')?.includes(`${url.origin}/admin`);
     if (isAdmin) {
-        return withFileHeaders(response, params.id);
+        return withFileHeaders(response, fileId);
     }
 
     // Check if KV storage is available
     if (!env.img_url) {
         console.log("KV storage not available, returning image directly");
-        return withFileHeaders(response, params.id);  // Directly return image response, terminate execution
+        return withFileHeaders(response, fileId);  // Directly return image response, terminate execution
     }
 
-    const metadata = await getOrCreateMetadata(env, params.id);
+    const metadata = await getOrCreateMetadata(env, fileId);
 
     // Handle based on ListType and Label
     if (isWhitelisted(metadata)) {
-        return withFileHeaders(response, params.id);
+        return withFileHeaders(response, fileId);
     } else if (isBlocked(metadata)) {
         const referer = request.headers.get('Referer');
         const redirectUrl = referer ? "https://static-res.pages.dev/teleimage/img-block-compressed.png" : `${url.origin}/block-img.html`;
@@ -54,39 +56,49 @@ export async function onRequest(context) {
     }
 
     // If no metadata or further actions required, moderate content and add to KV if needed
-    const moderationResult = await moderateFile(env, url, metadata);
+    const moderationResult = await moderateFile(env, url, fileId, metadata);
     if (moderationResult.blocked) {
-        await putMetadata(env, params.id, metadata);
+        await putMetadata(env, fileId, metadata);
         return Response.redirect(`${url.origin}/block-img.html`, 302);
     }
 
     // Only save metadata if content is not adult content
     // Adult content cases are already handled above and will not reach this point
-    await putMetadata(env, params.id, metadata);
+    await putMetadata(env, fileId, metadata);
 
     // Return file content
-    return withFileHeaders(response, params.id);
+    return withFileHeaders(response, fileId);
 }
 
-async function resolveFileUrl(env, url) {
-    let fileUrl = 'https://telegra.ph/' + url.pathname + url.search;
-
-    if (url.pathname.length > 39) { // Path length > 39 indicates file uploaded via Telegram Bot API
-        const fileId = url.pathname.split(".")[0].split("/")[2];
-        const filePath = await getTelegramFilePath(env, fileId);
-        fileUrl = `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;
+// Short ids are resolved before the file URL is built, so short links work for
+// Telegraph-stored files as well as Bot API files.
+async function resolveRequestedId(env, requestedId) {
+    if (!env.img_url || !isShortUrlsEnabled(env) || requestedId.includes('.') || !looksLikeShortId(requestedId)) {
+        return requestedId;
     }
 
-    return fileUrl;
+    const target = await resolveShortId(env, requestedId);
+    return target || requestedId;
 }
 
-async function moderateFile(env, url, metadata) {
+async function resolveFileUrl(env, url, fileId) {
+    // Same threshold as the old `url.pathname.length > 39` check ('/file/' + id):
+    // ids longer than 33 characters were uploaded via the Telegram Bot API.
+    if (fileId.length > 33) {
+        const filePath = await getTelegramFilePath(env, fileId.split(".")[0]);
+        return `https://api.telegram.org/file/bot${env.TG_Bot_Token}/${filePath}`;
+    }
+
+    return 'https://telegra.ph//file/' + fileId + url.search;
+}
+
+async function moderateFile(env, url, fileId, metadata) {
     if (!env.ModerateContentApiKey) {
         return { blocked: false };
     }
 
     try {
-        const moderateUrl = `https://api.moderatecontent.com/moderate/?key=${env.ModerateContentApiKey}&url=https://telegra.ph${url.pathname}${url.search}`;
+        const moderateUrl = `https://api.moderatecontent.com/moderate/?key=${env.ModerateContentApiKey}&url=https://telegra.ph/file/${fileId}${url.search}`;
         const moderateResponse = await fetch(moderateUrl);
 
         if (!moderateResponse.ok) {

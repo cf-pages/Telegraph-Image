@@ -68,6 +68,40 @@ describe('manage API functions', function () {
     assert.strictEqual(img_url.snapshot('cat.png'), undefined);
   });
 
+  it('removes the short link mapping when deleting a record', async function () {
+    const { onRequest } = await import('../functions/api/manage/delete/[id].js');
+    const img_url = createMockKV({
+      'cat.png': { ...baseMetadata, shortId: 'AbC123' },
+      'short:AbC123': { value: 'cat.png', metadata: { target: 'cat.png' } },
+    });
+
+    const res = await onRequest(makeContext({
+      env: { img_url },
+      params: { id: 'cat.png' },
+    }));
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(img_url.snapshot('cat.png'), undefined);
+    assert.strictEqual(img_url.snapshot('short:AbC123'), undefined);
+  });
+
+  it('hides short link mapping keys from list results', async function () {
+    const { onRequest } = await import('../functions/api/manage/list.js');
+    const img_url = createMockKV({
+      'cat.png': baseMetadata,
+      'short:AbC123': { value: 'cat.png', metadata: { target: 'cat.png' } },
+    });
+
+    const res = await onRequest(makeContext({
+      request: new Request('https://example.com/api/manage/list'),
+      env: { img_url },
+    }));
+
+    assert.strictEqual(res.status, 200);
+    const data = JSON.parse(await res.text());
+    assert.deepStrictEqual(data.keys.map(key => key.name), ['cat.png']);
+  });
+
   it('toggles the liked flag on an existing record', async function () {
     const { onRequest } = await import('../functions/api/manage/toggleLike/[id].js');
     const img_url = createMockKV({ 'cat.png': baseMetadata });

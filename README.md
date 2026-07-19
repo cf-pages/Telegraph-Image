@@ -38,6 +38,8 @@ Finally, go to the Cloudflare Pages backend to set the relevant environment vari
 | `TG_Chat_ID`        | `-1234567`                 | Channel ID, ensure the TG Bot is an administrator of the channel or group.           |
 | `UPLOAD_BASIC_USER` | `uploader`                | Optional username for protecting the public upload endpoint. Leave unset to keep uploads public. |
 | `UPLOAD_BASIC_PASS` | `strong-password`         | Optional password for protecting the public upload endpoint. Must be set together with `UPLOAD_BASIC_USER`. |
+| `ENABLE_SHORT_URLS` | `true`                    | Optional. When enabled (and a KV namespace is bound), uploads return a short link like `/file/AbC123` instead of the long file name. Existing long links keep working. |
+| `SHORT_URL_LENGTH`  | `6`                       | Optional. Length of generated short ids (4-16, default 6). Only used when `ENABLE_SHORT_URLS` is on. |
 
 ## How to Deploy
 

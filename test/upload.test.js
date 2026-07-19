@@ -232,6 +232,37 @@ describe('upload function', function () {
     assert.strictEqual(img_url.operations.put[0].key, 'doc-id.txt');
   });
 
+  it('returns a short link and stores the mapping when short URLs are enabled', async function () {
+    const { onRequestPost } = await import('../functions/upload.js');
+    const img_url = createMockKV();
+
+    fetchMock = installFetchMock(async () => Response.json({
+      ok: true,
+      result: { document: { file_id: 'doc-id' } },
+    }));
+
+    const request = await createUploadRequest(new File(['hello'], 'notes.txt', { type: 'text/plain' }));
+    const res = await onRequestPost(makeContext({
+      request,
+      env: {
+        disable_telemetry: 'true',
+        ENABLE_SHORT_URLS: 'true',
+        TG_Bot_Token: 'bot-token',
+        TG_Chat_ID: '-100123',
+        img_url,
+      },
+    }));
+
+    assert.strictEqual(res.status, 200);
+    const [entry] = JSON.parse(await res.text());
+    const match = entry.src.match(/^\/file\/([A-Za-z0-9]{6})$/);
+    assert.ok(match, `expected a short link, got ${entry.src}`);
+
+    const shortId = match[1];
+    assert.strictEqual(img_url.snapshot('doc-id.txt').metadata.shortId, shortId);
+    assert.strictEqual(img_url.snapshot(`short:${shortId}`).metadata.target, 'doc-id.txt');
+  });
+
   it('returns a clear error when Telegram responds with non-JSON text', async function () {
     const { onRequestPost } = await import('../functions/upload.js');
 

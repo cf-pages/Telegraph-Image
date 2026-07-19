@@ -38,6 +38,8 @@
 | `TG_Chat_ID`     | `-1234567`                 | 频道的ID，确保TG Bot是该频道或群组的管理员。 |
 | `UPLOAD_BASIC_USER` | `uploader`             | 可选，上传入口的 Basic Auth 用户名。不设置则保持公开上传。 |
 | `UPLOAD_BASIC_PASS` | `strong-password`      | 可选，上传入口的 Basic Auth 密码，需要和 `UPLOAD_BASIC_USER` 同时设置。 |
+| `ENABLE_SHORT_URLS` | `true`                 | 可选，开启后（需绑定 KV）上传将返回形如 `/file/AbC123` 的短链接，原有长链接依然有效。 |
+| `SHORT_URL_LENGTH`  | `6`                    | 可选，短链接 ID 长度（4-16，默认 6），仅在开启短链接时生效。 |
 
 ## 如何部署
 

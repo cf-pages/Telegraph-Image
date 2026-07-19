@@ -2,6 +2,7 @@ import { errorHandling, telemetryData } from "./utils/middleware.js";
 import { authenticateUploadRequest } from "./utils/auth.js";
 import { jsonResponse } from "./utils/http.js";
 import { createDefaultMetadata, putMetadata } from "./utils/metadata.js";
+import { allocateShortId, isShortUrlsEnabled, putShortLink } from "./utils/shortlink.js";
 import {
     createTelegramFormData,
     getFileId,
@@ -50,15 +51,27 @@ export async function onRequestPost(context) {
             throw new Error('Failed to get file ID');
         }
 
+        const longId = `${fileId}.${fileExtension}`;
+        let shortId = null;
+
         // 将文件信息保存到 KV 存储
         if (env.img_url) {
-            await putMetadata(env, `${fileId}.${fileExtension}`, createDefaultMetadata(`${fileId}.${fileExtension}`, {
+            if (isShortUrlsEnabled(env)) {
+                shortId = await allocateShortId(env);
+            }
+
+            await putMetadata(env, longId, createDefaultMetadata(longId, {
                 fileName,
                 fileSize: uploadFile.size,
+                ...(shortId ? { shortId } : {}),
             }));
+
+            if (shortId) {
+                await putShortLink(env, shortId, longId);
+            }
         }
 
-        return jsonResponse([{ 'src': `/file/${fileId}.${fileExtension}` }]);
+        return jsonResponse([{ 'src': `/file/${shortId || longId}` }]);
     } catch (error) {
         console.error('Upload error:', error);
         return jsonResponse({ error: error.message }, { status: 500 });

@@ -608,7 +608,9 @@
         document.body.removeChild(textarea);
       },
       handleCopy(index, key) {
-        const link = `${this.baseURL}/file/${key}`;
+        const row = this.tableData.find(item => item.name === key);
+        const shortId = row && row.metadata && row.metadata.shortId;
+        const link = `${this.baseURL}/file/${shortId || key}`;
         (navigator.clipboard?.writeText(link) || this.copyToClipboardFallback(link))
           .then(() => this.$message.success('复制文件链接成功~'))
           .catch(() => this.$message.error('自动复制失败，请手动复制链接：' + link));
@@ -644,7 +646,7 @@
         }).catch(() => this.$message.info('已取消批量删除'));
       },
       handleBatchCopy() {  // 批量复制链接
-        const links = this.selectedFiles.map(file => `${document.location.origin}/file/${file.name}`).join('\n');
+        const links = this.selectedFiles.map(file => `${document.location.origin}/file/${(file.metadata && file.metadata.shortId) || file.name}`).join('\n');
         (navigator.clipboard?.writeText(links) || this.copyToClipboardFallback(links))
           .then(() => this.$message.success('批量复制链接成功~'));
       },

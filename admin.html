@@ -209,7 +209,9 @@
         window.location.href = "./api/manage/logout";
       },
       handleCopy(index, key) {
-        const text = `${document.location.origin}/file/${key}`;
+        const row = this.tableData.find(item => item.name === key);
+        const shortId = row && row.metadata && row.metadata.shortId;
+        const text = `${document.location.origin}/file/${shortId || key}`;
         if (navigator.clipboard) {
           // clipboard api 复制
           navigator.clipboard.writeText(text);

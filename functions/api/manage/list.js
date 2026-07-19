@@ -1,4 +1,5 @@
 import { jsonResponse } from "../../utils/http.js";
+import { isShortLinkKey } from "../../utils/shortlink.js";
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -13,5 +14,9 @@ export async function onRequest(context) {
   const prefix = url.searchParams.get("prefix") || undefined;
   const value = await env.img_url.list({ limit, cursor, prefix });
 
-  return jsonResponse(value);
+  return jsonResponse({
+    ...value,
+    // Hide internal short-link mapping keys from the dashboard file list
+    keys: value.keys.filter(key => !isShortLinkKey(key.name)),
+  });
 }

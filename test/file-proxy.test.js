@@ -279,6 +279,88 @@ describe('file proxy function', function () {
     assert.deepStrictEqual(img_url.operations.put, []);
   });
 
+  it('resolves short links for Telegraph-stored files', async function () {
+    const onRequest = await getOnRequest();
+    const img_url = createMockKV({
+      'cat.png': { ...baseMetadata, shortId: 'AbC123' },
+      'short:AbC123': { value: 'cat.png', metadata: { target: 'cat.png' } },
+    });
+
+    fetchMock = installFetchMock(async input => {
+      assert.strictEqual(String(input), 'https://telegra.ph//file/cat.png');
+      return new Response('image-body', {
+        status: 200,
+        headers: { 'Content-Type': 'image/png' },
+      });
+    });
+
+    const res = await onRequest(makeContext({
+      request: new Request('https://example.com/file/AbC123'),
+      env: { img_url, ENABLE_SHORT_URLS: 'true' },
+      params: { id: 'AbC123' },
+    }));
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.headers.get('Content-Disposition'), 'inline; filename="cat.png"');
+    assert.strictEqual(await res.text(), 'image-body');
+    assert.strictEqual(fetchMock.calls.length, 1);
+  });
+
+  it('resolves short links for Bot API files and fixes their Content-Type', async function () {
+    const onRequest = await getOnRequest();
+    const telegramFileId = 'AgACAgEAAxkDAAMDZt1Gzs4W8dQPWiQJxO5YSH5X-gsAAt-sMRuWNelGOSaEM_9lHHgBAAMCAANtAAM2BA';
+    const longId = `${telegramFileId}.png`;
+    const img_url = createMockKV({
+      [longId]: { ...baseMetadata, shortId: 'ZzY987' },
+      'short:ZzY987': { value: longId, metadata: { target: longId } },
+    });
+
+    fetchMock = installFetchMock(async (input, init, calls) => {
+      if (calls.length === 1) {
+        assert.strictEqual(String(input), `https://api.telegram.org/botbot-token/getFile?file_id=${telegramFileId}`);
+        return Response.json({
+          ok: true,
+          result: { file_path: 'photos/file_1.png' },
+        });
+      }
+
+      assert.strictEqual(String(input), 'https://api.telegram.org/file/botbot-token/photos/file_1.png');
+      return new Response('telegram-file', {
+        status: 200,
+        headers: { 'Content-Type': 'application/octet-stream' },
+      });
+    });
+
+    const res = await onRequest(makeContext({
+      request: new Request('https://example.com/file/ZzY987'),
+      env: { img_url, ENABLE_SHORT_URLS: 'true', TG_Bot_Token: 'bot-token' },
+      params: { id: 'ZzY987' },
+    }));
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.headers.get('Content-Type'), 'image/png');
+    assert.strictEqual(await res.text(), 'telegram-file');
+    assert.strictEqual(fetchMock.calls.length, 2);
+  });
+
+  it('passes unknown short-format ids through unchanged', async function () {
+    const onRequest = await getOnRequest();
+    const img_url = createMockKV();
+
+    fetchMock = installFetchMock(async input => {
+      assert.strictEqual(String(input), 'https://telegra.ph//file/zzz999');
+      return new Response('not-found', { status: 404 });
+    });
+
+    const res = await onRequest(makeContext({
+      request: new Request('https://example.com/file/zzz999'),
+      env: { img_url, ENABLE_SHORT_URLS: 'true' },
+      params: { id: 'zzz999' },
+    }));
+
+    assert.strictEqual(res.status, 404);
+  });
+
   it('uses Telegram getFile for long Bot API file ids before proxying content', async function () {
     const onRequest = await getOnRequest();
     const telegramFileId = 'AgACAgEAAxkDAAMDZt1Gzs4W8dQPWiQJxO5YSH5X-gsAAt-sMRuWNelGOSaEM_9lHHgBAAMCAANtAAM2BA';
