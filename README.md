@@ -71,6 +71,32 @@ The only thing you need to prepare in advance is a Cloudflare account (If you ne
 
 5. Supports backend image management, allowing you to preview uploaded images online, add to whitelist, blacklist, and other operations
 
+6. Supports multiple file types (images, videos, audio, and more). Previewable files (images/video/audio/PDF) open directly in the browser instead of being force-downloaded
+
+7. Optional Basic Auth protection for the upload endpoint and optional short links, both enabled on demand via environment variables
+
+### Upload API
+
+The upload endpoint is `POST /upload` using `multipart/form-data`, with the file in a field named `file`:
+
+```bash
+curl -F "file=@/path/to/image.png" https://your.domain/upload
+```
+
+The response is a JSON array where `src` is the file's access path (with short links enabled, this returns the short link directly):
+
+```json
+[{ "src": "/file/abc123def456.png" }]
+```
+
+If `UPLOAD_BASIC_USER` and `UPLOAD_BASIC_PASS` are configured, include Basic Auth with the request:
+
+```bash
+curl -u uploader:strong-password -F "file=@/path/to/image.png" https://your.domain/upload
+```
+
+The endpoint works with upload tools that support custom web image hosts, such as PicGo.
+
 ### Bind Custom Domain
 
 In the custom domain section of Pages, bind a domain name that exists in Cloudflare. For domain names hosted in Cloudflare, DNS records will be automatically modified
@@ -91,17 +117,39 @@ After enabling image review, the first image load will be slow because review ta
 
 ### Limitations
 
-1. Uploaded images are sent via the Telegram Bot API and stored on Telegram's servers. Telegram currently limits files sent by bots to a maximum size of 50MB per file; uploads larger than this will fail
+1. Files are uploaded via the Telegram Bot API and stored on Telegram's servers. Uploads are limited by the Bot API (about 50MB per file), but the Bot API file download endpoint (getFile) only supports files up to 20MB, so files larger than 20MB cannot be served back after upload — treat 20MB as the practical per-file limit
 
 2. Due to the use of Cloudflare's network, image loading speed may not be guaranteed in some regions
 
 3. The free version of Cloudflare Function is limited to 100,000 requests per day (i.e., the total number of uploads or image loads cannot exceed 100,000). If exceeded, you may need to purchase the paid plan of Cloudflare Function. If image management is enabled, there will also be limitations on KV operation count, and you may need to purchase the paid plan if exceeded
+
+### Local Development and Testing
+
+```bash
+npm install
+npm start   # start a local dev server (wrangler pages dev on port 8080; dashboard credentials default to admin/123)
+npm test    # run the unit tests (mocha)
+```
 
 ### Thanks
 
 Ideas and code provided by Hostloc @feixiang and @乌拉擦
 
 ## Update Log
+July 19, 2026 - Upload Protection, Short Links, and Preview Update
+
+- Added optional Basic Auth protection for the upload endpoint via `UPLOAD_BASIC_USER` and `UPLOAD_BASIC_PASS`, thanks to @ytagent and @lelouch0823 (#278/#279)
+- Added optional short links: enable with `ENABLE_SHORT_URLS` and configure the length with `SHORT_URL_LENGTH`; uploads then return links like `/file/AbC123` and the dashboard copy buttons prefer the short link, thanks to @wyksean448 (#226/#305)
+- Previewable files (images, video, audio, PDF) now open directly in the browser instead of being force-downloaded (#279)
+- Fixed incorrect Content-Type on files stored via the Bot API, which prevented images from rendering on GitHub and other strict clients, thanks to @gynamics (#233/#305)
+- Fixed the broken rename feature in the dashboard, and refactored core functions with unit test coverage, thanks to @ytagent (#277/#304)
+- The dashboard "delete" action is now explicitly record-only and does not remove the source file from Telegram (#279)
+
+August 15, 2025 - Dashboard Loading Performance Update
+
+- The dashboard file list now loads in pages (KV cursor pagination + load more) instead of fetching all records at once (#253)
+- Dashboard search now filters by filename prefix on the server (#254)
+
 July 6, 2024 - Backend Management Page Update
 
 - Support for two new management page views (Grid view and Waterfall view)
