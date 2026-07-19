@@ -8,6 +8,33 @@ English|[中文](README-zh.md)
 >
 > Since the original Telegraph API interface was closed by the official, you need to switch the upload channel to Telegram Channel. Please set `TG_Bot_Token` and `TG_Chat_ID` according to the deployment requirements in the documentation, otherwise the upload function will not work properly.
 
+## Table of Contents
+
+- [Quick Start](#quick-start): deploy a working image host in 3 steps
+- [How to Obtain Telegram Bot Token and Chat ID](#how-to-obtain-telegram-bot_token-and-chat_id)
+- [Configuration Reference](#configuration-reference): all environment variables and the KV binding
+- [Features](#features)
+- [Optional Features Guide](#optional-features-guide): dashboard / upload protection / short links / image review / whitelist mode / custom domain
+- [Upload API](#upload-api)
+- [Limitations and Free Quotas](#limitations-and-free-quotas)
+- [How to Update if Already Deployed?](#how-to-update-if-already-deployed)
+- [Local Development and Testing](#local-development-and-testing)
+- [Update Log](#update-log)
+
+## Quick Start
+
+3 simple steps to have your own image hosting. The only thing you need in advance is a Cloudflare account (to deploy on your own server without relying on Cloudflare, refer to [#46](https://github.com/cf-pages/Telegraph-Image/issues/46)).
+
+1. Fork this repository (Note: You must deploy using Git or the Wrangler CLI tool for it to work properly, [Documentation](https://developers.cloudflare.com/pages/functions/get-started/#deploy-your-function))
+
+2. Open the Cloudflare Dashboard, enter the Pages management page, select Create Project, choose `Connect to Git provider`, follow the prompts to enter the project name, select the repository you just forked, then click `Deploy site`
+
+![1](https://telegraph-image.pages.dev/file/8d4ef9b7761a25821d9c2.png)
+
+3. After deployment, go to the project's `Settings` -> `Environment Variables`, add `TG_Bot_Token` and `TG_Chat_ID` (see [the next section](#how-to-obtain-telegram-bot_token-and-chat_id) for how to obtain them), save, then go to the `Deployments` page and **redeploy once**
+
+Done! Open your `*.pages.dev` domain and start uploading. For the dashboard, upload protection, short links, and more, see the [Optional Features Guide](#optional-features-guide).
+
 ## How to Obtain Telegram `Bot_Token` and `Chat_ID`
 
 If you don't have a Telegram account yet, please create one first. Then, follow these steps to get the `BOT_TOKEN` and `CHAT_ID`:
@@ -31,33 +58,36 @@ If you don't have a Telegram account yet, please create one first. Then, follow 
 
    ![202409071751619](https://github.com/user-attachments/assets/59fe8b20-c969-4d13-8d46-e58c0e8b9e79)
 
-Finally, go to the Cloudflare Pages backend to set the relevant environment variables (Note: After modifying environment variables, you need to redeploy for the changes to take effect)
+## Configuration Reference
+
+All configuration is done in your Cloudflare Pages project's `Settings`. **Note: after changing environment variables or the KV binding, you need to redeploy for the changes to take effect.**
+
+Required environment variables:
+
 | Environment Variable | Example Value              | Description                                                                            |
 |---------------------|---------------------------|----------------------------------------------------------------------------------------|
 | `TG_Bot_Token`      | `123468:AAxxxGKrn5`        | Telegram Bot Token obtained from [@BotFather](https://t.me/BotFather).                |
 | `TG_Chat_ID`        | `-1234567`                 | Channel ID, ensure the TG Bot is an administrator of the channel or group.           |
-| `UPLOAD_BASIC_USER` | `uploader`                | Optional username for protecting the public upload endpoint. Leave unset to keep uploads public. |
-| `UPLOAD_BASIC_PASS` | `strong-password`         | Optional password for protecting the public upload endpoint. Must be set together with `UPLOAD_BASIC_USER`. |
-| `ENABLE_SHORT_URLS` | `true`                    | Optional. When enabled (and a KV namespace is bound), uploads return a short link like `/file/AbC123` instead of the long file name. Existing long links keep working. |
-| `SHORT_URL_LENGTH`  | `6`                       | Optional. Length of generated short ids (4-16, default 6). Only used when `ENABLE_SHORT_URLS` is on. |
 
-## How to Deploy
+Optional environment variables (enable features as needed, see the [Optional Features Guide](#optional-features-guide)):
 
-### Preparation
+| Environment Variable | Example Value              | Description                                                                            |
+|---------------------|---------------------------|----------------------------------------------------------------------------------------|
+| `BASIC_USER`        | `admin`                   | Login username for the dashboard (/admin). Leave unset for a dashboard without login. |
+| `BASIC_PASS`        | `admin-password`          | Login password for the dashboard. Must be set together with `BASIC_USER`.            |
+| `UPLOAD_BASIC_USER` | `uploader`                | Username for protecting the public upload endpoint. Leave unset to keep uploads public. |
+| `UPLOAD_BASIC_PASS` | `strong-password`         | Password for protecting the public upload endpoint. Must be set together with `UPLOAD_BASIC_USER`. |
+| `ENABLE_SHORT_URLS` | `true`                    | When enabled (and a KV namespace is bound), uploads return a short link like `/file/AbC123` instead of the long file name. Existing long links keep working. |
+| `SHORT_URL_LENGTH`  | `6`                       | Length of generated short ids (4-16, default 6). Only used when `ENABLE_SHORT_URLS` is on. |
+| `ModerateContentApiKey` | `abc123`              | Enables image review; the value is an API key from [moderatecontent.com](https://moderatecontent.com/). |
+| `WhiteList_Mode`    | `true`                    | Whitelist mode: only whitelisted images can be loaded.                                |
+| `disable_telemetry` | `true`                    | Opt out of remote telemetry.                                                          |
 
-The only thing you need to prepare in advance is a Cloudflare account (If you need to deploy on your own server without relying on Cloudflare, please refer to [#46](https://github.com/cf-pages/Telegraph-Image/issues/46))
+KV binding (`Settings` -> `Functions` -> `KV namespace bindings`):
 
-### Step by Step Tutorial
-
-3 simple steps to deploy this project and have your own image hosting
-
-1. Fork this repository (Note: You must deploy using Git or Wrangler CLI tool for it to work properly, [Documentation](https://developers.cloudflare.com/pages/functions/get-started/#deploy-your-function))
-
-2. Open the Cloudflare Dashboard, enter the Pages management page, select Create Project, then choose `Connect to Git provider`
-
-![1](https://telegraph-image.pages.dev/file/8d4ef9b7761a25821d9c2.png)
-
-3. Follow the prompts on the page to enter the project name, select the git repository you need to connect to, then click `Deploy site` to complete the deployment
+| Variable Name | Description |
+| ----------- | ----------- |
+| `img_url` | Bind a pre-created KV namespace to enable the image management dashboard; the short links feature also requires this binding |
 
 ## Features
 
@@ -75,7 +105,63 @@ The only thing you need to prepare in advance is a Cloudflare account (If you ne
 
 7. Optional Basic Auth protection for the upload endpoint and optional short links, both enabled on demand via environment variables
 
-### Upload API
+## Optional Features Guide
+
+### Image Management Dashboard
+
+Disabled by default. To enable: in the Cloudflare Pages backend, click `Settings` -> `Functions` -> `KV namespace bindings` -> `Edit bindings`, enter `img_url` as the `Variable name`, select a pre-created KV namespace as the `KV namespace`, redeploy, then visit http(s)://your-domain/admin to open the dashboard
+
+![](https://im.gurl.eu.org/file/a0c212d5dfb61f3652d07.png)
+![](https://im.gurl.eu.org/file/48b9316ed018b2cb67cf4.png)
+
+The dashboard supports: total image count, filename search, paginated loading, online preview, rename, blacklist/whitelist management, record deletion, and grid/waterfall views. See the [Update Log](#update-log) for detailed descriptions and screenshots of each feature.
+
+Note: the dashboard "delete" action only removes the record from the list; it does not delete the source file from Telegram. To prevent a file from loading, use the blacklist feature.
+
+#### Dashboard Login
+
+Disabled by default. To enable, add the following environment variables:
+
+| Variable Name | Value |
+| ----------- | ----------- |
+|BASIC_USER = | <Dashboard login username>|
+|BASIC_PASS = | <Dashboard login password>|
+
+![](https://im.gurl.eu.org/file/dff376498ac87cdb78071.png)
+
+Of course, you can also choose not to set these two values, so that accessing the backend management page will not require verification and will skip the login step directly. This design allows you to use it in combination with Cloudflare Access to achieve email verification code login, Microsoft account login, Github account login, and other functions. It can be integrated with the existing login method on your domain without having to remember another set of backend credentials. For adding Cloudflare Access, please refer to the official documentation. Note that the protected path needs to include /admin and /api/manage/\*
+
+### Upload Protection
+
+Uploads are public by default. To protect only the public upload endpoint, set both `UPLOAD_BASIC_USER` and `UPLOAD_BASIC_PASS`; the web page and API uploads will then require Basic Auth (see [Upload API](#upload-api) for API usage). When these two variables are not set, uploads remain public for compatibility with existing deployments.
+
+### Short Links
+
+Disabled by default. With a KV namespace bound and `ENABLE_SHORT_URLS=true`, uploads return short links like `/file/AbC123` (length configurable via `SHORT_URL_LENGTH`, 4-16, default 6), and the dashboard copy buttons prefer the short link. Existing long links are unaffected and keep working.
+
+### Enable Image Review
+
+1. Please go to https://moderatecontent.com/ to register and get a free API key for reviewing image content
+
+2. Open the Cloudflare Pages management page, click `Settings`, `Environment Variables`, `Add Environment Variables` in sequence
+
+3. Add a `variable name` as `ModerateContentApiKey`, `value` as the `API key` you just obtained in step 1, then click `Save`
+
+Note: Since the changes will take effect on the next deployment, you may also need to go to the `Deployments` page and redeploy the project
+
+After enabling image review, the first image load will be slow because review takes time. Subsequent image loads will not be affected due to caching
+![3](https://telegraph-image.pages.dev/file/bae511fb116b034ef9c14.png)
+
+### Whitelist Mode
+
+With the image management feature enabled, set the environment variable `WhiteList_Mode` to `true` and only images added to the whitelist will be loaded. Uploaded images need to be approved before they can be displayed, which prevents inappropriate images from loading to the greatest extent
+
+### Bind Custom Domain
+
+In the custom domain section of Pages, bind a domain name that exists in Cloudflare. For domain names hosted in Cloudflare, DNS records will be automatically modified
+![2](https://telegraph-image.pages.dev/file/29546e3a7465a01281ee2.png)
+
+## Upload API
 
 The upload endpoint is `POST /upload` using `multipart/form-data`, with the file in a field named `file`:
 
@@ -97,33 +183,36 @@ curl -u uploader:strong-password -F "file=@/path/to/image.png" https://your.doma
 
 The endpoint works with upload tools that support custom web image hosts, such as PicGo.
 
-### Bind Custom Domain
-
-In the custom domain section of Pages, bind a domain name that exists in Cloudflare. For domain names hosted in Cloudflare, DNS records will be automatically modified
-![2](https://telegraph-image.pages.dev/file/29546e3a7465a01281ee2.png)
-
-### Enable Image Review
-
-1. Please go to https://moderatecontent.com/ to register and get a free API key for reviewing image content
-
-2. Open the Cloudflare Pages management page, click `Settings`, `Environment Variables`, `Add Environment Variables` in sequence
-
-3. Add a `variable name` as `ModerateContentApiKey`, `value` as the `API key` you just obtained in step 1, then click `Save`
-
-Note: Since the changes will take effect on the next deployment, you may also need to go to the `Deployments` page and redeploy the project
-
-After enabling image review, the first image load will be slow because review takes time. Subsequent image loads will not be affected due to caching
-![3](https://telegraph-image.pages.dev/file/bae511fb116b034ef9c14.png)
-
-### Limitations
+## Limitations and Free Quotas
 
 1. Files are uploaded via the Telegram Bot API and stored on Telegram's servers. Uploads are limited by the Bot API (about 50MB per file), but the Bot API file download endpoint (getFile) only supports files up to 20MB, so files larger than 20MB cannot be served back after upload — treat 20MB as the practical per-file limit
 
 2. Due to the use of Cloudflare's network, image loading speed may not be guaranteed in some regions
 
-3. The free version of Cloudflare Function is limited to 100,000 requests per day (i.e., the total number of uploads or image loads cannot exceed 100,000). If exceeded, you may need to purchase the paid plan of Cloudflare Function. If image management is enabled, there will also be limitations on KV operation count, and you may need to purchase the paid plan if exceeded
+3. The free version of Cloudflare Function is limited to 100,000 requests per day (i.e., the total number of uploads or image loads cannot exceed 100,000). If exceeded, you may need to purchase the paid plan of Cloudflare Function
 
-### Local Development and Testing
+With the image management feature enabled, Cloudflare KV free quotas also apply:
+
+- Cloudflare KV only has a free write quota of 1000 times per day. Each new image loaded will consume this write quota. If this quota is exceeded, the image management backend will not be able to record newly loaded images
+- Maximum of 100,000 free read operations per day. Each image load will consume this quota (when there is no cache. If your domain has cache enabled on Cloudflare, this quota will only be consumed when the cache misses). If exceeded, blacklist and whitelist features may fail
+- Maximum of 1,000 free delete operations per day. Each image record will consume this quota. If exceeded, you will not be able to delete image records
+- Maximum of 1,000 free list operations per day. Each time you open or refresh the backend /admin, it will consume this quota. If exceeded, backend image management will be affected
+
+In most cases, the free quota is basically sufficient and can be slightly exceeded. It doesn't stop immediately when exceeded. Each quota is calculated separately. When a certain operation exceeds the free quota, only that operation will be suspended and will not affect other functions. That is, even if my free write quota is used up, my read and write functions are not affected, images can load normally, I just can't see new images in the image management backend.
+
+If your free quota is not enough, you can purchase the paid version of Cloudflare Workers from Cloudflare yourself, starting at $5 per month, pay-as-you-go, without the above quota limitations
+
+In addition, changes made to environment variables will take effect on the next deployment. If you changed `Environment Variables` to enable or disable a certain function, remember to redeploy.
+
+![](https://im.gurl.eu.org/file/b514467a4b3be0567a76f.png)
+
+## How to Update if Already Deployed?
+
+Updating is actually very simple. Just refer to the update log, first go to the Cloudflare Pages backend, set the required environment variables in advance and bind the KV namespace, then go to your previously forked repository on Github and select `Sync fork`->`Update branch`. After a while, Cloudflare Pages will detect that your repository has been updated and will automatically deploy the latest code
+
+You can also enable automatic syncing: after forking, go to your repository's Actions page, enable Workflows and the Upstream Sync Action to sync with upstream hourly (see the July 2024 section of the [Update Log](#update-log) for illustrated instructions).
+
+## Local Development and Testing
 
 ```bash
 npm install
@@ -239,28 +328,6 @@ When the image management feature is enabled, in addition to the default mode, t
 When the image management feature is enabled, you can preview images loaded through your domain in the backend. Click on images to zoom in, zoom out, rotate, and perform other operations
 
 ![](https://im.gurl.eu.org/file/740cd5a69672de36133a2.png)
-
-## How to Update if Already Deployed?
-
-Updating is actually very simple. Just refer to the update content above, first go to the Cloudflare Pages backend, set the required environment variables in advance and bind the KV namespace, then go to your previously forked repository on Github and select `Sync fork`->`Update branch`. After a while, Cloudflare Pages will detect that your repository has been updated and will automatically deploy the latest code
-
-## Some Limitations:
-
-Cloudflare KV only has a free write quota of 1000 times per day. Each new image loaded will consume this write quota. If this quota is exceeded, the image management backend will not be able to record newly loaded images
-
-Maximum of 100,000 free read operations per day. Each image load will consume this quota (when there is no cache. If your domain has cache enabled on Cloudflare, this quota will only be consumed when the cache misses). If exceeded, blacklist and whitelist features may fail
-
-Maximum of 1,000 free delete operations per day. Each image record will consume this quota. If exceeded, you will not be able to delete image records
-
-Maximum of 1,000 free list operations per day. Each time you open or refresh the backend /admin, it will consume this quota. If exceeded, backend image management will be affected
-
-In most cases, the free quota is basically sufficient and can be slightly exceeded. It doesn't stop immediately when exceeded. Each quota is calculated separately. When a certain operation exceeds the free quota, only that operation will be suspended and will not affect other functions. That is, even if my free write quota is used up, my read and write functions are not affected, images can load normally, I just can't see new images in the image management backend.
-
-If your free quota is not enough, you can purchase the paid version of Cloudflare Workers from Cloudflare yourself, starting at $5 per month, pay-as-you-go, without the above quota limitations
-
-In addition, changes made to environment variables will take effect on the next deployment. If you changed `Environment Variables` to enable or disable a certain function, remember to redeploy.
-
-![](https://im.gurl.eu.org/file/b514467a4b3be0567a76f.png)
 
 ### Sponsorship
 
