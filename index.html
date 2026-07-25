@@ -121,6 +121,20 @@ footer a:hover { color: var(--accent); }
   font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#setup-notice { display: none; margin-bottom: 16px; }
+#setup-notice .problem {
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
+  font-size: 13px; line-height: 1.6; border: 1px solid;
+}
+#setup-notice .problem.error { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+#setup-notice .problem.warning { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+#setup-notice .problem.info { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
+#setup-notice .problem b { display: block; margin-bottom: 2px; }
+@media (prefers-color-scheme: dark) {
+  #setup-notice .problem.error { background: #2a1215; border-color: #5c1d24; color: #fca5a5; }
+  #setup-notice .problem.warning { background: #2a2112; border-color: #5c451d; color: #fcd34d; }
+  #setup-notice .problem.info { background: #12203a; border-color: #1d3a5c; color: #93c5fd; }
+}
 </style>
 </head>
 <body>
@@ -132,6 +146,8 @@ footer a:hover { color: var(--accent); }
       <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener">GitHub</a>
     </nav>
   </header>
+
+  <div id="setup-notice" role="status" aria-live="polite"></div>
 
   <div id="dropzone" role="button" tabindex="0" aria-label="上传文件">
     <div class="icon">⬆️</div>
@@ -200,7 +216,26 @@ footer a:hover { color: var(--accent); }
     if (config.showAdminEntry === false) {
       document.getElementById('admin-link').remove();
     }
+    renderSetupProblems(config.problems);
   }).catch(function () { /* defaults already in markup */ });
+
+  // Show deployment problems (missing bindings/variables) instead of letting the
+  // first upload fail with an opaque error.
+  function renderSetupProblems(problems) {
+    if (!problems || !problems.length) return;
+    var box = document.getElementById('setup-notice');
+    var titles = { error: '需要处理', warning: '注意', info: '提示' };
+    problems.forEach(function (problem) {
+      var el = document.createElement('div');
+      el.className = 'problem ' + (problem.severity || 'info');
+      var label = document.createElement('b');
+      label.textContent = titles[problem.severity] || titles.info;
+      el.appendChild(label);
+      el.appendChild(document.createTextNode(problem.message));
+      box.appendChild(el);
+    });
+    box.style.display = 'block';
+  }
 
   // ---- input wiring: click / drag / paste ----
   dropzone.addEventListener('click', function () { fileInput.click(); });

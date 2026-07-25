@@ -2,3 +2,5 @@ node_modules/.bin/*
 node_modules/.mf/*
 .wrangler/*
 data/*
+data-broken/*
+test/e2e/output/*

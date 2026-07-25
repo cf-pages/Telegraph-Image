@@ -8,7 +8,10 @@ describe('/api/config endpoint', function () {
 
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.headers.get('Content-Type'), 'application/json');
-    assert.deepStrictEqual(JSON.parse(await res.text()), {
+    const body = JSON.parse(await res.text());
+    const { ready, setup, problems, ...site } = body;
+
+    assert.deepStrictEqual(site, {
       siteName: 'Telegraph-Image',
       siteTitle: 'Telegraph-Image | 免费图床',
       backgroundImage: '',
@@ -16,6 +19,11 @@ describe('/api/config endpoint', function () {
       uploadRequiresAuth: false,
       showAdminEntry: true,
     });
+
+    // an empty env is not a usable deployment, and the response says why
+    assert.strictEqual(ready, false);
+    assert.strictEqual(setup.storage, 'missing-config');
+    assert.ok(problems.some(p => p.severity === 'error'));
   });
 
   it('reflects site customization variables', async function () {
@@ -32,7 +40,9 @@ describe('/api/config endpoint', function () {
       },
     }));
 
-    assert.deepStrictEqual(JSON.parse(await res.text()), {
+    const { ready, setup, problems, ...site } = JSON.parse(await res.text());
+
+    assert.deepStrictEqual(site, {
       siteName: 'My Images',
       siteTitle: 'My Images | Home',
       backgroundImage: 'https://example.com/bg.jpg',
@@ -40,6 +50,21 @@ describe('/api/config endpoint', function () {
       uploadRequiresAuth: true,
       showAdminEntry: false,
     });
+    assert.ok(setup, 'setup status is always present');
+    assert.ok(Array.isArray(problems));
+    assert.strictEqual(typeof ready, 'boolean');
+  });
+
+  it('reports a ready deployment with no problems', async function () {
+    const { onRequestGet } = await import('../functions/api/config.js');
+    const res = await onRequestGet(makeContext({
+      env: { TG_Bot_Token: 'token', TG_Chat_ID: '-100', img_url: {} },
+    }));
+
+    const body = JSON.parse(await res.text());
+    assert.strictEqual(body.ready, true);
+    assert.deepStrictEqual(body.problems, []);
+    assert.strictEqual(body.setup.storageProvider, 'telegram');
   });
 
   it('never leaks unrelated environment variables', async function () {

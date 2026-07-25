@@ -1,6 +1,8 @@
 name: CI Test
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
@@ -15,6 +17,6 @@ jobs:
       with:
         node-version: '20'
     - name: Install dependencies
-      run: npm install
+      run: npm ci
     - name: Run tests
-      run: npm run ci-test
+      run: npm test

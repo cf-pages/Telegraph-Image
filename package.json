@@ -1,8 +1,10 @@
 {
   "scripts": {
-    "ci-test": "concurrently --kill-others --success first \"npm start\" \"wait-on http://localhost:8080 && mocha --exit\"",
     "test": "mocha",
-    "start": "npx wrangler pages dev ./ --kv \"img_url\" --r2 \"img_r2\" --port 8080 --binding BASIC_USER=admin --binding BASIC_PASS=123 --persist-to ./data"
+    "ci-test": "mocha",
+    "test:e2e": "node test/e2e/homepage.js",
+    "start": "npx wrangler pages dev ./ --kv \"img_url\" --r2 \"img_r2\" --port 8080 --binding BASIC_USER=admin --binding BASIC_PASS=123 --persist-to ./data",
+    "start:r2": "npx wrangler pages dev ./ --kv \"img_url\" --r2 \"img_r2\" --port 8080 --binding BASIC_USER=admin BASIC_PASS=123 STORAGE_PROVIDER=r2 disable_telemetry=true --persist-to ./data"
   },
   "dependencies": {
     "@cloudflare/pages-plugin-sentry": "^1.1.3",
