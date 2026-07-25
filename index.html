@@ -63,15 +63,22 @@ body {
 
 /* ---- page frame ---- */
 .page { min-height: 100vh; display: flex; flex-direction: column; padding: 30px; }
-.topbar { display: flex; justify-content: flex-end; align-items: center; gap: 18px; }
+.topbar { display: flex; justify-content: flex-end; align-items: center; gap: 4px; }
 .topbar a {
-  color: #fff; text-decoration: none; font-size: 13px; font-weight: 500;
-  opacity: .9; transition: opacity .15s;
+  display: inline-flex; align-items: center; gap: 6px;
+  color: #fff; text-decoration: none; font-size: 12px; font-weight: 500;
+  padding: 6px 11px; border-radius: 40px;
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(255, 255, 255, .16);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  transition: background .18s, border-color .18s, transform .18s;
 }
-.topbar a:hover { opacity: .6; }
+.topbar a:hover { background: rgba(255, 255, 255, .2); border-color: rgba(255, 255, 255, .3); }
+.topbar a:active { transform: translateY(1px); }
+.icon { width: 14px; height: 14px; flex: none; display: block; }
 .brand {
-  color: #fff; text-align: center; font-size: 26px; font-weight: 800;
-  letter-spacing: .6px; padding: 30px 0 12px; margin: 0;
+  color: #fff; text-align: center; font-size: 23px; font-weight: 800;
+  letter-spacing: .4px; padding: 26px 0 14px; margin: 0;
   text-shadow: 0 1px 14px rgba(0, 0, 0, .28);
 }
 .main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -120,25 +127,35 @@ footer a:hover { opacity: .75; }
 .hint { text-align: center; font-size: 12px; line-height: 1.8; }
 .hint b { display: block; color: var(--ink); font-size: 14px; font-weight: 700; margin-bottom: 4px; }
 .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
   border: 0; border-radius: 40px; background: var(--accent); color: #fff;
-  font: 700 14px/1 inherit; font-family: inherit; padding: 11px 30px; cursor: pointer;
-  transition: background-color .15s, transform .1s;
+  font: 700 13px/1 inherit; font-family: inherit; padding: 10px 24px; cursor: pointer;
+  box-shadow: 0 1px 2px rgba(2, 96, 160, .18), 0 4px 12px rgba(2, 151, 248, .22);
+  transition: background-color .16s, transform .12s, box-shadow .16s;
 }
-.btn:hover { background: rgba(2, 151, 248, .85); }
-.btn:active { transform: translateY(1px); }
-.btn.ghost { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1.5px rgba(2, 151, 248, .35); }
-.btn.ghost:hover { background: var(--accent-soft); }
-.btn.small { padding: 8px 20px; font-size: 12px; }
+.btn:hover { background: #1ea3fa; box-shadow: 0 2px 4px rgba(2, 96, 160, .2), 0 6px 18px rgba(2, 151, 248, .3); }
+.btn:active { transform: translateY(1px); box-shadow: 0 1px 2px rgba(2, 96, 160, .2); }
+.btn.ghost {
+  background: transparent; color: #7c8899; box-shadow: none;
+  border: 1px solid #e0e5ea;
+}
+.btn.ghost:hover { background: #f7f9fb; border-color: #cfd6de; color: var(--ink); box-shadow: none; }
+.btn.small { padding: 7px 14px; font-size: 12px; gap: 6px; }
+.btn .icon { width: 13px; height: 13px; }
 #file-input { display: none; }
 
 /* ---- right: results ---- */
 .results { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .results .head {
-  padding: 15px 18px; border-bottom: 1px solid var(--line);
+  padding: 12px 14px; border-bottom: 1px solid var(--line);
   display: flex; align-items: center; justify-content: space-between; flex: none;
 }
-.results .head h2 { margin: 0; font-size: 13px; font-weight: 700; color: var(--ink); }
-.results .head .count { font-size: 11px; color: var(--muted); }
+.results .head h2 {
+  margin: 0; font-size: 12px; font-weight: 700; color: var(--ink);
+  letter-spacing: .3px; display: inline-flex; align-items: center; gap: 7px;
+}
+.results .head h2 .icon { width: 13px; height: 13px; color: var(--muted); }
+.results .head .count { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
 #queue {
   flex: 1; overflow-y: auto; padding: 12px 14px;
   display: flex; flex-direction: column; gap: 6px; min-height: 150px; max-height: 260px;
@@ -149,11 +166,12 @@ footer a:hover { opacity: .75; }
 }
 .item {
   display: flex; align-items: center; gap: 10px;
-  padding: 7px 8px; border-radius: 6px; transition: background .15s;
+  padding: 6px 8px; border-radius: 7px; transition: background .15s;
 }
 .item:hover { background: #f7f9fb; }
 .item .thumb {
-  width: 34px; height: 34px; border-radius: 4px; flex: none; object-fit: cover;
+  width: 32px; height: 32px; border-radius: 5px; flex: none; object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(12, 12, 13, .06);
   background: #f1f3f6; display: flex; align-items: center; justify-content: center;
   font-size: 15px; overflow: hidden;
 }
@@ -164,32 +182,50 @@ footer a:hover { opacity: .75; }
 }
 .item .meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .item .meta.error { color: var(--err); }
-.progress { height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; margin-top: 5px; }
+.progress {
+  height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; margin-top: 5px;
+  transition: height .3s, margin-top .3s, opacity .25s;
+}
 .progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s; }
-.item.done .progress i { background: var(--ok); }
+.item.done .progress { height: 0; margin-top: 0; opacity: 0; }
 .item.error .progress i { background: var(--err); }
+.item .state { display: inline-flex; align-items: center; gap: 4px; }
+.item .state .icon { width: 11px; height: 11px; color: var(--ok); }
 .item .copy-one {
-  flex: none; border: 0; background: var(--accent-soft); color: var(--accent);
-  border-radius: 20px; padding: 4px 11px; font: 700 11px inherit; font-family: inherit; cursor: pointer;
+  flex: none; width: 26px; height: 26px; padding: 0; border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 7px; background: transparent; color: var(--muted);
+  opacity: 0; transition: opacity .15s, background .15s, color .15s;
 }
-.item .copy-one:hover { background: rgba(2, 151, 248, .18); }
-.out { border-top: 1px solid var(--line); padding: 12px 14px; flex: none; }
-.tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+.item:hover .copy-one, .item .copy-one:focus-visible { opacity: 1; }
+.item .copy-one:hover { background: var(--accent-soft); color: var(--accent); }
+.item .copy-one .icon { width: 14px; height: 14px; }
+@media (hover: none) { .item .copy-one { opacity: 1; } }
+.out { border-top: 1px solid var(--line); padding: 11px 14px; flex: none; }
+/* Segmented control reads tighter than four separate pills. */
+.tabs {
+  display: inline-flex; gap: 2px; margin-bottom: 9px; padding: 2px;
+  background: #f4f6f8; border-radius: 8px;
+}
 .tabs button {
-  border: 0; background: #f4f6f8; color: #7c8899; border-radius: 20px;
-  padding: 5px 13px; font: 600 11px inherit; font-family: inherit; cursor: pointer;
-  transition: background .15s, color .15s;
+  border: 0; background: transparent; color: #7c8899; border-radius: 6px;
+  padding: 5px 11px; font: 600 11px inherit; font-family: inherit; cursor: pointer;
+  transition: background .15s, color .15s, box-shadow .15s;
 }
-.tabs button:hover { background: #eaeef2; }
-.tabs button.active { background: var(--accent-soft); color: var(--accent); }
+.tabs button:hover { color: var(--ink); }
+.tabs button.active {
+  background: #fff; color: var(--accent);
+  box-shadow: 0 1px 2px rgba(12, 12, 13, .08);
+}
 #link-output {
-  /* Proxied ids are long, so two wrapped URLs must fit without clipping. */
-  width: 100%; height: 80px; max-height: 180px; resize: vertical; padding: 8px;
+  /* One entry per line (ids are long) so rows map 1:1 to links; overflow scrolls. */
+  white-space: pre; overflow: auto;
+  width: 100%; height: 72px; max-height: 180px; resize: vertical; padding: 8px;
   border: 1px solid #e4e8ed; border-radius: 4px; color: var(--body);
   font: 11px/1.7 ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 #link-output:focus { outline: none; border-color: rgba(2, 151, 248, .5); }
-.actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.actions { display: flex; justify-content: flex-end; gap: 7px; margin-top: 9px; }
 
 /* ---- setup notice ---- */
 #setup-notice { display: none; width: 100%; max-width: 760px; margin-bottom: 18px; }
@@ -229,8 +265,8 @@ footer a:hover { opacity: .75; }
 
 <div class="page">
   <nav class="topbar">
-    <a id="admin-link" href="/admin.html">管理后台</a>
-    <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener">GitHub</a>
+    <a id="admin-link" href="/admin.html"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></svg><span>管理后台</span></a>
+    <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener"><svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.55v-2.1c-3.2.7-3.88-1.4-3.88-1.4-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .96-.3 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.18-1.48 3.14-1.18 3.14-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.4-5.25 5.69.41.36.78 1.06.78 2.14v3.17c0 .3.2.66.79.55A11.5 11.5 0 0 0 23.5 12A11.5 11.5 0 0 0 12 .5"/></svg><span>GitHub</span></a>
   </nav>
 
   <h1 class="brand" id="site-name">Telegraph-Image</h1>
@@ -248,14 +284,14 @@ footer a:hover { opacity: .75; }
             </svg>
           </div>
           <p class="hint"><b>点击、拖拽或粘贴上传</b>支持批量上传<br>图片 / 视频 / 音频 / 文档</p>
-          <button class="btn" type="button" id="pick">选择上传文件</button>
+          <button class="btn" type="button" id="pick"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16.5V4.5m0 0L7.25 9.25M12 4.5l4.75 4.75M4 16.5v2.25A1.75 1.75 0 0 0 5.75 20.5h12.5A1.75 1.75 0 0 0 20 18.75V16.5"/></svg><span>选择上传文件</span></button>
         </div>
       </div>
       <input id="file-input" type="file" multiple>
 
       <div class="card results">
         <div class="head">
-          <h2>上传结果</h2>
+          <h2><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 6.5h12M8.5 12h12M8.5 17.5h12M3.75 6.5h.01M3.75 12h.01M3.75 17.5h.01"/></svg>上传结果</h2>
           <span class="count" id="file-count"></span>
         </div>
         <div id="queue"></div>
@@ -268,8 +304,8 @@ footer a:hover { opacity: .75; }
           </div>
           <textarea id="link-output" readonly spellcheck="false"></textarea>
           <div class="actions">
-            <button type="button" class="btn ghost small" id="clear-all">清空</button>
-            <button type="button" class="btn small" id="copy-all">复制全部</button>
+            <button type="button" class="btn ghost small" id="clear-all"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.75 6.75h16.5M9 6.75V5A1.5 1.5 0 0 1 10.5 3.5h3A1.5 1.5 0 0 1 15 5v1.75M5.75 6.75l.8 12.1A2 2 0 0 0 8.55 20.7h6.9a2 2 0 0 0 2-1.85l.8-12.1"/></svg><span>清空</span></button>
+            <button type="button" class="btn small" id="copy-all"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11.5" height="11.5" rx="2.2"/><path d="M5.5 15.5H5a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 5 3.5h9A1.5 1.5 0 0 1 15.5 5v.5"/></svg><span>复制全部</span></button>
           </div>
         </div>
       </div>
@@ -286,6 +322,10 @@ footer a:hover { opacity: .75; }
 <script>
 (function () {
   'use strict';
+
+  // Same icon as the toolbar copy button, reused for the per-row control.
+  var TICK_ICON = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>';
+  var COPY_ICON = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11.5" height="11.5" rx="2.2"/><path d="M5.5 15.5H5a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 5 3.5h9A1.5 1.5 0 0 1 15.5 5v.5"/></svg>';
 
   var MAX_CONCURRENT = 3;
   var uploaded = [];        // { url, fileName }
@@ -529,12 +569,20 @@ footer a:hover { opacity: .75; }
 
     item.root.classList.add('done');
     item.bar.style.width = '100%';
-    item.meta.textContent = formatSize(file.size) + ' · 上传成功';
+    item.meta.textContent = '';
+    var state = document.createElement('span');
+    state.className = 'state';
+    state.innerHTML = TICK_ICON;
+    state.appendChild(document.createTextNode('上传成功'));
+    item.meta.appendChild(document.createTextNode(formatSize(file.size) + ' · '));
+    item.meta.appendChild(state);
 
     var copyButton = document.createElement('button');
     copyButton.type = 'button';
     copyButton.className = 'copy-one';
-    copyButton.textContent = '复制';
+    copyButton.title = '复制链接';
+    copyButton.setAttribute('aria-label', '复制 ' + file.name + ' 的链接');
+    copyButton.innerHTML = COPY_ICON;
     copyButton.addEventListener('click', function () {
       copyText(formatLink({ url: fullUrl, fileName: file.name }, currentFormat));
     });
