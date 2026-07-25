@@ -279,11 +279,17 @@ npm start      # 启动本地开发服务（wrangler pages dev，端口 8080，�
 npm test       # 运行单元测试（mocha），CI 跑的也是这个
 ```
 
-**端到端测试**：需要先在另一个终端启动开发服务。推荐用 `start:r2`，它把存储后端设为本地模拟的 R2，这样整条上传链路无需任何 Telegram 凭据即可跑通：
+**端到端测试**：用 Playwright 驱动真实浏览器，属于可选套件，所以 Playwright 没有列入项目依赖（避免所有贡献者的 `npm install` 都去下载浏览器）。首次运行前需自行安装：
+
+```bash
+npm install --no-save playwright && npx playwright install chromium
+```
+
+然后在一个终端启动开发服务，另一个终端跑测试。推荐用 `start:r2`，它把存储后端设为本地模拟的 R2，这样整条上传链路无需任何 Telegram 凭据即可跑通：
 
 ```bash
 npm run start:r2   # 终端 1
-npm run test:e2e   # 终端 2（Playwright 驱动真实浏览器）
+npm run test:e2e   # 终端 2
 ```
 
 端到端测试会覆盖批量上传、拖拽上传、文件取回与 Content-Type、四种格式输出、配置自检提示和后台页面，截图输出在 `test/e2e/output/`。可用环境变量：`E2E_BASE_URL`（默认 http://localhost:8080）、`E2E_CHROMIUM`（指定 Chromium 可执行文件路径，用于无法下载 Playwright 自带浏览器的环境）。

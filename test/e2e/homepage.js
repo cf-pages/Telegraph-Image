@@ -9,7 +9,16 @@
 //
 // Uploads go through whatever STORAGE_PROVIDER the server runs with; use
 // STORAGE_PROVIDER=r2 to exercise the whole flow without Telegram credentials.
-const { chromium } = require('playwright');
+let chromium;
+try {
+  ({ chromium } = require('playwright'));
+} catch (error) {
+  // Playwright is intentionally not a project dependency — see README
+  // ("Local Development and Testing"), since this suite is optional.
+  console.error('Playwright is not installed. Run:\n');
+  console.error('  npm install --no-save playwright && npx playwright install chromium\n');
+  process.exit(2);
+}
 const path = require('path');
 const fs = require('fs');
 
