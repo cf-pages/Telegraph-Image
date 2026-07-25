@@ -7,169 +7,271 @@
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <title>Telegraph-Image | 免费图床</title>
 <style>
+/* Design tokens carried over from the original Nuxt homepage so the look stays
+   continuous: #0297f8 pill buttons, #5e6878 body copy, a white card with the
+   bg.svg crest and the same soft double shadow, over a wallpaper backdrop with
+   a 240deg tint. */
 :root {
-  --bg: #f5f7fa;
-  --panel: #ffffff;
-  --text: #1f2933;
-  --text-dim: #6b7280;
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --border: #e5e7eb;
-  --ok: #16a34a;
-  --err: #dc2626;
-  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #111827;
-    --panel: #1f2937;
-    --text: #f3f4f6;
-    --text-dim: #9ca3af;
-    --border: #374151;
-    --shadow: 0 1px 3px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.3);
-  }
+  --accent: #0297f8;
+  --accent-soft: rgba(2, 151, 248, .1);
+  --ink: #3d4a5c;
+  --body: #5e6878;
+  --muted: #9aa5b4;
+  --line: #eef1f4;
+  --ok: #1bc1a1;
+  --err: #e5484d;
+  --card-shadow: 0 0 32px 0 rgba(12, 12, 13, .1), 0 2px 16px 0 rgba(12, 12, 13, .05);
 }
 * { box-sizing: border-box; }
+html, body { height: 100%; }
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+  color: var(--body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Fallback gradient shows immediately and stays put if the wallpaper request
+     fails, so the page is never a flat white screen. */
+  background: linear-gradient(160deg, #1b2440 0%, #35406b 45%, #6f5878 75%, #b3766a 100%);
 }
-.wrap { max-width: 780px; margin: 0 auto; padding: 24px 16px 48px; }
-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-header h1 { font-size: 22px; margin: 0; display: flex; align-items: center; gap: 8px; }
-header .links a {
-  color: var(--text-dim); text-decoration: none; font-size: 14px; margin-left: 14px;
+
+/* ---- wallpaper slideshow (cross-fading, mirrors the original 30s cycle) ---- */
+#backdrop { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
+#backdrop figure {
+  position: absolute; inset: 0; margin: 0;
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  opacity: 0; will-change: opacity;
+  animation: wallpaper 30s linear infinite;
+  backface-visibility: hidden;
 }
-header .links a:hover { color: var(--accent); }
-#dropzone {
-  background: var(--panel);
-  border: 2px dashed var(--border);
-  border-radius: 14px;
-  padding: 56px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: border-color .15s, background .15s;
-  box-shadow: var(--shadow);
+@keyframes wallpaper {
+  0%   { opacity: 0 }
+  3%   { opacity: 1 }
+  20%  { opacity: 1 }
+  28%  { opacity: 0 }
+  100% { opacity: 0 }
 }
-#dropzone.dragover { border-color: var(--accent); background: rgba(59,130,246,.06); }
-#dropzone .icon { font-size: 40px; }
-#dropzone p { margin: 10px 0 0; color: var(--text-dim); font-size: 14px; }
-#dropzone .main-hint { font-size: 16px; color: var(--text); }
-#file-input { display: none; }
+#tint {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(240deg, rgba(150, 50, 50, .3), rgba(0, 0, 200, 0));
+}
+@media (prefers-reduced-motion: reduce) {
+  #backdrop figure { animation: none; }
+  #backdrop figure:first-child { opacity: 1; }
+}
+
+/* ---- page frame ---- */
+.page { min-height: 100vh; display: flex; flex-direction: column; padding: 30px; }
+.topbar { display: flex; justify-content: flex-end; align-items: center; gap: 18px; }
+.topbar a {
+  color: #fff; text-decoration: none; font-size: 13px; font-weight: 500;
+  opacity: .9; transition: opacity .15s;
+}
+.topbar a:hover { opacity: .6; }
+.brand {
+  color: #fff; text-align: center; font-size: 26px; font-weight: 800;
+  letter-spacing: .6px; padding: 30px 0 12px; margin: 0;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, .28);
+}
+.main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+footer { text-align: center; font-size: 12px; color: rgba(255, 255, 255, .85); padding-top: 26px; }
+footer a { color: #fff; font-weight: 700; text-decoration: none; }
+footer a:hover { opacity: .75; }
+
+/* ---- shared card chrome ---- */
 .card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  box-shadow: var(--shadow);
-  margin-top: 20px;
-  overflow: hidden;
+  background: #fff;
+  border-radius: 3px;
+  box-shadow: var(--card-shadow);
+  font-size: 14px;
 }
-.card:empty { display: none; }
-.item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
-.item:last-child { border-bottom: none; }
+.board { display: flex; gap: 22px; align-items: stretch; width: 100%; max-width: 760px; }
+
+/* ---- left: upload ---- */
+.uploader {
+  width: 314px; flex: none;
+  background: #fff url(/bg.svg) top / 110% no-repeat;
+  cursor: pointer;
+  transition: box-shadow .2s;
+}
+.uploader:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.uploader .inner {
+  height: 100%; min-height: 370px; padding: 30px 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+}
+.ring {
+  width: 80px; height: 80px; border-radius: 50%; border: 4px solid #c7cfd7;
+  display: flex; align-items: center; justify-content: center; position: relative; flex: none;
+  transition: border-color .2s;
+}
+.ring svg { width: 42px; height: 42px; }
+.ring::before {
+  content: ''; position: absolute; inset: -5px; border-radius: 50%;
+  border: 1px solid rgba(199, 207, 215, .5);
+  animation: halo 1.8s ease-out infinite;
+}
+@keyframes halo {
+  0%   { transform: scale(1); opacity: .9 }
+  100% { transform: scale(1.34); opacity: 0 }
+}
+.uploader.dragover .ring { border-color: var(--accent); }
+.uploader.dragover { box-shadow: 0 0 0 2px var(--accent), var(--card-shadow); }
+.hint { text-align: center; font-size: 12px; line-height: 1.8; }
+.hint b { display: block; color: var(--ink); font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.btn {
+  border: 0; border-radius: 40px; background: var(--accent); color: #fff;
+  font: 700 14px/1 inherit; font-family: inherit; padding: 11px 30px; cursor: pointer;
+  transition: background-color .15s, transform .1s;
+}
+.btn:hover { background: rgba(2, 151, 248, .85); }
+.btn:active { transform: translateY(1px); }
+.btn.ghost { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1.5px rgba(2, 151, 248, .35); }
+.btn.ghost:hover { background: var(--accent-soft); }
+.btn.small { padding: 8px 20px; font-size: 12px; }
+#file-input { display: none; }
+
+/* ---- right: results ---- */
+.results { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.results .head {
+  padding: 15px 18px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between; flex: none;
+}
+.results .head h2 { margin: 0; font-size: 13px; font-weight: 700; color: var(--ink); }
+.results .head .count { font-size: 11px; color: var(--muted); }
+#queue {
+  flex: 1; overflow-y: auto; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 6px; min-height: 150px; max-height: 260px;
+}
+#queue:empty::after {
+  content: '上传的文件会显示在这里';
+  margin: auto; font-size: 12px; color: var(--muted);
+}
+.item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 8px; border-radius: 6px; transition: background .15s;
+}
+.item:hover { background: #f7f9fb; }
 .item .thumb {
-  width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex: none;
-  background: var(--bg); display: flex; align-items: center; justify-content: center;
-  font-size: 20px; overflow: hidden;
+  width: 34px; height: 34px; border-radius: 4px; flex: none; object-fit: cover;
+  background: #f1f3f6; display: flex; align-items: center; justify-content: center;
+  font-size: 15px; overflow: hidden;
 }
 .item .info { flex: 1; min-width: 0; }
-.item .name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item .meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.item .name {
+  font-size: 12px; font-weight: 600; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.item .meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
 .item .meta.error { color: var(--err); }
-.progress { height: 4px; background: var(--border); border-radius: 2px; margin-top: 6px; overflow: hidden; }
-.progress i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 2px; transition: width .15s; }
+.progress { height: 3px; border-radius: 2px; background: var(--line); overflow: hidden; margin-top: 5px; }
+.progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s; }
 .item.done .progress i { background: var(--ok); }
 .item.error .progress i { background: var(--err); }
-.item button.copy-one {
-  flex: none; border: 1px solid var(--border); background: transparent; color: var(--text-dim);
-  border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer;
+.item .copy-one {
+  flex: none; border: 0; background: var(--accent-soft); color: var(--accent);
+  border-radius: 20px; padding: 4px 11px; font: 700 11px inherit; font-family: inherit; cursor: pointer;
 }
-.item button.copy-one:hover { color: var(--accent); border-color: var(--accent); }
-#results { padding: 14px 16px; }
-.tabs { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.item .copy-one:hover { background: rgba(2, 151, 248, .18); }
+.out { border-top: 1px solid var(--line); padding: 12px 14px; flex: none; }
+.tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
 .tabs button {
-  border: 1px solid var(--border); background: transparent; color: var(--text-dim);
-  border-radius: 8px; padding: 6px 14px; font-size: 13px; cursor: pointer;
+  border: 0; background: #f4f6f8; color: #7c8899; border-radius: 20px;
+  padding: 5px 13px; font: 600 11px inherit; font-family: inherit; cursor: pointer;
+  transition: background .15s, color .15s;
 }
-.tabs button.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.tabs button:hover { background: #eaeef2; }
+.tabs button.active { background: var(--accent-soft); color: var(--accent); }
 #link-output {
-  width: 100%; min-height: 88px; resize: vertical;
-  background: var(--bg); color: var(--text);
-  border: 1px solid var(--border); border-radius: 8px;
-  font: 13px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
-  padding: 10px;
+  /* Proxied ids are long, so two wrapped URLs must fit without clipping. */
+  width: 100%; height: 80px; max-height: 180px; resize: vertical; padding: 8px;
+  border: 1px solid #e4e8ed; border-radius: 4px; color: var(--body);
+  font: 11px/1.7 ui-monospace, SFMono-Regular, Consolas, monospace;
 }
+#link-output:focus { outline: none; border-color: rgba(2, 151, 248, .5); }
 .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
-.actions button {
-  border: none; background: var(--accent); color: #fff; border-radius: 8px;
-  padding: 8px 18px; font-size: 13px; cursor: pointer;
+
+/* ---- setup notice ---- */
+#setup-notice { display: none; width: 100%; max-width: 760px; margin-bottom: 18px; }
+#setup-notice .problem {
+  border-radius: 3px; padding: 12px 14px; margin-bottom: 8px;
+  font-size: 12px; line-height: 1.7; border-left: 3px solid;
+  background: #fff; box-shadow: var(--card-shadow);
 }
-.actions button:hover { background: var(--accent-hover); }
-.actions button.secondary { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
-footer { margin-top: 32px; text-align: center; font-size: 13px; color: var(--text-dim); }
-footer a { color: var(--text-dim); }
-footer a:hover { color: var(--accent); }
+#setup-notice .problem b { display: block; font-weight: 700; margin-bottom: 2px; }
+#setup-notice .problem.error { border-left-color: var(--err); color: #a8323a; }
+#setup-notice .problem.warning { border-left-color: #f5a524; color: #94620f; }
+#setup-notice .problem.info { border-left-color: var(--accent); color: #0b6ba8; }
+
+/* ---- toast ---- */
 #toast {
-  position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%) translateY(20px);
-  background: var(--text); color: var(--bg); padding: 9px 18px; border-radius: 8px;
-  font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  position: fixed; left: 50%; bottom: 34px; transform: translateX(-50%) translateY(18px);
+  background: rgba(24, 30, 42, .94); color: #fff; padding: 10px 20px; border-radius: 40px;
+  font-size: 13px; opacity: 0; pointer-events: none; z-index: 10;
+  transition: opacity .2s, transform .2s;
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-#setup-notice { display: none; margin-bottom: 16px; }
-#setup-notice .problem {
-  border-radius: 10px; padding: 12px 14px; margin-bottom: 8px;
-  font-size: 13px; line-height: 1.6; border: 1px solid;
-}
-#setup-notice .problem.error { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
-#setup-notice .problem.warning { background: #fffbeb; border-color: #fde68a; color: #92400e; }
-#setup-notice .problem.info { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }
-#setup-notice .problem b { display: block; margin-bottom: 2px; }
-@media (prefers-color-scheme: dark) {
-  #setup-notice .problem.error { background: #2a1215; border-color: #5c1d24; color: #fca5a5; }
-  #setup-notice .problem.warning { background: #2a2112; border-color: #5c451d; color: #fcd34d; }
-  #setup-notice .problem.info { background: #12203a; border-color: #1d3a5c; color: #93c5fd; }
+
+/* ---- narrow screens: stack the two columns ---- */
+@media (max-width: 760px) {
+  .page { padding: 20px 16px; }
+  .brand { font-size: 22px; padding: 20px 0 10px; }
+  .board { flex-direction: column; max-width: 420px; }
+  .uploader { width: 100%; }
+  .uploader .inner { min-height: 0; padding: 26px 20px; }
+  #queue { max-height: 200px; }
 }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>📷 <span id="site-name">Telegraph-Image</span></h1>
-    <nav class="links">
-      <a id="admin-link" href="/admin.html">管理后台</a>
-      <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener">GitHub</a>
-    </nav>
-  </header>
+<div id="backdrop" aria-hidden="true"></div>
+<div id="tint" aria-hidden="true"></div>
 
-  <div id="setup-notice" role="status" aria-live="polite"></div>
+<div class="page">
+  <nav class="topbar">
+    <a id="admin-link" href="/admin.html">管理后台</a>
+    <a href="https://github.com/cf-pages/Telegraph-Image" target="_blank" rel="noopener">GitHub</a>
+  </nav>
 
-  <div id="dropzone" role="button" tabindex="0" aria-label="上传文件">
-    <div class="icon">⬆️</div>
-    <p class="main-hint">点击选择、拖拽或粘贴（Ctrl+V）上传</p>
-    <p>支持批量上传 · 图片 / 视频 / 音频 / 文档</p>
-  </div>
-  <input id="file-input" type="file" multiple>
+  <h1 class="brand" id="site-name">Telegraph-Image</h1>
 
-  <div class="card" id="queue"></div>
+  <div class="main">
+    <div id="setup-notice" role="status" aria-live="polite"></div>
 
-  <div class="card" id="results-card" hidden>
-    <div id="results">
-      <div class="tabs" id="format-tabs">
-        <button data-format="url" class="active">URL</button>
-        <button data-format="markdown">Markdown</button>
-        <button data-format="bbcode">BBCode</button>
-        <button data-format="html">HTML</button>
+    <div class="board">
+      <div class="card uploader" id="dropzone" role="button" tabindex="0" aria-label="选择、拖拽或粘贴文件上传">
+        <div class="inner">
+          <div class="ring">
+            <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M422.4 704l-94.72-143.36c-15.36-23.04-46.08-30.72-71.68-15.36l-15.36 15.36-130.56 204.8c-12.8 25.6-7.68 56.32 17.92 71.68 7.68 5.12 17.92 7.68 25.6 7.68h256c28.16 0 51.2-23.04 51.2-51.2 0-7.68-2.56-15.36-5.12-23.04l-33.28-66.56z" fill="#A5C8F4"/>
+              <path d="M307.2 358.4c-43.52 0-76.8-33.28-76.8-76.8s33.28-76.8 76.8-76.8 76.8 33.28 76.8 76.8-33.28 76.8-76.8 76.8z m327.68-33.28c5.12-7.68 12.8-15.36 20.48-17.92 25.6-12.8 56.32 0 69.12 23.04L944.64 793.6c2.56 7.68 5.12 15.36 5.12 23.04 0 28.16-23.04 51.2-51.2 51.2H378.88c-10.24 0-20.48-2.56-30.72-10.24-23.04-15.36-28.16-48.64-12.8-71.68l56.32-79.36 243.2-381.44z" fill="#2589FF"/>
+            </svg>
+          </div>
+          <p class="hint"><b>点击、拖拽或粘贴上传</b>支持批量上传<br>图片 / 视频 / 音频 / 文档</p>
+          <button class="btn" type="button" id="pick">选择上传文件</button>
+        </div>
       </div>
-      <textarea id="link-output" readonly spellcheck="false"></textarea>
-      <div class="actions">
-        <button class="secondary" id="clear-all">清空</button>
-        <button id="copy-all">复制全部</button>
+      <input id="file-input" type="file" multiple>
+
+      <div class="card results">
+        <div class="head">
+          <h2>上传结果</h2>
+          <span class="count" id="file-count"></span>
+        </div>
+        <div id="queue"></div>
+        <div class="out" id="results-card" hidden>
+          <div class="tabs" id="format-tabs">
+            <button type="button" data-format="url" class="active">URL</button>
+            <button type="button" data-format="markdown">Markdown</button>
+            <button type="button" data-format="bbcode">BBCode</button>
+            <button type="button" data-format="html">HTML</button>
+          </div>
+          <textarea id="link-output" readonly spellcheck="false"></textarea>
+          <div class="actions">
+            <button type="button" class="btn ghost small" id="clear-all">清空</button>
+            <button type="button" class="btn small" id="copy-all">复制全部</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -196,8 +298,31 @@ footer a:hover { color: var(--accent); }
   var queue = document.getElementById('queue');
   var resultsCard = document.getElementById('results-card');
   var linkOutput = document.getElementById('link-output');
+  var fileCount = document.getElementById('file-count');
   var toast = document.getElementById('toast');
   var toastTimer = null;
+
+  // ---- wallpaper slideshow ----
+  // Mirrors the original homepage: five Bing pictures cross-fading on a 30s
+  // cycle, 6s apart. Any failure leaves the CSS gradient in place.
+  (function loadWallpapers() {
+    fetch('/api/bing/wallpaper').then(function (res) {
+      if (!res.ok) throw new Error('wallpaper unavailable');
+      return res.json();
+    }).then(function (payload) {
+      var images = (payload && payload.data) || [];
+      if (!images.length) return;
+      var backdrop = document.getElementById('backdrop');
+      images.slice(0, 5).forEach(function (image, index) {
+        if (!image || !image.url) return;
+        var figure = document.createElement('figure');
+        var url = /^https?:/.test(image.url) ? image.url : 'https://cn.bing.com' + image.url;
+        figure.style.backgroundImage = 'url("' + url.replace(/"/g, '%22') + '")';
+        figure.style.animationDelay = (index * 6) + 's';
+        backdrop.appendChild(figure);
+      });
+    }).catch(function () { /* gradient fallback already painted */ });
+  })();
 
   // ---- site config (/api/config) ----
   fetch('/api/config').then(function (res) {
@@ -210,11 +335,17 @@ footer a:hover { color: var(--accent); }
     if (config.siteTitle) {
       document.title = config.siteTitle;
     }
+    // An explicit background replaces the slideshow entirely.
     if (config.backgroundImage) {
-      document.body.style.backgroundImage = 'url(' + JSON.stringify(config.backgroundImage) + ')';
+      var backdrop = document.getElementById('backdrop');
+      backdrop.textContent = '';
+      backdrop.style.backgroundImage = 'url("' + String(config.backgroundImage).replace(/"/g, '%22') + '")';
+      backdrop.style.backgroundSize = 'cover';
+      backdrop.style.backgroundPosition = 'center';
     }
     if (config.showAdminEntry === false) {
-      document.getElementById('admin-link').remove();
+      var adminLink = document.getElementById('admin-link');
+      if (adminLink) adminLink.remove();
     }
     renderSetupProblems(config.problems);
   }).catch(function () { /* defaults already in markup */ });
@@ -241,6 +372,10 @@ footer a:hover { color: var(--accent); }
   dropzone.addEventListener('click', function () { fileInput.click(); });
   dropzone.addEventListener('keydown', function (event) {
     if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); fileInput.click(); }
+  });
+  document.getElementById('pick').addEventListener('click', function (event) {
+    event.stopPropagation();   // the card itself already opens the picker
+    fileInput.click();
   });
   fileInput.addEventListener('change', function () {
     enqueueFiles(fileInput.files);
@@ -284,6 +419,7 @@ footer a:hover { color: var(--accent); }
       var item = createQueueItem(file);
       pending.push({ file: file, item: item });
     });
+    updateCount();
     pumpQueue();
   }
 
@@ -293,6 +429,11 @@ footer a:hover { color: var(--accent); }
       activeUploads++;
       uploadFile(next.file, next.item);
     }
+  }
+
+  function updateCount() {
+    var total = queue.children.length;
+    fileCount.textContent = total ? '共 ' + total + ' 个文件' : '';
   }
 
   function createQueueItem(file) {
@@ -309,7 +450,8 @@ footer a:hover { color: var(--accent); }
     } else {
       thumb = document.createElement('div');
       thumb.className = 'thumb';
-      thumb.textContent = '📄';
+      thumb.textContent = file.type.indexOf('video/') === 0 ? '🎬'
+        : file.type.indexOf('audio/') === 0 ? '🎵' : '📄';
     }
 
     var info = document.createElement('div');
@@ -390,6 +532,7 @@ footer a:hover { color: var(--accent); }
     item.meta.textContent = formatSize(file.size) + ' · 上传成功';
 
     var copyButton = document.createElement('button');
+    copyButton.type = 'button';
     copyButton.className = 'copy-one';
     copyButton.textContent = '复制';
     copyButton.addEventListener('click', function () {
@@ -445,6 +588,7 @@ footer a:hover { color: var(--accent); }
   document.getElementById('clear-all').addEventListener('click', function () {
     uploaded = [];
     queue.textContent = '';
+    updateCount();
     renderOutput();
   });
 
