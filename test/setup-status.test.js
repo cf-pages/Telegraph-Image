@@ -96,6 +96,27 @@ describe('deployment setup status', function () {
     assert.strictEqual(noBinding.ready, true);
   });
 
+  it('renders problem messages in the requested locale', async function () {
+    const { getSetupStatus } = await getModule();
+
+    const zh = getSetupStatus({}, 'zh').problems.find(p => p.severity === 'error');
+    const en = getSetupStatus({}, 'en').problems.find(p => p.severity === 'error');
+
+    assert.strictEqual(zh.code, 'storage-missing-config');
+    assert.strictEqual(en.code, 'storage-missing-config');
+    assert.ok(en.message.includes('TG_Bot_Token'), en.message);
+    assert.ok(!/[一-鿿]/.test(en.message), 'English deployments must not get Chinese text');
+    assert.ok(/[一-鿿]/.test(zh.message), zh.message);
+  });
+
+  it('carries a code and params so a frontend can localize itself', async function () {
+    const { getSetupStatus } = await getModule();
+    const status = getSetupStatus({ TG_Bot_Token: 'token' }, 'en');
+
+    const error = status.problems.find(p => p.severity === 'error');
+    assert.deepStrictEqual(error.params, { missing: ['TG_Chat_ID'] });
+  });
+
   it('never echoes configured secret values into problem messages', async function () {
     const { getSetupStatus } = await getModule();
     const secret = 'super-secret-token-value';

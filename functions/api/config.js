@@ -1,12 +1,14 @@
 import { isEmptyBinding, jsonResponse } from '../utils/http.js';
 import { isShortUrlsEnabled } from '../utils/shortlink.js';
 import { getSetupStatus } from '../utils/setup-status.js';
+import { resolveLocale } from '../utils/i18n.js';
 
 // Public, non-sensitive site configuration for the frontend. Any static UI can
 // read this once at startup instead of the deployment having to edit HTML.
 export async function onRequestGet(context) {
-    const { env } = context;
-    const setup = getSetupStatus(env);
+    const { request, env } = context;
+    const locale = resolveLocale(request, env);
+    const setup = getSetupStatus(env, locale);
 
     return jsonResponse({
         siteName: env.SITE_NAME || 'Telegraph-Image',
@@ -20,6 +22,9 @@ export async function onRequestGet(context) {
         ready: setup.ready,
         setup: setup.checks,
         problems: setup.problems,
+        // Which language the messages above came back in, so the frontend can
+        // match its own labels instead of pairing them with the wrong language.
+        locale,
     }, {
         headers: { 'Cache-Control': 'no-store' },
     });

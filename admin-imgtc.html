@@ -582,7 +582,7 @@
           });
       },
       handleDelete(index, key) {
-        this.$confirm('此操作只会从后台列表删除记录，不会删除源文件；如需禁止访问请加入黑名单。是否继续?', '提示', {
+        this.$confirm('此操作会连同源文件一起删除：R2 的文件从存储桶中删除，Telegram 的文件删除其频道消息（旧文件可能只能删除记录）。Telegram 已删除的文件仍可能在一段时间内可访问，如需确保禁止访问请加入黑名单。是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
@@ -621,7 +621,7 @@
         this.paginatedTableData.forEach(file => file.selected = selected);
       },
       handleBatchDelete() {  // 批量删除记录
-        this.$confirm('此操作只会从后台列表删除这 ' + this.selectedFiles.length + ' 条记录，不会删除源文件；如需禁止访问请加入黑名单。是否继续?', '提示', {
+        this.$confirm('此操作会删除这 ' + this.selectedFiles.length + ' 个文件及其记录：R2 的文件从存储桶中删除，Telegram 的文件删除其频道消息（旧文件可能只能删除记录）。如需确保禁止访问请加入黑名单。是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'

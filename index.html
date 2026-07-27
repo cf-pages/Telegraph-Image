@@ -387,15 +387,21 @@ footer a:hover { opacity: .75; }
       var adminLink = document.getElementById('admin-link');
       if (adminLink) adminLink.remove();
     }
-    renderSetupProblems(config.problems);
+    renderSetupProblems(config.problems, config.locale);
   }).catch(function () { /* defaults already in markup */ });
 
   // Show deployment problems (missing bindings/variables) instead of letting the
   // first upload fail with an opaque error.
-  function renderSetupProblems(problems) {
+  function renderSetupProblems(problems, locale) {
     if (!problems || !problems.length) return;
     var box = document.getElementById('setup-notice');
-    var titles = { error: '需要处理', warning: '注意', info: '提示' };
+    // The messages come back in the language /api/config negotiated, so the
+    // labels have to follow it rather than staying hardcoded in one language.
+    var titlesByLocale = {
+      zh: { error: '需要处理', warning: '注意', info: '提示' },
+      en: { error: 'Action needed', warning: 'Warning', info: 'Note' }
+    };
+    var titles = titlesByLocale[locale] || titlesByLocale.zh;
     problems.forEach(function (problem) {
       var el = document.createElement('div');
       el.className = 'problem ' + (problem.severity || 'info');

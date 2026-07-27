@@ -51,6 +51,28 @@ export function getFileId(response) {
   return null;
 }
 
+// Kept alongside the file id so the dashboard can delete the channel message
+// later: deleteMessage needs the message id, and it is only ever returned here.
+export function getMessageId(response) {
+  if (!response.ok || !response.result) return null;
+
+  const messageId = response.result.message_id;
+  return typeof messageId === 'number' ? messageId : null;
+}
+
+// A bot that is an administrator of the channel with can_delete_messages may
+// delete any message there, which is how a stored file is removed from the
+// channel. Telegram may still serve the file by file_id for a while afterwards,
+// so this is cleanup, not a guarantee that the bytes become unreachable.
+export async function deleteTelegramMessage(env, messageId) {
+  const body = createTelegramFormData(env.TG_Chat_ID, 'message_id', String(messageId));
+
+  const result = await sendToTelegram(body, 'deleteMessage', env);
+  if (!result.success) {
+    throw new Error(result.error);
+  }
+}
+
 export async function sendToTelegram(formData, apiEndpoint, env, retryCount = 0) {
   const apiUrl = `https://api.telegram.org/bot${env.TG_Bot_Token}/${apiEndpoint}`;
 

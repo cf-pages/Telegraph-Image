@@ -3,11 +3,15 @@ const { createMockKV, installFetchMock, makeContext, muteConsole } = require('./
 
 function createMockR2() {
   const store = new Map();
-  const operations = { put: [], get: [] };
+  const operations = { put: [], get: [], delete: [] };
 
   return {
     store,
     operations,
+    async delete(key) {
+      operations.delete.push(key);
+      store.delete(key);
+    },
     async put(key, value, options = {}) {
       operations.put.push({ key, options });
       store.set(key, { value, options });
@@ -177,6 +181,82 @@ describe('storage providers', function () {
       }));
 
       assert.strictEqual(res.status, 404);
+    });
+  });
+
+  describe('deleting stored files', function () {
+    it('removes the object from the bucket for r2 ids', async function () {
+      const { getServingProvider } = await import('../functions/storage/index.js');
+      const img_r2 = createMockR2();
+      const id = 'r2-0123456789abcdef0123456789abcdef.png';
+      await img_r2.put(id, 'bytes');
+
+      await getServingProvider(id).deleteFile({ img_r2 }, id);
+
+      assert.deepStrictEqual(img_r2.operations.delete, [id]);
+      assert.strictEqual(img_r2.store.has(id), false);
+    });
+
+    it('reports a missing bucket binding instead of failing silently', async function () {
+      const { r2Provider } = await import('../functions/storage/r2.js');
+
+      await assert.rejects(
+        () => r2Provider.deleteFile({}, 'r2-abc.png'),
+        /img_r2/,
+      );
+    });
+
+    it('deletes the channel message for a telegram file', async function () {
+      const { getServingProvider } = await import('../functions/storage/index.js');
+      fetchMock = installFetchMock(async () => new Response(
+        JSON.stringify({ ok: true, result: true }),
+        { headers: { 'Content-Type': 'application/json' } },
+      ));
+
+      await getServingProvider('BQACAgEAAxkDAAIB.png').deleteFile(
+        { TG_Bot_Token: 'token', TG_Chat_ID: '-100200' },
+        'BQACAgEAAxkDAAIB.png',
+        { messageId: 4321 },
+      );
+
+      assert.strictEqual(fetchMock.calls.length, 1);
+      assert.ok(fetchMock.calls[0].url.endsWith('/bottoken/deleteMessage'), fetchMock.calls[0].url);
+      const body = fetchMock.calls[0].init.body;
+      assert.strictEqual(body.get('chat_id'), '-100200');
+      assert.strictEqual(body.get('message_id'), '4321');
+    });
+
+    it('surfaces a refused telegram delete as an error', async function () {
+      const { telegramProvider } = await import('../functions/storage/telegram.js');
+      fetchMock = installFetchMock(async () => new Response(
+        JSON.stringify({ ok: false, description: "message can't be deleted" }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } },
+      ));
+
+      await assert.rejects(
+        () => telegramProvider.deleteFile(
+          { TG_Bot_Token: 'token', TG_Chat_ID: '-1' },
+          'file.png',
+          { messageId: 7 },
+        ),
+        /can't be deleted/,
+      );
+    });
+
+    it('cannot delete a telegram file stored before message ids were recorded', async function () {
+      const { telegramProvider } = await import('../functions/storage/telegram.js');
+
+      assert.strictEqual(telegramProvider.canDelete({}, {}), false);
+      assert.strictEqual(telegramProvider.canDelete({}, null), false);
+      assert.strictEqual(telegramProvider.canDelete({}, { messageId: 12 }), true);
+    });
+
+    it('treats a telegram delete as best effort, unlike r2', async function () {
+      const { telegramProvider } = await import('../functions/storage/telegram.js');
+      const { r2Provider } = await import('../functions/storage/r2.js');
+
+      assert.strictEqual(telegramProvider.bestEffortDelete, true);
+      assert.ok(!r2Provider.bestEffortDelete);
     });
   });
 });

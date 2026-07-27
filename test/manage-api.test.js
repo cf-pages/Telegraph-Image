@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { createMockKV, makeContext, muteConsole } = require('./helpers');
+const { createMockKV, installFetchMock, makeContext, muteConsole } = require('./helpers');
 
 const baseMetadata = {
   TimeStamp: 1710000000000,
@@ -66,6 +66,113 @@ describe('manage API functions', function () {
     assert.strictEqual(await res.text(), '"cat.png"');
     assert.deepStrictEqual(img_url.operations.delete, ['cat.png']);
     assert.strictEqual(img_url.snapshot('cat.png'), undefined);
+  });
+
+  it('deletes the R2 object along with the record', async function () {
+    const { onRequest } = await import('../functions/api/manage/delete/[id].js');
+    const id = 'r2-0123456789abcdef0123456789abcdef.png';
+    const img_url = createMockKV({ [id]: { ...baseMetadata, fileName: id, provider: 'r2' } });
+    const deleted = [];
+    const img_r2 = { async delete(key) { deleted.push(key); } };
+
+    const res = await onRequest(makeContext({ env: { img_url, img_r2 }, params: { id } }));
+
+    assert.strictEqual(res.status, 200);
+    assert.deepStrictEqual(deleted, [id], 'the bucket object must be removed too');
+    assert.strictEqual(img_url.snapshot(id), undefined);
+  });
+
+  it('keeps the record when the R2 object cannot be deleted, so it can be retried', async function () {
+    const { onRequest } = await import('../functions/api/manage/delete/[id].js');
+    const id = 'r2-0123456789abcdef0123456789abcdef.png';
+    const img_url = createMockKV({ [id]: { ...baseMetadata, fileName: id } });
+    const img_r2 = { async delete() { throw new Error('bucket unavailable'); } };
+
+    const res = await onRequest(makeContext({ env: { img_url, img_r2 }, params: { id } }));
+
+    assert.strictEqual(res.status, 500);
+    assert.ok(img_url.snapshot(id), 'the record must survive a failed object delete');
+    assert.deepStrictEqual(img_url.operations.delete, []);
+  });
+
+  it('still removes the record when the bucket binding is gone', async function () {
+    const { onRequest } = await import('../functions/api/manage/delete/[id].js');
+    const id = 'r2-0123456789abcdef0123456789abcdef.png';
+    const img_url = createMockKV({ [id]: { ...baseMetadata, fileName: id } });
+
+    // img_r2 unbound: the object is unreachable for good, so the row must not
+    // become permanently undeletable
+    const res = await onRequest(makeContext({ env: { img_url }, params: { id } }));
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(img_url.snapshot(id), undefined);
+  });
+
+  it('deletes the Telegram channel message along with the record', async function () {
+    const { onRequest } = await import('../functions/api/manage/delete/[id].js');
+    const img_url = createMockKV({ 'cat.png': { ...baseMetadata, messageId: 99 } });
+    const fetchMock = installFetchMock(async () => new Response(
+      JSON.stringify({ ok: true, result: true }),
+      { headers: { 'Content-Type': 'application/json' } },
+    ));
+
+    try {
+      const res = await onRequest(makeContext({
+        env: { img_url, TG_Bot_Token: 'token', TG_Chat_ID: '-1' },
+        params: { id: 'cat.png' },
+      }));
+
+      assert.strictEqual(res.status, 200);
+      assert.ok(fetchMock.calls[0].url.includes('/deleteMessage'), 'deleteMessage must be called');
+      assert.strictEqual(fetchMock.calls[0].init.body.get('message_id'), '99');
+      assert.strictEqual(img_url.snapshot('cat.png'), undefined);
+    } finally {
+      fetchMock.restore();
+    }
+  });
+
+  it('still removes the record when the Telegram message cannot be deleted', async function () {
+    const { onRequest } = await import('../functions/api/manage/delete/[id].js');
+    const img_url = createMockKV({ 'cat.png': { ...baseMetadata, messageId: 99 } });
+    const fetchMock = installFetchMock(async () => new Response(
+      JSON.stringify({ ok: false, description: 'message to delete not found' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } },
+    ));
+
+    try {
+      // Telegram deletion is best effort: the message may already be gone, and
+      // the file costs the deployment nothing, so the row must not get stuck
+      const res = await onRequest(makeContext({
+        env: { img_url, TG_Bot_Token: 'token', TG_Chat_ID: '-1' },
+        params: { id: 'cat.png' },
+      }));
+
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(img_url.snapshot('cat.png'), undefined);
+    } finally {
+      fetchMock.restore();
+    }
+  });
+
+  it('removes the record without any Telegram call for files predating message ids', async function () {
+    const { onRequest } = await import('../functions/api/manage/delete/[id].js');
+    const img_url = createMockKV({ 'cat.png': baseMetadata });
+    const fetchMock = installFetchMock(async () => {
+      throw new Error('must not call Telegram without a message id');
+    });
+
+    try {
+      const res = await onRequest(makeContext({
+        env: { img_url, TG_Bot_Token: 'token', TG_Chat_ID: '-1' },
+        params: { id: 'cat.png' },
+      }));
+
+      assert.strictEqual(res.status, 200);
+      assert.strictEqual(fetchMock.calls.length, 0);
+      assert.strictEqual(img_url.snapshot('cat.png'), undefined);
+    } finally {
+      fetchMock.restore();
+    }
   });
 
   it('removes the short link mapping when deleting a record', async function () {

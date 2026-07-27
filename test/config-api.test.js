@@ -9,8 +9,9 @@ describe('/api/config endpoint', function () {
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.headers.get('Content-Type'), 'application/json');
     const body = JSON.parse(await res.text());
-    const { ready, setup, problems, ...site } = body;
+    const { ready, setup, problems, locale, ...site } = body;
 
+    assert.strictEqual(locale, 'zh', 'no language signal falls back to the historical default');
     assert.deepStrictEqual(site, {
       siteName: 'Telegraph-Image',
       siteTitle: 'Telegraph-Image | 免费图床',
@@ -40,7 +41,7 @@ describe('/api/config endpoint', function () {
       },
     }));
 
-    const { ready, setup, problems, ...site } = JSON.parse(await res.text());
+    const { ready, setup, problems, locale, ...site } = JSON.parse(await res.text());
 
     assert.deepStrictEqual(site, {
       siteName: 'My Images',
@@ -65,6 +66,33 @@ describe('/api/config endpoint', function () {
     assert.strictEqual(body.ready, true);
     assert.deepStrictEqual(body.problems, []);
     assert.strictEqual(body.setup.storageProvider, 'telegram');
+  });
+
+  it('reports the negotiated locale and localizes problems accordingly', async function () {
+    const { onRequestGet } = await import('../functions/api/config.js');
+
+    const english = await onRequestGet(makeContext({
+      request: new Request('https://example.com/api/config', {
+        headers: { 'Accept-Language': 'en-US,en;q=0.9' },
+      }),
+      env: {},
+    }));
+    const englishBody = JSON.parse(await english.text());
+
+    assert.strictEqual(englishBody.locale, 'en');
+    assert.ok(englishBody.problems.length, 'an unconfigured deployment must report problems');
+    assert.ok(!/[一-鿿]/.test(JSON.stringify(englishBody.problems)));
+
+    const chinese = await onRequestGet(makeContext({
+      request: new Request('https://example.com/api/config?lang=zh', {
+        headers: { 'Accept-Language': 'en-US' },
+      }),
+      env: {},
+    }));
+    const chineseBody = JSON.parse(await chinese.text());
+
+    assert.strictEqual(chineseBody.locale, 'zh');
+    assert.ok(/[一-鿿]/.test(JSON.stringify(chineseBody.problems)));
   });
 
   it('never leaks unrelated environment variables', async function () {

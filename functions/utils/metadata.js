@@ -31,6 +31,9 @@ export function normalizeMetadata(metadata, id) {
     fileSize: metadata.fileSize || 0,
     ...(metadata.provider ? { provider: metadata.provider } : {}),
     ...(metadata.shortId ? { shortId: metadata.shortId } : {}),
+    // Must survive normalization: serving a file rewrites its metadata, and
+    // losing the message id would make the file undeletable from the channel.
+    ...(metadata.messageId ? { messageId: metadata.messageId } : {}),
   };
 }
 

@@ -90,6 +90,7 @@
 | `SITE_TITLE`        | `My Images \| Home`    | 首页的浏览器标签页标题。 |
 | `SITE_BACKGROUND`   | `https://.../bg.jpg`   | 首页背景图 URL。 |
 | `HIDE_ADMIN_ENTRY`  | `true`                 | 隐藏首页上的后台入口链接（/admin 页面本身仍可访问）。 |
+| `SITE_LANG`         | `en`                   | `/api/config` 返回的部署自检提示所使用的语言：`en` 或 `zh`。不设置时由访问者自己的 `Accept-Language` 决定，都不匹配则回退到 `zh`。详见[站点自定义](#站点自定义)。 |
 | `WhiteList_Mode`    | `true`                 | 白名单模式：只有加入白名单的图片才能被加载。 |
 | `disable_telemetry` | `true`                 | 退出远端遥测。 |
 
@@ -134,7 +135,7 @@
 
 后台支持：图片总数统计、按文件名搜索、分页加载、在线预览、重命名、黑白名单管理、删除记录、网格与瀑布流视图等。各功能的详细说明与截图见[更新日志](#更新日志)。
 
-注意：后台的"删除"只会从列表中移除记录，不会删除 Telegram 上的源文件；如需禁止某个文件加载，请使用黑名单功能。
+注意：后台"删除"会连同源文件一起删除，而不只是删除记录。存储在 [R2](#r2-存储) 的文件会从存储桶中删除；存储在 Telegram 的文件会删除其频道消息，这要求机器人仍是该频道的管理员并具有删除消息的权限。两点例外：在该功能上线之前上传的文件没有记录 message id，只能删除记录；另外 Telegram 在消息删除后仍可能在一段时间内继续通过 `file_id` 提供该文件，因此如需确保某个文件不再被加载，请使用黑名单功能。
 
 #### 后台登录验证
 
@@ -168,6 +169,9 @@
 
 默认使用 Llama 3.2 Vision 模型（`@cf/meta/llama-3.2-11b-vision-instruct`），可通过 `MODERATION_AI_MODEL` 更换。未指定时会按内置降级链依次尝试——即使 Cloudflare 未来下线了首选模型，审查也会自动落到下一个可用模型而不是直接失效；审查服务全部出错时也不会误伤图片（fail-open，出错放行）。Workers AI 有每日免费额度（10,000 neurons/天），由于每个文件只审查一次，一般完全够用。被判定为成人内容的文件会被屏蔽并跳转到拦截页。
 
+> [!NOTE]
+> 审查只覆盖图片：只有 `Content-Type` 为 `image/*`、或扩展名属于 png / jpg / jpeg / gif / webp / bmp / avif / apng 的文件才会送去模型判断，且大于 5MB 的图片会直接跳过（避免在 Function 中缓冲整个文件）。视频、音频、PDF 等其他文件不会被审查——如果你需要所有文件都先审核后才能加载，请改用[白名单模式](#白名单模式)。
+
 **可选：实时模型发现。**`AI` 绑定只能运行模型、不能列出模型，所以模型链的更新通常依赖本仓库升级。如果不想依赖这一点，可以设置 `CF_ACCOUNT_ID` 和 `CF_API_TOKEN`（只需 "Workers AI: Read" 一项权限的 Token）：审查模型链将改为从 Cloudflare 的[现役模型目录](https://developers.cloudflare.com/api/resources/ai/subresources/models/methods/list/)实时构建——超过下线日期的模型自动剔除，当前在服务的视觉模型自动追加。目录结果在 KV 中缓存 6 小时；目录接口不可用时自动退回内置模型链，行为与不配置时一致。
 
 **旧版方式：moderatecontent.com**
@@ -175,7 +179,7 @@
 > [!WARNING]
 > moderatecontent.com 已停止接受新用户注册，此服务仅为已持有可用 API key 的部署保留。另外它只能审查通过旧 Telegraph 通道上传的文件（它需要从 `telegra.ph` 拉取图片），经 Telegram Bot API 上传的文件无法被它审查——请改用 Workers AI。
 
-如果你已有可用的 key，照旧设置 `ModerateContentApiKey` 即可，行为保持不变。如需彻底关闭审查（无视其他配置），设置 `MODERATION_PROVIDER=none`。
+如果你已有可用的 key，照旧设置 `ModerateContentApiKey` 即可，行为保持不变。如需彻底关闭审查（无视其他配置），设置 `MODERATION_PROVIDER=none`。注意：`MODERATION_PROVIDER` 填写了无法识别的值时会按 `none` 处理，即审查静默关闭（原因会记录在日志中）；而 `STORAGE_PROVIDER` 填错则会让上传直接返回 `500`。两者的拼写都请仔细核对。
 
 ### 防盗链
 
@@ -190,9 +194,38 @@
 
 任何时候切换都是安全的：R2 的文件 ID 自带标识（`/file/r2-...`），切换后之前存在 Telegram 的文件依然正常加载，反之亦然。
 
+> [!NOTE]
+> 使用 R2 时需要注意两点：
+> - 20MB 的加载限制不再存在，但上传依然要经过 Pages Function，因此 Cloudflare 的请求体大小限制（免费套餐 100MB）会成为实际的单文件上限。
+> - 在后台删除文件时，除 KV 记录和短链接外，R2 存储桶中的对象也会一并删除，不再占用存储容量。如果存储桶删除失败，记录会被特意保留，以便你在后台重试，而不是留下一个没有任何记录指向的对象。
+
 ### 站点自定义
 
-首页加载时会从 `GET /api/config` 读取配置，因此无需修改任何 HTML 即可完成个性化：设置 `SITE_NAME`（顶部站点名）、`SITE_TITLE`（浏览器标签页标题）、`SITE_BACKGROUND`（背景图 URL），以及 `HIDE_ADMIN_ENTRY=true` 隐藏后台入口链接。如果你基于本项目后端自行开发前端，也可以直接使用这个接口。
+首页加载时会从 `GET /api/config` 读取配置，因此无需修改任何 HTML 即可完成个性化：设置 `SITE_NAME`（顶部站点名）、`SITE_TITLE`（浏览器标签页标题）、`SITE_BACKGROUND`（背景图 URL），以及 `HIDE_ADMIN_ENTRY=true` 隐藏后台入口链接。如果你基于本项目后端自行开发前端，也可以直接使用这个接口，其返回内容如下：
+
+```json
+{
+  "siteName": "Telegraph-Image",
+  "siteTitle": "Telegraph-Image | 免费图床",
+  "backgroundImage": "",
+  "enableShortUrls": false,
+  "uploadRequiresAuth": false,
+  "showAdminEntry": true,
+  "ready": true,
+  "setup": {
+    "storage": "ok",
+    "storageProvider": "telegram",
+    "dashboard": "unbound",
+    "moderation": "none"
+  },
+  "problems": [],
+  "locale": "zh"
+}
+```
+
+其中 `enableShortUrls` 和 `uploadRequiresAuth` 反映了当前 `ENABLE_SHORT_URLS` 与 `UPLOAD_BASIC_USER` / `UPLOAD_BASIC_PASS` 的配置，前端可据此调整上传流程（例如提示输入账号密码），无需把这些配置硬编码到页面里。`ready`、`setup`、`problems` 来自驱动首页配置提示的部署自检，只包含状态枚举（`ok`、`unbound`、`missing-config`、`missing-binding`、`unknown-provider` 等），不会回显任何配置值。每条 problem 还带有稳定的 `code`（`storage-missing-config`、`dashboard-unbound` 等）与对应的 `params`，自建前端可以据此使用自己的文案，而不必直接显示本项目的措辞。该接口响应带有 `Cache-Control: no-store`，重新部署后下一次打开页面即生效。
+
+**提示语言。** 部署自检提示提供中英两种语言，按以下顺序确定：`?lang=en` / `?lang=zh` 查询参数、`SITE_LANG`、访问者的 `Accept-Language` 请求头，最后回退到 `zh`。最终选用的语言会通过 `locale` 字段返回，前端可据此让自己的标签文案与提示语言保持一致。如果你的站点只面向单一语言的用户（无论访问者浏览器如何设置），请设置 `SITE_LANG`；想让每位访问者的浏览器自行决定，则保持不设置。
 
 ### 白名单模式
 
@@ -301,6 +334,12 @@ npm run test:e2e   # 终端 2
 Hostloc @feixiang 和@乌拉擦 提供的思路和代码
 
 ## 更新日志
+2026 年 7 月 25 日--删除操作会真正删除源文件、自检提示支持中英双语
+
+- **修复：后台删除文件后，源文件仍然残留。** 此前只删除了 KV 记录，R2 的对象仍占用存储容量却没有任何记录指向它，Telegram 的频道消息也仍留在频道里。现在删除操作会经过存储后端：R2 的对象会从存储桶中删除；Telegram 上传时会记录频道消息的 `message_id`，因此也能删除对应消息（需要机器人仍是频道管理员且有删除消息的权限）。R2 删除失败时保留记录以便重试；Telegram 删除失败则不保留，因为该消息很可能本就已经不存在。该功能上线前上传的文件没有记录 message id，只能删除记录
+- **部署自检提示支持中英双语。** 此前提示只有中文，英文部署会看到中文诊断信息。`/api/config` 现在会协商语言（依次为 `?lang=`、新增的 `SITE_LANG`、`Accept-Language`，最后回退 `zh`）并通过 `locale` 字段返回；每条 problem 还带有稳定的 `code` 与 `params`，自建前端可以使用自己的文案
+- 后台删除确认弹窗现在会说明不同存储后端下实际会删除哪些内容
+
 2026 年 7 月 25 日--部署自检与测试基建
 
 - 新增**部署自检**：`GET /api/config` 现在会返回 `ready` 与 `setup` 状态，首页在配置不完整时直接显示需要补哪个环境变量/绑定以及在哪里设置（只返回状态枚举，不回显任何配置值）
@@ -308,7 +347,7 @@ Hostloc @feixiang 和@乌拉擦 提供的思路和代码
 - 修正 CI：此前 CI 会额外启动一个 wrangler 开发服务再跑测试，而测试早已不依赖服务器；现在直接运行单元测试，并改用 `npm ci`，同时对 main 的 push 也会触发
 - 文档补充端到端测试用法，并说明后台页面依赖 cdn.jsdelivr.net（该 CDN 不可达时后台会空白）
 
-2026 年 7 月 19 日--可插拔存储与审查、全新首页、防盗链
+2026 年 7 月 24 日--可插拔存储与审查、全新首页、防盗链
 
 - **图片审查改为可插拔架构**，新增基于 Cloudflare Workers AI 的内置审查（绑定 `AI` 即可，无需任何外部账号）——moderatecontent.com 已停止注册，其对应服务仅为存量 key 保留；审查结论现在会按文件缓存，每个文件至多审查一次（#203/#196/#174/#166/#85/#49）
 - **存储改为可插拔架构**：设置 `STORAGE_PROVIDER=r2` 并绑定 `img_r2` R2 存储桶后，新上传的文件存入 Cloudflare R2，摆脱 20MB 加载上限和 Telegram 速率限制；Telegram 仍为默认后端，切换后旧文件照常加载（#181/#118）
@@ -411,7 +450,7 @@ ListType 代表图片当前是否在黑白名单当中，None 则表示既不在
 ![](https://im.gurl.eu.org/file/2193409107d4f2bcd00ee.png)
 
 8、新增记录删除功能
-当开启图片管理功能后，可在后台手动删除图片记录。该操作只会从后台列表移除记录，不会删除 Telegraph 或 Telegram 上的源文件。如果后续再次上传并加载该文件，记录可能会再次生成；如需禁止文件加载，请使用上述第 6 点的黑名单功能。
+当开启图片管理功能后，可在后台手动删除图片记录。该操作会连同源文件一起删除，具体覆盖范围与例外情况见[后台图片管理一节的删除说明](#后台图片管理)。如果文件是在该功能上线之前上传的，则只会移除记录，后续再次上传并加载该文件时记录可能会再次生成；如需禁止文件加载，请使用上述第 6 点的黑名单功能。
 
 9、新增程序运行模式：白名单模式
 当开启图片管理功能后，除了默认模式外，这次更新还新增了一项新的运行模式，在该模式下，只有被添加进白名单的图片才会被加载，上传的图片需要审核通过后才能展示，最大程度的防止不良图片的加载，如需开启请设置环境变量：WhiteList_Mode=="true"

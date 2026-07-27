@@ -73,6 +73,34 @@ describe('upload function', function () {
     assert.ok(Number.isFinite(stored.metadata.TimeStamp));
   });
 
+  it('records the channel message id so the file can be deleted later', async function () {
+    const { onRequestPost } = await import('../functions/upload.js');
+    const img_url = createMockKV();
+
+    fetchMock = installFetchMock(async () => Response.json({
+      ok: true,
+      result: { message_id: 555, photo: [{ file_id: 'photo-id', file_size: 20 }] },
+    }));
+
+    const request = await createUploadRequest(new File(['bytes'], 'cat.png', { type: 'image/png' }));
+    await onRequestPost(makeContext({
+      request,
+      env: { disable_telemetry: 'true', TG_Bot_Token: 't', TG_Chat_ID: '-1', img_url },
+    }));
+
+    assert.strictEqual(img_url.snapshot('photo-id.png').metadata.messageId, 555);
+  });
+
+  it('keeps the message id when serving rewrites the metadata', async function () {
+    const { normalizeMetadata } = await import('../functions/utils/metadata.js');
+
+    // getOrCreateMetadata normalizes then writes back, so a dropped messageId
+    // here would silently make the file undeletable after its first view
+    const normalized = normalizeMetadata({ messageId: 42, provider: 'telegram' }, 'cat.png');
+
+    assert.strictEqual(normalized.messageId, 42);
+  });
+
   it('retries failed image uploads as documents', async function () {
     const { onRequestPost } = await import('../functions/upload.js');
 

@@ -90,6 +90,7 @@ Optional environment variables (enable features as needed, see the [Optional Fea
 | `SITE_TITLE`        | `My Images \| Home`       | Browser tab title of the homepage.                                                    |
 | `SITE_BACKGROUND`   | `https://.../bg.jpg`      | Background image URL for the homepage.                                                |
 | `HIDE_ADMIN_ENTRY`  | `true`                    | Hides the dashboard link on the homepage (the /admin page itself stays reachable).    |
+| `SITE_LANG`         | `en`                      | Language for the setup messages returned by `/api/config`: `en` or `zh`. Unset means each visitor's own `Accept-Language` decides, falling back to `zh`. See [Site Customization](#site-customization). |
 | `WhiteList_Mode`    | `true`                    | Whitelist mode: only whitelisted images can be loaded.                                |
 | `disable_telemetry` | `true`                    | Opt out of remote telemetry.                                                          |
 
@@ -134,7 +135,7 @@ Disabled by default. To enable: in the Cloudflare Pages backend, click `Settings
 
 The dashboard supports: total image count, filename search, paginated loading, online preview, rename, blacklist/whitelist management, record deletion, and grid/waterfall views. See the [Update Log](#update-log) for detailed descriptions and screenshots of each feature.
 
-Note: the dashboard "delete" action only removes the record from the list; it does not delete the source file from Telegram. To prevent a file from loading, use the blacklist feature.
+Note: the dashboard "delete" action removes the stored file, not just the record. Files in [R2](#r2-storage) are deleted from the bucket; files on Telegram have their channel message deleted, which requires the bot to still be an administrator of the channel with permission to delete messages. Two caveats: files uploaded before this behavior existed have no recorded message id, so only their record can be removed; and Telegram may keep serving a deleted message's file by its `file_id` for some time, so use the blacklist feature when you need to be certain a file stops loading.
 
 #### Dashboard Login
 
@@ -168,6 +169,9 @@ Image review is pluggable. Two providers are built in, and each file is only rev
 
 The default model is Llama 3.2 Vision (`@cf/meta/llama-3.2-11b-vision-instruct`); override it with `MODERATION_AI_MODEL`. When no override is set, a built-in fallback chain is tried in order — if Cloudflare ever retires the primary model, review automatically falls through to the next one instead of breaking, and a review failure never blocks an image (fail-open). Workers AI has a free daily allocation (10,000 neurons/day) which is typically plenty, since each image is only reviewed on its first load. Files flagged as adult content are blocked and redirect to the block page.
 
+> [!NOTE]
+> Review only covers images. A file is sent to the model when its `Content-Type` is `image/*` or its extension is one of png / jpg / jpeg / gif / webp / bmp / avif / apng, and images larger than 5MB are skipped rather than buffered in the Function. Video, audio, PDF and other uploads are never reviewed — if every file must be approved before it can load, use [Whitelist Mode](#whitelist-mode) instead.
+
 **Optional: live model discovery.** The `AI` binding can only run models, not list them, so keeping the chain current normally means updating this repo. If you'd rather not depend on that, set `CF_ACCOUNT_ID` and `CF_API_TOKEN` (a token with just the "Workers AI: Read" permission): the review chain is then built from Cloudflare's [live model catalog](https://developers.cloudflare.com/api/resources/ai/subresources/models/methods/list/) — models past their deprecation date are dropped and currently-served vision models are appended automatically. The catalog is cached in KV for 6 hours, and if the catalog API is ever unreachable the built-in chain is used as before.
 
 **Legacy: moderatecontent.com**
@@ -175,7 +179,7 @@ The default model is Llama 3.2 Vision (`@cf/meta/llama-3.2-11b-vision-instruct`)
 > [!WARNING]
 > moderatecontent.com has stopped accepting new registrations. This provider is kept only for deployments that already have a working API key. Note that it can only review files uploaded through the old Telegraph channel (it fetches the image from `telegra.ph`); files uploaded via the Telegram Bot API cannot be reviewed by it — use the Workers AI provider instead.
 
-If you have an existing key, set `ModerateContentApiKey` as before; it keeps working unchanged. To turn review off entirely regardless of other settings, set `MODERATION_PROVIDER=none`.
+If you have an existing key, set `ModerateContentApiKey` as before; it keeps working unchanged. To turn review off entirely regardless of other settings, set `MODERATION_PROVIDER=none`. Note that an unrecognized `MODERATION_PROVIDER` value is treated as `none`, so review silently stays off (the reason is logged) — whereas an unrecognized `STORAGE_PROVIDER` makes uploads fail with a `500`. Double-check the spelling of both.
 
 ### Anti-Hotlinking
 
@@ -190,9 +194,38 @@ By default files are stored on Telegram. To store new uploads in Cloudflare R2 i
 
 Switching is safe at any time: R2 file ids are self-describing (`/file/r2-...`), so previously uploaded Telegram files keep loading even after you switch, and vice versa.
 
+> [!NOTE]
+> Two things to keep in mind with R2:
+> - The 20MB serving limit is gone, but uploads still pass through a Pages Function, so Cloudflare's request body limit (100MB on the Free plan) becomes the effective per-file cap.
+> - Deleting a file in the dashboard removes the object from the R2 bucket as well as its KV record and short link, so it stops counting toward your stored bytes. If the bucket delete fails the record is kept on purpose, so the row stays in the dashboard and you can retry instead of being left with an object nothing points at.
+
 ### Site Customization
 
-The homepage reads its configuration from `GET /api/config` at load time, so you can rebrand without editing any HTML: set `SITE_NAME` (header), `SITE_TITLE` (browser tab), `SITE_BACKGROUND` (background image URL), and `HIDE_ADMIN_ENTRY=true` to hide the dashboard link. The same endpoint is available to any custom frontend you build against this backend.
+The homepage reads its configuration from `GET /api/config` at load time, so you can rebrand without editing any HTML: set `SITE_NAME` (header), `SITE_TITLE` (browser tab), `SITE_BACKGROUND` (background image URL), and `HIDE_ADMIN_ENTRY=true` to hide the dashboard link. The same endpoint is available to any custom frontend you build against this backend, and returns:
+
+```json
+{
+  "siteName": "Telegraph-Image",
+  "siteTitle": "Telegraph-Image | 免费图床",
+  "backgroundImage": "",
+  "enableShortUrls": false,
+  "uploadRequiresAuth": false,
+  "showAdminEntry": true,
+  "ready": true,
+  "setup": {
+    "storage": "ok",
+    "storageProvider": "telegram",
+    "dashboard": "unbound",
+    "moderation": "none"
+  },
+  "problems": [],
+  "locale": "en"
+}
+```
+
+`enableShortUrls` and `uploadRequiresAuth` reflect the current `ENABLE_SHORT_URLS` and `UPLOAD_BASIC_USER` / `UPLOAD_BASIC_PASS` settings, so a frontend can adapt its upload flow (for example, prompt for credentials) without hardcoding them. `ready`, `setup` and `problems` come from the deployment self-check that drives the homepage's configuration notice — they carry enum states only (`ok`, `unbound`, `missing-config`, `missing-binding`, `unknown-provider`, ...), never a configured value. Each problem also carries a stable `code` (`storage-missing-config`, `dashboard-unbound`, ...) and its `params`, so a custom frontend can write its own wording instead of displaying ours. The response is served with `Cache-Control: no-store`, so changes take effect on the next page load after a redeploy.
+
+**Message language.** The setup messages are available in English and Chinese, resolved in this order: a `?lang=en` / `?lang=zh` query parameter, then `SITE_LANG`, then the visitor's `Accept-Language` header, then `zh`. The negotiated language is echoed back as `locale` so a frontend can label the messages in a matching language. Set `SITE_LANG` when your deployment serves one audience regardless of browser settings; leave it unset to let each visitor's browser decide.
 
 ### Whitelist Mode
 
@@ -301,7 +334,20 @@ The end-to-end suite covers batch upload, drag-and-drop, file retrieval and Cont
 Ideas and code provided by Hostloc @feixiang and @乌拉擦
 
 ## Update Log
-July 19, 2026 - Pluggable Storage & Review, New Homepage, Anti-Hotlinking
+July 25, 2026 - Deletion Now Removes the Stored File, Bilingual Setup Messages
+
+- **Fixed: deleting a file in the dashboard left the stored file behind.** Only the KV record was removed, so an R2 object stayed billable with nothing pointing at it and a Telegram channel message stayed in the channel. Deletes now go through the storage provider: R2 objects are removed from the bucket, and Telegram uploads record their channel `message_id` so the message can be deleted too (the bot must still be a channel administrator allowed to delete messages). A failed R2 delete keeps the record so it can be retried; a failed Telegram delete does not, since the message may simply be gone already. Files uploaded before this change have no recorded message id, so only their record can be removed
+- **Setup messages are now bilingual.** The deployment self-check used to answer in Chinese only, so English deployments got Chinese diagnostics. `/api/config` now negotiates the language (`?lang=`, then the new `SITE_LANG`, then `Accept-Language`, then `zh`) and echoes it back as `locale`; each problem also carries a stable `code` and `params` so a custom frontend can supply its own wording
+- The dashboard delete confirmation now states what is actually removed for each storage backend
+
+July 25, 2026 - Deployment Self-Check and Test Infrastructure
+
+- Added a **deployment self-check**: `GET /api/config` now reports `ready` and `setup` state, and the homepage says which environment variable or binding is missing and where to set it when configuration is incomplete (enum status only, no configured value is echoed back)
+- Added **end-to-end tests** (`npm run test:e2e`, Playwright driving a real browser) covering batch upload, drag-and-drop, file retrieval and Content-Type, all four output formats, the self-check notice, and the dashboard
+- Fixed CI: it used to start a wrangler dev server before running tests even though the tests no longer need one; it now runs the unit tests directly, uses `npm ci`, and also triggers on pushes to main
+- Documented end-to-end test usage and noted that the dashboard depends on cdn.jsdelivr.net (it renders blank where that CDN is unreachable)
+
+July 24, 2026 - Pluggable Storage & Review, New Homepage, Anti-Hotlinking
 
 - **Image review is now pluggable**, with a new built-in provider based on Cloudflare Workers AI (bind `AI`, no external account needed) — moderatecontent.com has stopped accepting registrations and its provider is kept for legacy keys only; review verdicts are now cached per file, so each file is reviewed at most once (#203/#196/#174/#166/#85/#49)
 - **Storage is now pluggable**: `STORAGE_PROVIDER=r2` with an `img_r2` R2 bucket binding stores new uploads in Cloudflare R2, lifting the 20MB serving limit and Telegram rate limits; Telegram remains the default and old files keep loading either way (#181/#118)
@@ -404,7 +450,7 @@ When the image management feature is enabled, you can manually add images to the
 ![](https://im.gurl.eu.org/file/2193409107d4f2bcd00ee.png)
 
 8. Added record deletion feature
-When the image management feature is enabled, you can manually delete image records in the backend. This only removes the item from the backend list; it does not delete the original file from Telegraph or Telegram. If the file is uploaded and loaded again later, a record may be created again. To prevent the file from loading, use the blacklist feature mentioned in point 6 above.
+When the image management feature is enabled, you can manually delete image records in the backend. Deleting also removes the stored file — see [the note on delete behavior](#image-management-dashboard) for what that covers and what it cannot. When the file was uploaded before that behavior existed, only the record is removed, so the file may produce a record again if it is uploaded and loaded later; to prevent a file from loading, use the blacklist feature mentioned in point 6 above.
 
 9. Added program running mode: Whitelist mode
 When the image management feature is enabled, in addition to the default mode, this update also adds a new running mode. In this mode, only images added to the whitelist will be loaded. Uploaded images need to be approved before they can be displayed, which prevents inappropriate images from loading to the greatest extent. To enable, please set the environment variable: WhiteList_Mode=="true"

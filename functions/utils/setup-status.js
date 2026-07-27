@@ -1,4 +1,5 @@
 import { isEmptyBinding } from './http.js';
+import { DEFAULT_LOCALE, translate } from './i18n.js';
 
 // Deployment self-check. Most support requests about this project are a missing
 // binding or an unset variable that only surfaces as a failed upload much later,
@@ -8,7 +9,7 @@ import { isEmptyBinding } from './http.js';
 // are already observable by using the site, so publishing them adds no
 // information an attacker could not get by trying an upload.
 
-export function getSetupStatus(env) {
+export function getSetupStatus(env, locale = DEFAULT_LOCALE) {
   const storage = storageStatus(env);
   const checks = {
     storage,
@@ -24,7 +25,12 @@ export function getSetupStatus(env) {
       dashboard: checks.dashboard,
       moderation: checks.moderation,
     },
-    problems: problemsFor(storage, checks),
+    // Each problem carries its code and params alongside the rendered message,
+    // so a frontend can localize on its own instead of displaying our wording.
+    problems: problemsFor(storage, checks).map(problem => ({
+      ...problem,
+      message: translate(problem.code, problem.params, locale),
+    })),
   };
 }
 
@@ -70,58 +76,46 @@ function moderationStatus(env) {
   return 'none';
 }
 
-// Messages name the variable or binding to fix and where to set it, because the
-// reader is a deploying user looking at their own site, not a developer.
+// Problems name the variable or binding to fix and where to set it, because the
+// reader is a deploying user looking at their own site, not a developer. The
+// wording itself lives in utils/i18n.js; here we only decide what is wrong.
 function problemsFor(storage, checks) {
   const problems = [];
 
   if (storage.state === 'missing-config') {
     problems.push({
       severity: 'error',
-      message: `上传不可用：缺少环境变量 ${storage.missing.join('、')}。请在 Cloudflare Pages 项目的「设置 → 环境变量」中添加，然后重新部署。`,
+      code: 'storage-missing-config',
+      params: { missing: storage.missing },
     });
   }
 
   if (storage.state === 'missing-binding') {
-    problems.push({
-      severity: 'error',
-      message: '上传不可用：STORAGE_PROVIDER=r2 但没有绑定名为 img_r2 的 R2 存储桶。请在「设置 → 函数 → R2 存储桶绑定」中添加，然后重新部署。',
-    });
+    problems.push({ severity: 'error', code: 'storage-missing-binding', params: {} });
   }
 
   if (storage.state === 'unknown-provider') {
     problems.push({
       severity: 'error',
-      message: `上传不可用：STORAGE_PROVIDER 的值 "${storage.provider}" 无法识别，可用值为 telegram 或 r2。`,
+      code: 'storage-unknown-provider',
+      params: { provider: storage.provider },
     });
   }
 
   if (checks.dashboard === 'unbound') {
-    problems.push({
-      severity: 'info',
-      message: '后台图片管理未启用：需要绑定名为 img_url 的 KV 命名空间（「设置 → 函数 → KV 命名空间绑定」）。短链接功能也依赖该绑定。',
-    });
+    problems.push({ severity: 'info', code: 'dashboard-unbound', params: {} });
   }
 
   if (checks.moderation === 'cloudflare-ai-missing-binding') {
-    problems.push({
-      severity: 'warning',
-      message: '图片审查未生效：MODERATION_PROVIDER=cloudflare-ai 但没有绑定 Workers AI（变量名 AI）。',
-    });
+    problems.push({ severity: 'warning', code: 'moderation-missing-ai-binding', params: {} });
   }
 
   if (checks.moderation === 'moderatecontent-missing-key') {
-    problems.push({
-      severity: 'warning',
-      message: '图片审查未生效：MODERATION_PROVIDER=moderatecontent 但没有设置 ModerateContentApiKey。该服务已停止新用户注册，建议改用 Workers AI。',
-    });
+    problems.push({ severity: 'warning', code: 'moderation-missing-key', params: {} });
   }
 
   if (checks.moderation === 'unknown-provider') {
-    problems.push({
-      severity: 'warning',
-      message: 'MODERATION_PROVIDER 的值无法识别，审查已按 none 处理。可用值为 cloudflare-ai、moderatecontent、none。',
-    });
+    problems.push({ severity: 'warning', code: 'moderation-unknown-provider', params: {} });
   }
 
   return problems;

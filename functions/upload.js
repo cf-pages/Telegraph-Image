@@ -31,7 +31,8 @@ export async function onRequestPost(context) {
         const fileName = uploadFile.name;
         const fileExtension = fileName.split('.').pop().toLowerCase();
 
-        const longId = await provider.upload(env, uploadFile, { fileName, fileExtension });
+        const { id: longId, metadata: providerMetadata = {} } =
+            await provider.upload(env, uploadFile, { fileName, fileExtension });
         let shortId = null;
 
         // 将文件信息保存到 KV 存储
@@ -44,6 +45,7 @@ export async function onRequestPost(context) {
                 fileName,
                 fileSize: uploadFile.size,
                 provider: provider.key,
+                ...providerMetadata,
                 ...(shortId ? { shortId } : {}),
             }));
 
