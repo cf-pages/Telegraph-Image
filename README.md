@@ -450,7 +450,7 @@ When the image management feature is enabled, you can manually add images to the
 ![](https://im.gurl.eu.org/file/2193409107d4f2bcd00ee.png)
 
 8. Added record deletion feature
-When the image management feature is enabled, you can manually delete image records in the backend. This only removes the item from the backend list; it does not delete the original file from Telegraph or Telegram. If the file is uploaded and loaded again later, a record may be created again. To prevent the file from loading, use the blacklist feature mentioned in point 6 above.
+When the image management feature is enabled, you can manually delete image records in the backend. Deleting also removes the stored file — see [the note on delete behavior](#image-management-dashboard) for what that covers and what it cannot. When the file was uploaded before that behavior existed, only the record is removed, so the file may produce a record again if it is uploaded and loaded later; to prevent a file from loading, use the blacklist feature mentioned in point 6 above.
 
 9. Added program running mode: Whitelist mode
 When the image management feature is enabled, in addition to the default mode, this update also adds a new running mode. In this mode, only images added to the whitelist will be loaded. Uploaded images need to be approved before they can be displayed, which prevents inappropriate images from loading to the greatest extent. To enable, please set the environment variable: WhiteList_Mode=="true"
