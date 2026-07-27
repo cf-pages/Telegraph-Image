@@ -41,3 +41,25 @@ export function getServingProvider(fileId) {
 
     return telegramProvider;
 }
+
+// The three delete members above only make sense in one combination, so the
+// combining lives here rather than in each caller: remove the stored file before
+// its record, drop the record anyway when the provider could never delete the
+// file, and only report a retryable failure for providers whose stored bytes
+// keep costing the deployment something.
+export async function deleteStoredFile(env, fileId, metadata) {
+    const provider = getServingProvider(fileId);
+
+    if (!provider.canDelete(env, metadata)) {
+        console.error(`Cannot delete ${fileId} from ${provider.key}: nothing to delete against, removing the record only`);
+        return { deleted: false, retryable: false };
+    }
+
+    try {
+        await provider.deleteFile(env, fileId, metadata);
+        return { deleted: true, retryable: false };
+    } catch (error) {
+        console.error(`Failed to delete ${fileId} from ${provider.key}: ${error.message}`);
+        return { deleted: false, retryable: !provider.bestEffortDelete, error };
+    }
+}

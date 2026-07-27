@@ -8,7 +8,6 @@
 //   3. Accept-Language        - the visitor's own preference
 //   4. DEFAULT_LOCALE         - zh, preserving the behavior before i18n existed
 
-export const SUPPORTED_LOCALES = ['zh', 'en'];
 export const DEFAULT_LOCALE = 'zh';
 
 export function resolveLocale(request, env = {}) {
@@ -38,16 +37,18 @@ function fromAcceptLanguage(request) {
   // without q default to 1.0 per RFC 9110.
   const candidates = String(header)
     .split(',')
-    .map((part, index) => {
+    .map(part => {
       const [tag, ...params] = part.trim().split(';');
-      const q = params
-        .map(param => /^\s*q=([0-9.]+)\s*$/i.exec(param))
-        .find(Boolean);
+      const qParam = params.find(param => /^\s*q=[0-9.]+\s*$/i.test(param));
 
-      return { locale: normalizeLocale(tag), quality: q ? parseFloat(q[1]) : 1, index };
+      return {
+        locale: normalizeLocale(tag),
+        quality: qParam ? parseFloat(qParam.split('=')[1]) : 1,
+      };
     })
     .filter(candidate => candidate.locale && candidate.quality > 0)
-    .sort((a, b) => b.quality - a.quality || a.index - b.index);
+    // Array.prototype.sort is stable, so equal q values keep header order.
+    .sort((a, b) => b.quality - a.quality);
 
   return candidates.length ? candidates[0].locale : null;
 }
@@ -80,8 +81,10 @@ const MESSAGES = {
       'MODERATION_PROVIDER 的值无法识别，审查已按 none 处理。可用值为 cloudflare-ai、moderatecontent、none。',
   },
   en: {
-    'storage-missing-config': ({ missing }) =>
-      `Uploads are unavailable: the environment variable${missing.length > 1 ? 's' : ''} ${missing.join(' and ')} ${missing.length > 1 ? 'are' : 'is'} not set. Add ${missing.length > 1 ? 'them' : 'it'} under Settings -> Environment Variables in your Cloudflare Pages project, then redeploy.`,
+    'storage-missing-config': ({ missing }) => {
+      const many = missing.length > 1;
+      return `Uploads are unavailable: the environment variable${many ? 's' : ''} ${missing.join(' and ')} ${many ? 'are' : 'is'} not set. Add ${many ? 'them' : 'it'} under Settings -> Environment Variables in your Cloudflare Pages project, then redeploy.`;
+    },
     'storage-missing-binding': () =>
       'Uploads are unavailable: STORAGE_PROVIDER=r2 but no R2 bucket is bound as img_r2. Add the binding under Settings -> Functions -> R2 bucket bindings, then redeploy.',
     'storage-unknown-provider': ({ provider }) =>
@@ -96,6 +99,10 @@ const MESSAGES = {
       'MODERATION_PROVIDER is not recognized, so review is treated as none. Use cloudflare-ai, moderatecontent, or none.',
   },
 };
+
+// The catalog keys are the supported locales, so adding a language is one edit
+// here rather than a list that can drift out of step with the wording.
+export const SUPPORTED_LOCALES = Object.keys(MESSAGES);
 
 // Falls back to the default locale, then to the code itself, so an untranslated
 // entry degrades to readable text instead of "undefined".

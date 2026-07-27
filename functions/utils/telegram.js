@@ -65,16 +65,11 @@ export function getMessageId(response) {
 // channel. Telegram may still serve the file by file_id for a while afterwards,
 // so this is cleanup, not a guarantee that the bytes become unreachable.
 export async function deleteTelegramMessage(env, messageId) {
-  const url = `https://api.telegram.org/bot${env.TG_Bot_Token}/deleteMessage`;
-  const body = new FormData();
-  body.append('chat_id', env.TG_Chat_ID);
-  body.append('message_id', String(messageId));
+  const body = createTelegramFormData(env.TG_Chat_ID, 'message_id', String(messageId));
 
-  const response = await fetch(url, { method: 'POST', body });
-  const data = await parseTelegramResponse(response);
-
-  if (!response.ok || !data?.ok) {
-    throw new Error(formatTelegramError('deleteMessage', response, data));
+  const result = await sendToTelegram(body, 'deleteMessage', env);
+  if (!result.success) {
+    throw new Error(result.error);
   }
 }
 

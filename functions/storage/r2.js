@@ -55,9 +55,7 @@ export const r2Provider = {
     // stored bytes until they are, so deleting the KV record is not enough.
     // R2 deletes are idempotent, so removing an already-missing key is fine.
     async deleteFile(env, fileId) {
-        if (!env.img_r2) {
-            throw new Error('R2 bucket binding (img_r2) is not configured');
-        }
+        this.validateConfig(env);
 
         await env.img_r2.delete(fileId);
     },
