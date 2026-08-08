@@ -17,9 +17,10 @@ describe('upload function', function () {
     restoreConsole();
   });
 
-  async function createUploadRequest(file) {
+  async function createUploadRequest(file, imageUploadMode) {
     const formData = new FormData();
     formData.append('file', file);
+    if (imageUploadMode) formData.append('imageUploadMode', imageUploadMode);
 
     return new Request('https://example.com/upload', {
       method: 'POST',
@@ -106,6 +107,81 @@ describe('upload function', function () {
     assert.strictEqual(res.status, 200);
     assert.deepStrictEqual(JSON.parse(await res.text()), [{ src: '/file/doc-id.webp' }]);
     assert.strictEqual(fetchMock.calls.length, 2);
+  });
+
+  it('uploads images directly as documents when original quality is selected', async function () {
+    const { onRequestPost } = await import('../functions/upload.js');
+
+    fetchMock = installFetchMock(async (input, init) => {
+      assert.strictEqual(String(input), 'https://api.telegram.org/botbot-token/sendDocument');
+      assert.ok(init.body.get('document') instanceof File);
+      assert.strictEqual(init.body.get('photo'), null);
+      return Response.json({
+        ok: true,
+        result: { document: { file_id: 'original-id' } },
+      });
+    });
+
+    const request = await createUploadRequest(
+      new File(['image-bytes'], 'cat.png', { type: 'image/png' }),
+      'document',
+    );
+    const res = await onRequestPost(makeContext({
+      request,
+      env: {
+        disable_telemetry: 'true',
+        TG_Bot_Token: 'bot-token',
+        TG_Chat_ID: '-100123',
+      },
+    }));
+
+    assert.strictEqual(res.status, 200);
+    assert.deepStrictEqual(JSON.parse(await res.text()), [{ src: '/file/original-id.png' }]);
+    assert.strictEqual(fetchMock.calls.length, 1);
+  });
+
+  it('rejects original-quality Telegram images larger than the 20 MB serving limit', async function () {
+    const { onRequestPost } = await import('../functions/upload.js');
+    const oversizedImage = new File(
+      [new Uint8Array(20 * 1024 * 1024 + 1)],
+      'large.png',
+      { type: 'image/png' },
+    );
+    const request = await createUploadRequest(oversizedImage, 'document');
+
+    const res = await onRequestPost(makeContext({
+      request,
+      env: {
+        disable_telemetry: 'true',
+        TG_Bot_Token: 'bot-token',
+        TG_Chat_ID: '-100123',
+      },
+    }));
+
+    assert.strictEqual(res.status, 413);
+    assert.deepStrictEqual(JSON.parse(await res.text()), {
+      error: 'Original-quality Telegram images must not exceed 20 MB',
+    });
+  });
+
+  it('rejects an unsupported image upload mode', async function () {
+    const { onRequestPost } = await import('../functions/upload.js');
+    const request = await createUploadRequest(
+      new File(['image-bytes'], 'cat.png', { type: 'image/png' }),
+      'lossless-ish',
+    );
+
+    const res = await onRequestPost(makeContext({
+      request,
+      env: {
+        disable_telemetry: 'true',
+        TG_Bot_Token: 'bot-token',
+        TG_Chat_ID: '-100123',
+      },
+    }));
+
+    assert.strictEqual(res.status, 400);
+    assert.deepStrictEqual(JSON.parse(await res.text()), { error: 'Invalid image upload mode' });
   });
 
   it('uploads non-media files with sendDocument', async function () {

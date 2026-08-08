@@ -119,7 +119,7 @@ Bindings (`Settings` -> `Functions`):
 
 8. Pluggable storage: files live on Telegram by default, or in a Cloudflare R2 bucket with one environment variable — old links keep working either way
 
-9. Batch upload with drag & drop and paste support, per-file progress, and one-click copy as URL / Markdown / BBCode / HTML; optional anti-hotlinking via a referer allowlist
+9. Batch upload with drag & drop and paste support, optional original-quality image uploads, per-file progress, and one-click copy as URL / Markdown / BBCode / HTML; optional anti-hotlinking via a referer allowlist
 
 10. Deployment self-check: when configuration is incomplete the homepage says which environment variable or binding is missing and where to set it, instead of failing on the first upload
 
@@ -209,6 +209,12 @@ The upload endpoint is `POST /upload` using `multipart/form-data`, with the file
 
 ```bash
 curl -F "file=@/path/to/image.png" https://your.domain/upload
+```
+
+To preserve an image's original quality with Telegram storage, send it as a document by adding `imageUploadMode=document`. Original-quality Telegram images are limited to 20MB so the resulting file can still be served through the Bot API:
+
+```bash
+curl -F "file=@/path/to/image.png" -F "imageUploadMode=document" https://your.domain/upload
 ```
 
 The response is a JSON array where `src` is the file's access path (with short links enabled, this returns the short link directly):

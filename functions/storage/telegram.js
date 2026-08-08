@@ -14,8 +14,8 @@ export const telegramProvider = {
         validateTelegramConfig(env);
     },
 
-    async upload(env, file, { fileExtension }) {
-        const { endpoint, field } = getUploadTarget(file);
+    async upload(env, file, { fileExtension, imageUploadMode }) {
+        const { endpoint, field } = getUploadTarget(file, imageUploadMode);
         const formData = createTelegramFormData(env.TG_Chat_ID, field, file);
 
         const result = await sendToTelegram(formData, endpoint, env);

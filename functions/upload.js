@@ -5,6 +5,8 @@ import { createDefaultMetadata, putMetadata } from "./utils/metadata.js";
 import { allocateShortId, isShortUrlsEnabled, putShortLink } from "./utils/shortlink.js";
 import { getUploadProvider } from "./storage/index.js";
 
+const TELEGRAM_SERVABLE_FILE_LIMIT = 20 * 1024 * 1024;
+
 export async function onRequestPost(context) {
     const { request, env } = context;
 
@@ -28,10 +30,35 @@ export async function onRequestPost(context) {
             throw new Error('No file uploaded');
         }
 
+        const requestedImageUploadMode = formData.get('imageUploadMode');
+        if (
+            requestedImageUploadMode !== null
+            && requestedImageUploadMode !== 'photo'
+            && requestedImageUploadMode !== 'document'
+        ) {
+            return jsonResponse({ error: 'Invalid image upload mode' }, { status: 400 });
+        }
+        const imageUploadMode = requestedImageUploadMode || 'photo';
+
+        if (
+            provider.key === 'telegram'
+            && imageUploadMode === 'document'
+            && uploadFile.type.startsWith('image/')
+            && uploadFile.size > TELEGRAM_SERVABLE_FILE_LIMIT
+        ) {
+            return jsonResponse({
+                error: 'Original-quality Telegram images must not exceed 20 MB',
+            }, { status: 413 });
+        }
+
         const fileName = uploadFile.name;
         const fileExtension = fileName.split('.').pop().toLowerCase();
 
-        const longId = await provider.upload(env, uploadFile, { fileName, fileExtension });
+        const longId = await provider.upload(env, uploadFile, {
+            fileName,
+            fileExtension,
+            imageUploadMode,
+        });
         let shortId = null;
 
         // 将文件信息保存到 KV 存储

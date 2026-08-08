@@ -119,7 +119,7 @@
 
 8.可插拔的存储后端：文件默认存储在 Telegram，也可通过一个环境变量切换到 Cloudflare R2 存储桶——切换后旧链接依然有效
 
-9.批量上传，支持拖拽和粘贴上传、逐文件进度显示，以及 URL / Markdown / BBCode / HTML 四种格式一键复制；可选的 Referer 白名单防盗链
+9.批量上传，支持拖拽和粘贴上传、图片原画质上传、逐文件进度显示，以及 URL / Markdown / BBCode / HTML 四种格式一键复制；可选的 Referer 白名单防盗链
 
 10.部署自检：配置缺失时首页会直接指出缺哪个环境变量或绑定、去哪里补，而不是等到第一次上传才失败
 
@@ -209,6 +209,12 @@
 
 ```bash
 curl -F "file=@/path/to/image.png" https://your.domain/upload
+```
+
+使用 Telegram 存储时，如需保留图片原画质，可增加 `imageUploadMode=document` 将图片作为文件发送。为了保证生成的链接仍能通过 Bot API 加载，原画质图片最大支持 20MB：
+
+```bash
+curl -F "file=@/path/to/image.png" -F "imageUploadMode=document" https://your.domain/upload
 ```
 
 返回一个 JSON 数组，`src` 为文件的访问路径（开启短链接功能后，这里会直接返回短链接）：

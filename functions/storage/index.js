@@ -4,7 +4,7 @@ import { r2Provider } from './r2.js';
 // Storage provider contract:
 //   key                                       - tag persisted in KV metadata for provenance
 //   validateConfig(env)                       - throws when required bindings/vars are missing
-//   upload(env, file, { fileName, fileExtension }) -> long file id (string)
+//   upload(env, file, { fileName, fileExtension, imageUploadMode }) -> long file id (string)
 //   fetchFile(env, request, url, fileId)      -> Response with the file body
 const PROVIDERS = {
     [telegramProvider.key]: telegramProvider,

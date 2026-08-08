@@ -143,6 +143,16 @@ footer a:hover { opacity: .75; }
 .btn.small { padding: 7px 14px; font-size: 12px; gap: 6px; }
 .btn .icon { width: 13px; height: 13px; }
 #file-input { display: none; }
+.quality-option {
+  display: flex; align-items: center; gap: 8px; width: 100%; max-width: 220px;
+  padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px;
+  background: rgba(255, 255, 255, .72); cursor: pointer;
+}
+.quality-option:hover { border-color: #dce3e9; background: #fff; }
+.quality-option[hidden] { display: none; }
+.quality-option input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); flex: none; }
+.quality-option span { min-width: 0; font-size: 11px; line-height: 1.45; color: var(--muted); }
+.quality-option b { display: block; color: var(--ink); font-size: 12px; }
 
 /* ---- right: results ---- */
 .results { flex: 1; min-width: 0; display: flex; flex-direction: column; }
@@ -285,6 +295,10 @@ footer a:hover { opacity: .75; }
           </div>
           <p class="hint"><b>点击、拖拽或粘贴上传</b>支持批量上传<br>图片 / 视频 / 音频 / 文档</p>
           <button class="btn" type="button" id="pick"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16.5V4.5m0 0L7.25 9.25M12 4.5l4.75 4.75M4 16.5v2.25A1.75 1.75 0 0 0 5.75 20.5h12.5A1.75 1.75 0 0 0 20 18.75V16.5"/></svg><span>选择上传文件</span></button>
+          <label class="quality-option" id="quality-option">
+            <input type="checkbox" id="original-quality">
+            <span><b>保留图片原画质</b>作为文件上传，最大 20 MB</span>
+          </label>
         </div>
       </div>
       <input id="file-input" type="file" multiple>
@@ -328,6 +342,7 @@ footer a:hover { opacity: .75; }
   var COPY_ICON = '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11.5" height="11.5" rx="2.2"/><path d="M5.5 15.5H5a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 5 3.5h9A1.5 1.5 0 0 1 15.5 5v.5"/></svg>';
 
   var MAX_CONCURRENT = 3;
+  var ORIGINAL_QUALITY_MAX_SIZE = 20 * 1024 * 1024;
   var uploaded = [];        // { url, fileName }
   var activeUploads = 0;
   var pending = [];
@@ -340,6 +355,8 @@ footer a:hover { opacity: .75; }
   var linkOutput = document.getElementById('link-output');
   var fileCount = document.getElementById('file-count');
   var toast = document.getElementById('toast');
+  var originalQuality = document.getElementById('original-quality');
+  var qualityOption = document.getElementById('quality-option');
   var toastTimer = null;
 
   // ---- wallpaper slideshow ----
@@ -387,6 +404,9 @@ footer a:hover { opacity: .75; }
       var adminLink = document.getElementById('admin-link');
       if (adminLink) adminLink.remove();
     }
+    if (config.setup && config.setup.storageProvider === 'r2') {
+      qualityOption.hidden = true;
+    }
     renderSetupProblems(config.problems);
   }).catch(function () { /* defaults already in markup */ });
 
@@ -417,6 +437,8 @@ footer a:hover { opacity: .75; }
     event.stopPropagation();   // the card itself already opens the picker
     fileInput.click();
   });
+  qualityOption.addEventListener('click', function (event) { event.stopPropagation(); });
+  qualityOption.addEventListener('keydown', function (event) { event.stopPropagation(); });
   fileInput.addEventListener('change', function () {
     enqueueFiles(fileInput.files);
     fileInput.value = '';
@@ -456,8 +478,17 @@ footer a:hover { opacity: .75; }
   // ---- upload queue ----
   function enqueueFiles(fileList) {
     Array.prototype.forEach.call(fileList, function (file) {
+      var imageUploadMode = originalQuality.checked ? 'document' : 'photo';
       var item = createQueueItem(file);
-      pending.push({ file: file, item: item });
+      if (
+        imageUploadMode === 'document'
+        && file.type.indexOf('image/') === 0
+        && file.size > ORIGINAL_QUALITY_MAX_SIZE
+      ) {
+        failItem(item, file, '原画质模式最大支持 20 MB');
+        return;
+      }
+      pending.push({ file: file, item: item, imageUploadMode: imageUploadMode });
     });
     updateCount();
     pumpQueue();
@@ -467,7 +498,7 @@ footer a:hover { opacity: .75; }
     while (activeUploads < MAX_CONCURRENT && pending.length) {
       var next = pending.shift();
       activeUploads++;
-      uploadFile(next.file, next.item);
+      uploadFile(next.file, next.item, next.imageUploadMode);
     }
   }
 
@@ -516,9 +547,10 @@ footer a:hover { opacity: .75; }
     return { root: item, meta: meta, bar: progress.firstChild };
   }
 
-  function uploadFile(file, item) {
+  function uploadFile(file, item, imageUploadMode) {
     var formData = new FormData();
     formData.append('file', file);
+    formData.append('imageUploadMode', imageUploadMode);
 
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/upload');

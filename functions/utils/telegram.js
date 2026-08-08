@@ -12,8 +12,11 @@ export function validateTelegramConfig(env) {
   }
 }
 
-export function getUploadTarget(file) {
+export function getUploadTarget(file, imageUploadMode = 'photo') {
   if (file.type.startsWith('image/')) {
+    if (imageUploadMode === 'document') {
+      return { endpoint: 'sendDocument', field: 'document' };
+    }
     return { endpoint: 'sendPhoto', field: 'photo' };
   }
 
