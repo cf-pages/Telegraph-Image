@@ -2,10 +2,6 @@
 #
 # Metadata, image-management records, and short-link mappings are stored in
 # Cloudflare KV through the `img_url` binding.
-#
-# Replace the placeholder IDs below with the ID of your existing KV namespace
-# before merging/deploying this branch. Production and preview may use the same
-# namespace if you intentionally want them to share metadata.
 
 name = "telegraph-image"
 pages_build_output_dir = "."
@@ -13,5 +9,5 @@ compatibility_date = "2026-08-27"
 
 [[kv_namespaces]]
 binding = "img_url"
-id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
-preview_id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+id = "6e39ced280fd4eb983c927fdc547ca19"
+preview_id = "6e39ced280fd4eb983c927fdc547ca19"
