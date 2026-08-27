@@ -8,8 +8,7 @@
   },
   "dependencies": {
     "@cloudflare/pages-plugin-sentry": "^1.1.3",
-    "@sentry/tracing": "^7.114.0",
-    "pg": "^8.23.0"
+    "@sentry/tracing": "^7.114.0"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
