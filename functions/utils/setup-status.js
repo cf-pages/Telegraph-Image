@@ -1,5 +1,5 @@
 import { isEmptyBinding } from './http.js';
-import { hasMetadataStore, metadataProvider, postgresConnectionString } from './metadata-store.js';
+import { hasMetadataStore } from './metadata-store.js';
 
 // Deployment self-check. Most support requests about this project are a missing
 // binding or an unset variable that only surfaces as a failed upload much later,
@@ -33,18 +33,9 @@ export function getSetupStatus(env) {
 }
 
 function metadataStatus(env) {
-  const provider = metadataProvider(env);
-  if (provider === 'postgres') {
-    return {
-      provider,
-      state: postgresConnectionString(env) ? 'ok' : 'missing-config',
-    };
-  }
-  if (provider === 'kv') {
-    return { provider, state: env.img_url ? 'ok' : 'missing-binding' };
-  }
-  if (provider === 'none') return { provider, state: 'disabled' };
-  return { provider, state: 'unknown-provider' };
+  return env.img_url
+    ? { provider: 'kv', state: 'ok' }
+    : { provider: 'kv', state: 'missing-binding' };
 }
 
 function storageStatus(env) {
@@ -104,7 +95,7 @@ function problemsFor(storage, checks) {
   if (storage.state === 'missing-binding') {
     problems.push({
       severity: 'error',
-      message: '上传不可用：STORAGE_PROVIDER=r2 但没有绑定名为 img_r2 的 R2 存储桶。请在「设置 → 函数 → R2 存储桶绑定」中添加，然后重新部署。',
+      message: '上传不可用：STORAGE_PROVIDER=r2 但没有绑定名为 img_r2 的 R2 存储桶。请在 wrangler.toml 中配置对应绑定，然后重新部署。',
     });
   }
 
@@ -116,22 +107,10 @@ function problemsFor(storage, checks) {
   }
 
   if (checks.dashboard === 'unbound') {
-    if (checks.metadata.provider === 'postgres' && checks.metadata.state === 'missing-config') {
-      problems.push({
-        severity: 'info',
-        message: '后台图片管理未启用：METADATA_PROVIDER=postgres 时需要设置密钥 POSTGRES_URL（或 DATABASE_URL）并重新部署。',
-      });
-    } else if (checks.metadata.state === 'unknown-provider') {
-      problems.push({
-        severity: 'info',
-        message: '后台图片管理未启用：METADATA_PROVIDER 可用值为 kv、postgres 或 none。',
-      });
-    } else {
-      problems.push({
-        severity: 'info',
-        message: '后台图片管理未启用：绑定名为 img_url 的 KV，或设置 METADATA_PROVIDER=postgres 及 POSTGRES_URL。短链接功能也依赖元数据存储。',
-      });
-    }
+    problems.push({
+      severity: 'info',
+      message: '后台图片管理未启用：缺少名为 img_url 的 Cloudflare KV 绑定。短链接功能也依赖该 KV。',
+    });
   }
 
   if (checks.moderation === 'cloudflare-ai-missing-binding') {
