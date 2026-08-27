@@ -5,5 +5,12 @@
   "compatibility_date": "2026-08-16",
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "img_url",
+      "id": "6e39ced280fd4eb983c927fdc547ca19",
+      "preview_id": "6e39ced280fd4eb983c927fdc547ca19"
+    }
   ]
 }
